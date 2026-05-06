@@ -1,0 +1,7 @@
+{
+  "name": "voxfit",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
