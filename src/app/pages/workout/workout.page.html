@@ -1,4 +1,4 @@
-@if (view() === 'detail') {
+@if (view() === 'detail' && detail(); as d) {
   <ion-header translucent class="vox-header">
     <ion-toolbar>
       <ion-buttons slot="start">
@@ -6,7 +6,7 @@
           <ion-icon name="chevron-back-outline" aria-hidden="true" />
         </button>
       </ion-buttons>
-      <ion-title>{{ detail.title }} · {{ detail.dateLabel }}</ion-title>
+      <ion-title>{{ d.title }} · {{ d.dateLabel }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
@@ -15,55 +15,32 @@
       <div class="mb-4 grid grid-cols-3 gap-3">
         <div class="rounded-xl bg-[var(--vox-bg-tertiary)] px-2 py-3 text-center">
           <p class="m-0 text-xs text-[var(--vox-text-muted)]">Mood</p>
-          <p class="m-0 mt-1 text-lg leading-none">{{ detail.moodEmoji }}</p>
-          <p class="m-0 mt-1 text-xs font-semibold text-[var(--vox-green)]">{{ detail.moodLabel }}</p>
+          <p class="m-0 mt-1 text-lg leading-none">{{ d.moodEmoji }}</p>
+          <p class="m-0 mt-1 text-xs font-semibold text-[var(--vox-green)]">{{ d.moodLabel }}</p>
         </div>
         <div class="rounded-xl bg-[var(--vox-bg-tertiary)] px-2 py-3 text-center">
           <p class="m-0 text-xs text-[var(--vox-text-muted)]">Energy</p>
-          <p class="m-0 mt-1 text-sm font-bold leading-tight text-[var(--vox-orange)]">{{ detail.energyLabel }}</p>
+          <p class="m-0 mt-1 text-sm font-bold leading-tight text-[var(--vox-orange)]">{{ d.energyLabel }}</p>
         </div>
         <div class="rounded-xl bg-[var(--vox-bg-tertiary)] px-2 py-3 text-center">
           <p class="m-0 text-xs text-[var(--vox-text-muted)]">Volume</p>
-          <p class="m-0 mt-1 text-sm font-bold tabular-nums text-[var(--vox-accent)]">{{ detail.volumeLabel }}</p>
+          <p class="m-0 mt-1 text-sm font-bold tabular-nums text-[var(--vox-accent)]">{{ d.volumeLabel }}</p>
         </div>
-      </div>
-      <div
-        class="rounded-xl border px-4 py-3"
-        style="background: var(--vox-green-dim); border-color: rgba(34, 201, 138, 0.28)"
-      >
-        <p class="m-0 mb-1 text-xs font-bold text-[var(--vox-green)]">AI Coach Note</p>
-        <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ detail.coachNote }}</p>
       </div>
     </div>
 
-    <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
-      <p class="mb-4 text-base font-bold text-[var(--ion-text-color)]">Exercises</p>
-      @for (ex of detail.exercises; track ex.name; let i = $index) {
-        <div
-          class="flex items-center justify-between gap-3 py-3"
-          [style.border-bottom]="
-            i < detail.exercises.length - 1 ? '1px solid var(--ion-border-color)' : 'none'
-          "
-        >
-          <div class="min-w-0 flex-1">
-            <p class="m-0 text-base font-semibold text-[var(--ion-text-color)]">{{ ex.name }}</p>
-            <p class="m-0 mt-1 text-sm text-[var(--vox-text-muted)]">{{ ex.detail }}</p>
-          </div>
-          @if (ex.pr) {
-            <span
-              class="shrink-0 rounded-lg px-3 py-1 text-xs font-bold text-[var(--vox-orange)]"
-              style="background: var(--vox-orange-dim)"
-            >
-              PR 🏆
-            </span>
-          }
-        </div>
-      }
-    </div>
+    <app-session-exercise-review-card
+      class="mb-5 block"
+      [sessionContextId]="detailSessionId() ?? undefined"
+      [sessionTitle]="d.title"
+      [coachSummary]="d.coachNote || null"
+      [exercises]="detailExercises()"
+      (exercisesChange)="onJournalExercisesChange($event)"
+    />
 
     <div class="rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
-      <p class="m-0 mb-2 text-xs font-bold text-[var(--vox-rose)]">⚠️ {{ detail.flagsTitle }}</p>
-      <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ detail.flagsBody }}</p>
+      <p class="m-0 mb-2 text-xs font-bold text-[var(--vox-rose)]">⚠️ {{ d.flagsTitle }}</p>
+      <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ d.flagsBody }}</p>
     </div>
   </ion-content>
 } @else {
@@ -77,6 +54,15 @@
   </ion-header>
 
   <ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
+    @if (journal.loadState() === 'loading' && journal.sessions().length === 0) {
+      <p class="mb-4 text-center text-sm text-[var(--vox-text-muted)]">Loading your sessions…</p>
+    }
+    @if (journal.loadState() === 'error' && journal.lastError()) {
+      <p class="mb-4 rounded-xl border px-3 py-3 text-sm text-[var(--vox-rose)]" style="background: var(--vox-rose-dim)">
+        Could not load workouts: {{ journal.lastError() }}
+      </p>
+    }
+
     <div class="mb-4 flex flex-wrap gap-2">
       @for (f of filters; track f.id) {
         <button
@@ -93,25 +79,36 @@
     </div>
 
     <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
-      <p class="mb-4 text-base font-bold text-[var(--ion-text-color)]">{{ weekly.label }}</p>
+      <p class="mb-4 text-base font-bold text-[var(--ion-text-color)]">{{ journal.weeklyVolume().label }}</p>
       <div class="flex h-[4.5rem] items-end gap-2">
-        @for (v of weekly.values; track $index; let i = $index) {
+        @for (bar of weeklyBars(); track bar.label + $index) {
           <div class="flex min-w-0 flex-1 flex-col items-center gap-1">
             <div
               class="w-full rounded-t-md"
-              [style.height.px]="v + 8"
-              [style.background]="i === weekly.values.length - 1 ? 'var(--vox-accent)' : 'rgba(124, 106, 247, 0.45)'"
+              [style.height.px]="bar.heightPx"
+              [style.background]="bar.isToday ? 'var(--vox-accent)' : 'rgba(124, 106, 247, 0.45)'"
             ></div>
-            <span class="text-[11px] font-medium text-[var(--vox-text-hint)]">{{ weekly.dayLabels[i] }}</span>
+            <span class="text-[11px] font-medium text-[var(--vox-text-hint)]">{{ bar.label }}</span>
           </div>
         }
       </div>
     </div>
 
-    @for (s of sessions; track s.label + s.dateLabel) {
+    @if (sessionList().length === 0 && journal.loadState() !== 'loading') {
+      <div
+        class="rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-8 text-center"
+      >
+        <p class="m-0 text-base font-bold text-[var(--ion-text-color)]">No sessions yet</p>
+        <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--vox-text-muted)]">
+          Log your first workout from the home tab to see it here — your volume chart updates automatically.
+        </p>
+      </div>
+    }
+
+    @for (s of sessionList(); track s.id) {
       <button
         type="button"
-        (click)="openDetail()"
+        (click)="openDetail(s.id)"
         class="mb-3 w-full rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] p-0 text-left active:opacity-[0.92]"
       >
         <div class="px-4 py-4">

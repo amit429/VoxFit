@@ -47,3 +47,17 @@
   transform-origin: center bottom;
   animation: vox-wave 0.45s ease-in-out infinite alternate;
 }
+
+/** Host-only variables for sheet modal; inner layout is in `exercise-editor-modal.component.scss`
+ *  (global selectors cannot pierce ion-modal shadow for `.vbs-shell`, etc.). */
+ion-modal.vox-bottom-sheet {
+  --border-radius: 1.15rem 1.15rem 0 0;
+  --box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+  --backdrop-opacity: 0.42;
+}
+
+/* Legacy class */
+ion-modal.eed-sheet {
+  --border-radius: 1.15rem 1.15rem 0 0;
+  --box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+}

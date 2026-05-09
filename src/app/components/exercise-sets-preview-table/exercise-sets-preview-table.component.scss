@@ -1,0 +1,64 @@
+.est-wrap {
+  overflow-x: auto;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--ion-border-color) 85%, transparent);
+  background: color-mix(in srgb, var(--vox-bg-primary) 92%, var(--vox-surface));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--ion-text-color) 6%, transparent),
+    0 12px 32px -18px rgba(0, 0, 0, 0.55);
+}
+
+.est-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.est-table th,
+.est-table td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--ion-border-color) 70%, transparent);
+}
+
+.est-table th {
+  font-weight: 650;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vox-text-muted);
+  background: color-mix(in srgb, var(--vox-accent) 8%, transparent);
+}
+
+.est-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.est-table td {
+  color: var(--ion-text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.est-row {
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.est-row:hover {
+  background: color-mix(in srgb, var(--vox-accent) 12%, transparent);
+}
+
+.est-row:active {
+  transform: scale(0.99);
+}
+
+.est-row--hi {
+  background: color-mix(in srgb, var(--vox-accent) 18%, transparent);
+}
+
+.est-row:focus-visible {
+  outline: 2px solid var(--vox-accent);
+  outline-offset: -2px;
+}

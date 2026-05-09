@@ -30,13 +30,13 @@
             Current Streak
           </p>
           <p class="m-0 text-[1.75rem] font-black leading-tight text-[var(--vox-accent)] sm:text-[2rem]">
-            {{ streak.days }} days 🔥
+            {{ journal.streak().days }} days 🔥
           </p>
         </div>
         <div class="text-right">
           <p class="m-0 text-xs text-[var(--vox-text-muted)]">This week</p>
           <div class="mt-2 flex justify-end gap-1.5">
-            @for (d of streak.weekDots; track $index) {
+            @for (d of journal.streak().weekDots; track $index) {
               <div
                 class="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-semibold"
                 [style.background]="d.completed ? 'var(--vox-accent)' : 'var(--vox-border-medium)'"
@@ -52,34 +52,59 @@
 
     <!-- Today workout -->
     <div class="mb-4 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-bold text-[var(--ion-text-color)]">{{ workoutCard.title }}</span>
-        <span
-          class="rounded-lg px-3 py-1 text-xs font-bold"
-          [style.background]="workoutCard.statusTone === 'success' ? 'var(--vox-green-dim)' : 'var(--vox-border-medium)'"
-          [style.color]="workoutCard.statusTone === 'success' ? 'var(--vox-green)' : 'var(--vox-text-muted)'"
-        >
-          {{ workoutCard.statusLabel }}
-        </span>
-      </div>
-      <p class="m-0 mb-3 text-sm leading-snug text-[var(--vox-text-muted)]">{{ workoutCard.subtitle }}</p>
-      <div class="flex flex-wrap gap-2">
-        @for (ex of workoutCard.exerciseChips; track ex) {
+      @if (journal.hasLoggedToday() && journal.todayWorkout(); as workoutCard) {
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <span class="text-sm font-bold text-[var(--ion-text-color)]">{{ workoutCard.title }}</span>
           <span
-            class="rounded-lg px-3 py-1 text-xs text-[var(--vox-text-muted)]"
-            style="background: var(--vox-bg-tertiary)"
+            class="rounded-lg px-3 py-1 text-xs font-bold"
+            [style.background]="workoutCard.statusTone === 'success' ? 'var(--vox-green-dim)' : 'var(--vox-border-medium)'"
+            [style.color]="workoutCard.statusTone === 'success' ? 'var(--vox-green)' : 'var(--vox-text-muted)'"
           >
-            {{ ex }}
+            {{ workoutCard.statusLabel }}
           </span>
-        }
-      </div>
-      <div
-        class="mt-4 rounded-xl border px-3 py-3"
-        style="background: var(--vox-green-dim); border-color: rgba(34, 201, 138, 0.28)"
-      >
-        <p class="m-0 mb-1 text-xs font-bold text-[var(--vox-green)]">{{ workoutCard.coachTitle }}</p>
-        <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ workoutCard.coachNote }}</p>
-      </div>
+        </div>
+        <p class="m-0 mb-3 text-sm leading-snug text-[var(--vox-text-muted)]">{{ workoutCard.subtitle }}</p>
+        <div class="flex flex-wrap gap-2">
+          @for (ex of workoutCard.exerciseChips; track ex) {
+            <span
+              class="rounded-lg px-3 py-1 text-xs text-[var(--vox-text-muted)]"
+              style="background: var(--vox-bg-tertiary)"
+            >
+              {{ ex }}
+            </span>
+          }
+        </div>
+        <div
+          class="mt-4 rounded-xl border px-3 py-3"
+          style="background: var(--vox-green-dim); border-color: rgba(34, 201, 138, 0.28)"
+        >
+          <p class="m-0 mb-1 text-xs font-bold text-[var(--vox-green)]">{{ workoutCard.coachTitle }}</p>
+          <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ workoutCard.coachNote }}</p>
+        </div>
+      } @else {
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <span class="text-sm font-bold text-[var(--ion-text-color)]">Today's Workout</span>
+          <span
+            class="rounded-lg px-3 py-1 text-xs font-bold"
+            style="background: var(--vox-border-medium); color: var(--vox-text-muted)"
+          >
+            Not logged yet
+          </span>
+        </div>
+        <p class="m-0 text-sm leading-snug text-[var(--vox-text-muted)]">
+          You have not logged a workout today. Hit the button below and tell VoxFit what you did — we will turn it into a
+          structured session.
+        </p>
+        <div
+          class="mt-4 rounded-xl border px-3 py-3"
+          style="background: var(--vox-bg-tertiary); border-color: var(--ion-border-color)"
+        >
+          <p class="m-0 mb-1 text-xs font-bold text-[var(--vox-text-muted)]">Tip</p>
+          <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">
+            Mention exercises, sets, reps, and weight — streaks and your journal chart update as soon as you save.
+          </p>
+        </div>
+      }
     </div>
 
     <!-- Macros -->

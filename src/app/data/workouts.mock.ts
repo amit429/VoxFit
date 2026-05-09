@@ -2,8 +2,10 @@ import type { WeeklyVolumeMock, WorkoutDetailMock, WorkoutSessionListMock } from
 
 export const DUMMY_WORKOUT_SESSIONS: WorkoutSessionListMock[] = [
   {
+    id: '00000000-0000-0000-0000-000000000001',
     label: 'Chest Day',
     dateLabel: 'Today',
+    dateKey: '',
     exercises: 4,
     moodEmoji: '😊',
     energyLabel: 'High',
@@ -11,8 +13,10 @@ export const DUMMY_WORKOUT_SESSIONS: WorkoutSessionListMock[] = [
     hasPr: true,
   },
   {
+    id: '00000000-0000-0000-0000-000000000002',
     label: 'Leg Day',
     dateLabel: 'Yesterday',
+    dateKey: '',
     exercises: 5,
     moodEmoji: '😐',
     energyLabel: 'Medium',
@@ -20,8 +24,10 @@ export const DUMMY_WORKOUT_SESSIONS: WorkoutSessionListMock[] = [
     hasPr: false,
   },
   {
+    id: '00000000-0000-0000-0000-000000000003',
     label: 'Back & Bis',
     dateLabel: 'Mon',
+    dateKey: '',
     exercises: 6,
     moodEmoji: '😊',
     energyLabel: 'High',
@@ -29,8 +35,10 @@ export const DUMMY_WORKOUT_SESSIONS: WorkoutSessionListMock[] = [
     hasPr: true,
   },
   {
+    id: '00000000-0000-0000-0000-000000000004',
     label: 'Rest Day',
     dateLabel: 'Sun',
+    dateKey: '',
     exercises: 0,
     moodEmoji: '😴',
     energyLabel: 'Low',

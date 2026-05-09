@@ -1,0 +1,209 @@
+<!-- ion-modal + ng-template must live in THIS component so form content renders (Angular + Ionic).
+     Shell styles: ion-modal.vox-bottom-sheet in theme/vox-ui.scss -->
+<ion-modal
+  [isOpen]="isOpen()"
+  (didDismiss)="onModalDidDismiss()"
+  [breakpoints]="[0, 1]"
+  [initialBreakpoint]="1"
+  handle="true"
+  cssClass="vox-bottom-sheet"
+  [keepContentsMounted]="false"
+>
+  <ng-template>
+    <div class="vbs-shell">
+        <ion-header class="vbs-header ion-no-border">
+          <ion-toolbar class="vbs-toolbar">
+            <div class="vbs-title-wrap" slot="start">
+              <h2 class="vbs-heading">{{ modalTitle() }}</h2>
+            </div>
+            <ion-buttons slot="end" class="vbs-buttons-end">
+              <ion-button
+                fill="clear"
+                size="small"
+                class="vbs-close-btn"
+                (click)="onModalDidDismiss()"
+                aria-label="Close editor"
+              >
+                <ion-icon slot="icon-only" name="close-outline" />
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content
+          class="vbs-content"
+          [fullscreen]="false"
+          [scrollY]="true"
+          [forceOverscroll]="false"
+        >
+          <div class="vbs-body">
+          @if (saveError) {
+            <ion-text color="danger" class="eed-error">
+              <p>{{ saveError }}</p>
+            </ion-text>
+          }
+
+          <ion-item lines="none" class="eed-field">
+            <ion-input
+              label="Exercise name"
+              labelPlacement="stacked"
+              [(ngModel)]="draftName"
+              name="eedName"
+              placeholder="e.g. Bench press"
+              autocomplete="off"
+            />
+          </ion-item>
+
+          <ion-item lines="none" class="eed-field">
+            <ion-select
+              label="Type"
+              labelPlacement="stacked"
+              interface="action-sheet"
+              [value]="draftExerciseType"
+              (ionChange)="onExerciseTypeChange($event)"
+              name="eedType"
+            >
+              <ion-select-option value="strength">Strength</ion-select-option>
+              <ion-select-option value="cardio">Cardio</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item lines="none" class="eed-toggle">
+            <ion-toggle [(ngModel)]="draftIsPr" name="eedPr">Mark as PR</ion-toggle>
+          </ion-item>
+
+          <div class="eed-section-head">
+            <span class="eed-section-label">Sets</span>
+            <ion-button size="small" fill="clear" class="eed-add" (click)="addLine()">
+              <ion-icon slot="start" name="add-outline" aria-hidden="true" />
+              Add row
+            </ion-button>
+          </div>
+
+          <div class="eed-lines">
+            @for (line of draftLines; track $index; let i = $index) {
+              <div class="eed-line-card" [id]="'eed-line-' + i">
+                <div class="eed-line-card__top">
+                  <span class="eed-line-badge">Row {{ i + 1 }}</span>
+                  @if (draftLines.length > 1) {
+                    <ion-button
+                      size="small"
+                      fill="clear"
+                      color="medium"
+                      class="eed-remove"
+                      (click)="removeLine(i)"
+                      aria-label="Remove row"
+                    >
+                      <ion-icon slot="icon-only" name="trash-outline" />
+                    </ion-button>
+                  }
+                </div>
+
+                @if (draftExerciseType === 'strength') {
+                  <div class="eed-grid eed-grid--str">
+                    <ion-item lines="none" class="eed-mini">
+                      <ion-input
+                        label="Sets"
+                        type="number"
+                        inputmode="numeric"
+                        labelPlacement="stacked"
+                        [ngModel]="line.sets"
+                        (ngModelChange)="patchLine(i, { sets: $event })"
+                        [name]="'sets-' + i"
+                      />
+                    </ion-item>
+                    <ion-item lines="none" class="eed-mini">
+                      <ion-input
+                        label="Weight (kg)"
+                        type="number"
+                        inputmode="decimal"
+                        labelPlacement="stacked"
+                        [ngModel]="line.weight_kg"
+                        (ngModelChange)="patchLine(i, { weight_kg: $event })"
+                        [name]="'kg-' + i"
+                      />
+                    </ion-item>
+                    <ion-item lines="none" class="eed-mini eed-full-width">
+                      <ion-input
+                        label="Reps"
+                        labelPlacement="stacked"
+                        [ngModel]="line.reps"
+                        (ngModelChange)="patchLine(i, { reps: $event })"
+                        [name]="'reps-' + i"
+                        placeholder="10 or 8-12"
+                      />
+                    </ion-item>
+                  </div>
+                } @else {
+                  <div class="eed-grid eed-grid--cardio">
+                    <ion-item lines="none" class="eed-mini">
+                      <ion-input
+                        label="Sets"
+                        type="number"
+                        inputmode="numeric"
+                        labelPlacement="stacked"
+                        [ngModel]="line.sets"
+                        (ngModelChange)="patchLine(i, { sets: $event })"
+                        [name]="'csets-' + i"
+                      />
+                    </ion-item>
+                    <ion-item lines="none" class="eed-mini">
+                      <ion-input
+                        label="Duration (min)"
+                        type="number"
+                        inputmode="decimal"
+                        labelPlacement="stacked"
+                        [ngModel]="line.duration_mins"
+                        (ngModelChange)="patchLine(i, { duration_mins: $event })"
+                        [name]="'dur-' + i"
+                      />
+                    </ion-item>
+                    <ion-item lines="none" class="eed-mini">
+                      <ion-input
+                        label="Distance (km)"
+                        type="number"
+                        inputmode="decimal"
+                        labelPlacement="stacked"
+                        [ngModel]="line.distance_km"
+                        (ngModelChange)="patchLine(i, { distance_km: $event })"
+                        [name]="'dist-' + i"
+                      />
+                    </ion-item>
+                    <ion-item lines="none" class="eed-mini eed-full-width">
+                      <ion-input
+                        label="Segment"
+                        labelPlacement="stacked"
+                        [ngModel]="line.segment_label"
+                        (ngModelChange)="patchLine(i, { segment_label: $event })"
+                        [name]="'seg-' + i"
+                        placeholder="Run, bike…"
+                      />
+                    </ion-item>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <p class="eed-hint">Fix any misheard weights or times here, then save. Session logging uses your edits.</p>
+          </div>
+        </ion-content>
+
+        <ion-footer class="vbs-footer-outer ion-no-border">
+          <ion-toolbar class="vbs-footer-bar">
+            <div class="vbs-footer-pad">
+              <ion-button
+                expand="block"
+                size="large"
+                class="vbs-primary"
+                shape="round"
+                (click)="save()"
+              >
+                Save changes
+              </ion-button>
+            </div>
+          </ion-toolbar>
+        </ion-footer>
+    </div>
+  </ng-template>
+</ion-modal>

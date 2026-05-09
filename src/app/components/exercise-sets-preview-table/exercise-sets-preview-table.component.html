@@ -1,0 +1,61 @@
+<div class="est-wrap">
+  <table class="est-table">
+    @if (exerciseType() === 'strength') {
+      <thead>
+        <tr>
+          <th scope="col">Set</th>
+          <th scope="col">×</th>
+          <th scope="col">kg</th>
+          <th scope="col">Reps</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of setRows(); track row.index) {
+          <tr
+            class="est-row"
+            [class.est-row--hi]="highlightRowIndex() === row.index"
+            role="button"
+            tabindex="0"
+            (click)="onRowClick(row.index)"
+            (keydown.enter)="onRowClick(row.index)"
+            (keydown.space)="$event.preventDefault(); onRowClick(row.index)"
+          >
+            <td>{{ row.index }}</td>
+            <td>{{ row.sets }}</td>
+            <td>{{ row.weightKg != null ? row.weightKg : '—' }}</td>
+            <td>{{ row.repsDisplay ?? '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    } @else {
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Segment</th>
+          <th scope="col">×</th>
+          <th scope="col">Time</th>
+          <th scope="col">km</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of setRows(); track row.index) {
+          <tr
+            class="est-row"
+            [class.est-row--hi]="highlightRowIndex() === row.index"
+            role="button"
+            tabindex="0"
+            (click)="onRowClick(row.index)"
+            (keydown.enter)="onRowClick(row.index)"
+            (keydown.space)="$event.preventDefault(); onRowClick(row.index)"
+          >
+            <td>{{ row.index }}</td>
+            <td>{{ row.segmentLabel ?? '—' }}</td>
+            <td>{{ row.sets }}</td>
+            <td>{{ row.durationDisplay ?? '—' }}</td>
+            <td>{{ row.distanceDisplay ?? '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    }
+  </table>
+</div>

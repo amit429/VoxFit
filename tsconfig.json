@@ -25,6 +25,7 @@
     "skipLibCheck": true,
     "useDefineForClassFields": false
   },
+  "exclude": ["node_modules", "supabase/**/*"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

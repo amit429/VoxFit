@@ -1,13 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent, IonRouterLinkWithHref } from '@ionic/angular/standalone';
-import {
-  DUMMY_HOME_MACROS,
-  DUMMY_HOME_STREAK,
-  DUMMY_HOME_WORKOUT,
-  DUMMY_PROFILE_DISPLAY,
-} from '@/app/data';
+import { DUMMY_HOME_MACROS, DUMMY_PROFILE_DISPLAY } from '@/app/data';
 import { AuthService } from '@/app/services/auth.service';
+import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 
 @Component({
   selector: 'app-home',
@@ -16,11 +13,10 @@ import { AuthService } from '@/app/services/auth.service';
   styleUrls: ['./home.page.scss'],
   imports: [IonContent, RouterLink, IonRouterLinkWithHref],
 })
-export class HomePage {
+export class HomePage implements ViewWillEnter {
   protected readonly auth = inject(AuthService);
+  protected readonly journal = inject(WorkoutJournalService);
 
-  protected readonly streak = DUMMY_HOME_STREAK;
-  protected readonly workoutCard = DUMMY_HOME_WORKOUT;
   protected readonly macros = DUMMY_HOME_MACROS;
 
   protected readonly greeting = signal(this.pickGreeting());
@@ -35,6 +31,10 @@ export class HomePage {
     if (n) return n.charAt(0).toUpperCase();
     return DUMMY_PROFILE_DISPLAY.initial;
   });
+
+  ionViewWillEnter(): void {
+    void this.journal.refresh();
+  }
 
   protected macroPct(row: { current: number; target: number }): number {
     return Math.min(100, Math.round((row.current / row.target) * 100));
