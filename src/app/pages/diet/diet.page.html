@@ -1,0 +1,119 @@
+<ion-header translucent class="vox-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="" aria-label="Back to Home" />
+    </ion-buttons>
+    <ion-title>Diet Companion</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
+  <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+    <p class="mb-4 text-base font-bold text-[var(--ion-text-color)]">Today's Nutrition</p>
+    @for (row of dietMacros; track row.label) {
+      <div class="vox-macro-row">
+        <div class="vox-macro-row__head">
+          <span class="text-[var(--vox-text-muted)]">{{ row.label }}</span>
+          <span class="font-semibold tabular-nums text-[var(--ion-text-color)]">
+            {{ row.current }}{{ row.label === 'Calories' ? '' : 'g' }} /
+            {{ row.target }}{{ row.label === 'Calories' ? '' : 'g' }}
+          </span>
+        </div>
+        <div class="vox-macro-row__bar">
+          <div
+            class="vox-macro-row__fill"
+            [style.width.%]="macroPct(row)"
+            [style.background]="
+              row.label === 'Protein'
+                ? 'var(--vox-accent)'
+                : row.label === 'Calories'
+                  ? 'var(--vox-orange)'
+                  : 'var(--vox-green)'
+            "
+          ></div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div
+    class="mb-6 rounded-2xl border px-4 py-5 text-center"
+    style="background: var(--vox-accent-dim); border-color: rgba(124, 106, 247, 0.28)"
+  >
+    @if (dietFlow() === 'idle') {
+      <p class="m-0 mb-4 text-sm leading-relaxed text-[var(--vox-text-muted)]">
+        Tell me what's in your fridge<br />
+        and what you're craving
+      </p>
+      <button
+        type="button"
+        (click)="startVoice()"
+        class="inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl border-0 px-8 text-base font-bold text-white active:opacity-90"
+        style="background: var(--vox-accent)"
+      >
+        🎙️ Tap to speak
+      </button>
+    }
+    @if (dietFlow() === 'voice') {
+      <div class="py-3">
+        <div class="mb-2 text-[2rem] leading-none">🎙️</div>
+        <p class="m-0 mb-2 text-base font-bold text-[var(--vox-accent)]">Listening...</p>
+        <p class="m-0 text-sm italic leading-relaxed text-[var(--vox-text-muted)]">
+          "I have chicken, rice, broccoli, eggs..."
+        </p>
+      </div>
+    }
+    @if (dietFlow() === 'results') {
+      <p class="m-0 text-sm font-semibold text-[var(--vox-green)]">
+        ✓ Got it! Here are your meal options ↓
+      </p>
+    }
+  </div>
+
+  @if (dietFlow() === 'results') {
+    <p class="mb-3 text-base font-bold text-[var(--ion-text-color)]">Meal Suggestions</p>
+    @for (meal of meals; track meal.name; let i = $index) {
+      <div
+        class="mb-4 rounded-2xl border bg-[var(--vox-surface)] px-4 py-4"
+        [style.border-color]="loggedMeal() === i ? 'rgba(34, 201, 138, 0.45)' : 'var(--ion-border-color)'"
+        [style.background]="loggedMeal() === i ? 'var(--vox-green-dim)' : 'var(--vox-surface)'"
+      >
+        <div class="mb-3 flex items-start justify-between gap-3">
+          <p class="m-0 flex-1 text-base font-bold leading-snug text-[var(--ion-text-color)]">{{ meal.name }}</p>
+          <span class="shrink-0 whitespace-nowrap rounded-lg bg-[var(--vox-bg-tertiary)] px-2 py-1 text-xs text-[var(--vox-text-muted)]">
+            ⏱ {{ meal.prepMinutes }} min
+          </span>
+        </div>
+        <div class="mb-3 grid grid-cols-4 gap-2">
+          <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+            <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-orange)]">{{ meal.calories }}</p>
+            <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">Cal</p>
+          </div>
+          <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+            <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-accent)]">{{ meal.proteinG }}g</p>
+            <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">Protein</p>
+          </div>
+          <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+            <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-green)]">{{ meal.carbsG }}g</p>
+            <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">Carbs</p>
+          </div>
+          <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+            <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-text-muted)]">{{ meal.fatG }}g</p>
+            <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">Fat</p>
+          </div>
+        </div>
+        <p class="m-0 mb-4 text-sm italic leading-relaxed text-[var(--vox-text-muted)]">✓ {{ meal.rationale }}</p>
+        <button
+          type="button"
+          (click)="logMeal(i)"
+          class="min-h-[3rem] w-full rounded-xl border py-3 text-base font-bold active:opacity-95"
+          [style.background]="loggedMeal() === i ? 'var(--vox-green)' : 'var(--vox-bg-tertiary)'"
+          [style.border-color]="loggedMeal() === i ? 'var(--vox-green)' : 'var(--ion-border-color)'"
+          [style.color]="loggedMeal() === i ? '#fff' : 'var(--ion-text-color)'"
+        >
+          {{ loggedMeal() === i ? '✓ Logged' : 'Log this meal' }}
+        </button>
+      </div>
+    }
+  }
+</ion-content>

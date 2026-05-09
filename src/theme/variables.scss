@@ -1,2 +1,79 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+/**
+ * VoxFit — dark UI (wireframe-aligned): layered surfaces + purple accent.
+ * https://ionicframework.com/docs/theming/
+ */
+
+:root {
+  /* Layered backgrounds (maps to wireframe tertiary / secondary / primary) */
+  --vox-bg-tertiary: #0a0a0f;
+  --vox-bg-secondary: #12121a;
+  --vox-bg-primary: #16161f;
+  --vox-surface: #1a1a24;
+  --vox-border-subtle: rgba(255, 255, 255, 0.07);
+  --vox-border-medium: rgba(255, 255, 255, 0.12);
+
+  --ion-background-color: var(--vox-bg-tertiary);
+  --ion-background-color-rgb: 10, 10, 15;
+  --ion-text-color: #f4f4f8;
+  --ion-text-color-rgb: 244, 244, 248;
+  --ion-toolbar-background: var(--vox-bg-secondary);
+  --ion-item-background: var(--vox-bg-primary);
+  --ion-card-background: var(--vox-surface);
+  --ion-border-color: var(--vox-border-subtle);
+
+  /* Accent — wireframe purple */
+  --ion-color-primary: #7c6af7;
+  --ion-color-primary-rgb: 124, 106, 247;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #6d5ed9;
+  --ion-color-primary-tint: #8979f8;
+
+  --ion-color-secondary: #64748b;
+  --ion-color-secondary-rgb: 100, 116, 139;
+
+  --ion-color-medium: #8b8b9a;
+  --ion-color-medium-rgb: 139, 139, 154;
+
+  --ion-color-success: #22c98a;
+  --ion-color-success-rgb: 34, 201, 138;
+
+  --ion-color-warning: #f5a623;
+  --ion-color-warning-rgb: 245, 166, 35;
+
+  --ion-color-danger: #e84393;
+  --ion-color-danger-rgb: 232, 67, 147;
+
+  /* Semantic shortcuts for Tailwind arbitrary values */
+  --vox-accent: #7c6af7;
+  --vox-accent-dim: rgba(124, 106, 247, 0.18);
+  --vox-green: #22c98a;
+  --vox-green-dim: rgba(34, 201, 138, 0.14);
+  --vox-orange: #f5a623;
+  --vox-orange-dim: rgba(245, 166, 35, 0.18);
+  --vox-rose: #e84393;
+  --vox-rose-dim: rgba(232, 67, 147, 0.16);
+
+  --vox-text-muted: #a1a1b0;
+  --vox-text-hint: #6b6b7a;
+}
+
+.ion-palette-dark,
+.ion-palette-dark.ios,
+.ion-palette-dark.md {
+  --ion-background-color: var(--vox-bg-tertiary);
+  --ion-text-color: #f4f4f8;
+  --ion-toolbar-background: var(--vox-bg-secondary);
+  --ion-item-background: var(--vox-bg-primary);
+  --ion-card-background: var(--vox-surface);
+}
+
+.ion-tab-bar {
+  --background: rgba(18, 18, 26, 0.94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--ion-border-color);
+}
+
+ion-content {
+  --background: var(--vox-bg-tertiary);
+}

@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+/* Centered ion-title can span the full toolbar and steal taps; keep end actions above. */
+ion-toolbar ion-buttons[slot='end'] {
+  position: relative;
+  z-index: 2;
+}

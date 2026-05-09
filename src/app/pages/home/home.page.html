@@ -1,0 +1,131 @@
+<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-bg-tertiary)]">
+  <div
+    class="border-b border-[var(--vox-border-subtle)] bg-[var(--vox-bg-primary)] pb-3 pt-[max(0.875rem,env(safe-area-inset-top))]"
+  >
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="m-0 text-sm text-[var(--vox-text-muted)]">{{ greeting() }}</p>
+        <h2 class="m-0 mt-1 text-xl font-extrabold tracking-tight text-[var(--ion-text-color)]">
+          {{ displayName() }} 👋
+        </h2>
+      </div>
+      <div
+        class="flex h-11 w-11 items-center justify-center rounded-full text-base font-bold text-[var(--vox-accent)]"
+        style="background: var(--vox-accent-dim)"
+      >
+        {{ initial() }}
+      </div>
+    </div>
+  </div>
+
+  <div class="pb-10 pt-5">
+    <!-- Streak -->
+    <div
+      class="mb-4 rounded-2xl border px-4 py-4"
+      style="background: var(--vox-accent-dim); border-color: rgba(124, 106, 247, 0.35)"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="m-0 text-xs font-bold uppercase tracking-wider text-[var(--vox-accent)]">
+            Current Streak
+          </p>
+          <p class="m-0 text-[1.75rem] font-black leading-tight text-[var(--vox-accent)] sm:text-[2rem]">
+            {{ streak.days }} days 🔥
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="m-0 text-xs text-[var(--vox-text-muted)]">This week</p>
+          <div class="mt-2 flex justify-end gap-1.5">
+            @for (d of streak.weekDots; track $index) {
+              <div
+                class="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-semibold"
+                [style.background]="d.completed ? 'var(--vox-accent)' : 'var(--vox-border-medium)'"
+                [style.color]="d.completed ? '#ffffff' : 'var(--vox-text-hint)'"
+              >
+                {{ d.label }}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today workout -->
+    <div class="mb-4 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-sm font-bold text-[var(--ion-text-color)]">{{ workoutCard.title }}</span>
+        <span
+          class="rounded-lg px-3 py-1 text-xs font-bold"
+          [style.background]="workoutCard.statusTone === 'success' ? 'var(--vox-green-dim)' : 'var(--vox-border-medium)'"
+          [style.color]="workoutCard.statusTone === 'success' ? 'var(--vox-green)' : 'var(--vox-text-muted)'"
+        >
+          {{ workoutCard.statusLabel }}
+        </span>
+      </div>
+      <p class="m-0 mb-3 text-sm leading-snug text-[var(--vox-text-muted)]">{{ workoutCard.subtitle }}</p>
+      <div class="flex flex-wrap gap-2">
+        @for (ex of workoutCard.exerciseChips; track ex) {
+          <span
+            class="rounded-lg px-3 py-1 text-xs text-[var(--vox-text-muted)]"
+            style="background: var(--vox-bg-tertiary)"
+          >
+            {{ ex }}
+          </span>
+        }
+      </div>
+      <div
+        class="mt-4 rounded-xl border px-3 py-3"
+        style="background: var(--vox-green-dim); border-color: rgba(34, 201, 138, 0.28)"
+      >
+        <p class="m-0 mb-1 text-xs font-bold text-[var(--vox-green)]">{{ workoutCard.coachTitle }}</p>
+        <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ workoutCard.coachNote }}</p>
+      </div>
+    </div>
+
+    <!-- Macros -->
+    <div class="mb-6 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+      <p class="mb-4 text-sm font-bold text-[var(--ion-text-color)]">Today's Nutrition</p>
+      @for (row of macros.rows; track row.label) {
+        <div class="vox-macro-row">
+          <div class="vox-macro-row__head">
+            <span class="text-[var(--vox-text-muted)]">{{ row.label }}</span>
+            <span class="font-semibold tabular-nums text-[var(--ion-text-color)]">
+              {{ row.current }}{{ row.label === 'Calories' ? '' : 'g' }} /
+              {{ row.target }}{{ row.label === 'Calories' ? '' : 'g' }}
+            </span>
+          </div>
+          <div class="vox-macro-row__bar">
+            <div
+              class="vox-macro-row__fill"
+              [style.width.%]="macroPct(row)"
+              [style.background]="
+                row.label === 'Protein'
+                  ? 'var(--vox-accent)'
+                  : row.label === 'Carbs'
+                    ? 'var(--vox-orange)'
+                    : 'var(--vox-green)'
+              "
+            ></div>
+          </div>
+        </div>
+      }
+      @if (macros.hint) {
+        <p
+          class="mt-4 rounded-lg px-3 py-2.5 text-xs leading-snug text-[var(--vox-orange)]"
+          style="background: var(--vox-orange-dim)"
+        >
+          ⚡ {{ macros.hint }}
+        </p>
+      }
+    </div>
+
+    <a
+      routerLink="/voice"
+      routerDirection="forward"
+      class="vox-btn-primary flex w-full items-center justify-center gap-2 rounded-2xl text-base font-extrabold text-white no-underline active:opacity-90"
+      style="background: linear-gradient(135deg, var(--vox-accent), #9b8af5)"
+    >
+      🎙️ Log Today's Workout
+    </a>
+  </div>
+</ion-content>

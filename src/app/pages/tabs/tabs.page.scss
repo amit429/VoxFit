@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* Larger tap targets + legible labels (mobile-first shell). */
+ion-tab-bar {
+  min-height: 3.5rem;
+  padding-top: 0.25rem;
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+}
+
+ion-tab-button {
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  min-height: 3rem;
+}
+
+ion-tab-button ion-icon {
+  font-size: 1.375rem;
+  margin-bottom: 2px;
+}

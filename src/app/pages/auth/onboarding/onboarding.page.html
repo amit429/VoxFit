@@ -1,0 +1,75 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="auth-toolbar auth-toolbar--step">
+    <span class="auth-step-label">Almost there</span>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="auth-flow">
+  <div class="auth-flow-inner">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col">
+      <span class="auth-page-eyebrow">Personalize</span>
+      <h1 class="auth-page-title">Your profile</h1>
+      <p class="auth-page-lead">Targets power meal suggestions and charts. You can change this anytime in Settings.</p>
+
+      <div class="auth-form-stack">
+        <ion-input
+          formControlName="displayName"
+          type="text"
+          label="Display name"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="name"
+        />
+        <ion-select
+          formControlName="sportType"
+          label="Focus"
+          labelPlacement="floating"
+          fill="outline"
+          interface="action-sheet"
+        >
+          <ion-select-option value="gym">Gym / strength</ion-select-option>
+          <ion-select-option value="runner">Running</ion-select-option>
+          <ion-select-option value="cyclist">Cycling</ion-select-option>
+          <ion-select-option value="sport">Other sport</ion-select-option>
+        </ion-select>
+        <ion-select formControlName="goal" label="Goal" labelPlacement="floating" fill="outline" interface="action-sheet">
+          <ion-select-option value="bulk">Bulk</ion-select-option>
+          <ion-select-option value="cut">Cut</ion-select-option>
+          <ion-select-option value="maintain">Maintain</ion-select-option>
+        </ion-select>
+        <ion-input
+          formControlName="targetProtein"
+          type="number"
+          label="Daily protein (g)"
+          labelPlacement="floating"
+          fill="outline"
+          inputmode="numeric"
+        />
+        <ion-input
+          formControlName="targetCalories"
+          type="number"
+          label="Daily calories"
+          labelPlacement="floating"
+          fill="outline"
+          inputmode="numeric"
+        />
+      </div>
+
+      @if (errorMessage) {
+        <div class="auth-banner auth-banner--error mt-4" role="alert">{{ errorMessage }}</div>
+      }
+
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="mt-2 inline-flex h-[3.25rem] w-full shrink-0 items-center justify-center rounded-[14px] bg-[var(--ion-color-primary)] text-base font-semibold text-[var(--ion-color-primary-contrast)] shadow-sm transition-[opacity,transform] enabled:active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+      >
+        @if (loading) {
+          Saving…
+        } @else {
+          Continue
+        }
+      </button>
+    </form>
+  </div>
+</ion-content>

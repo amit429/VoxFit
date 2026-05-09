@@ -53,6 +53,13 @@ yarn-error.log
 .history/*
 
 
+# Local secrets / env
+.env
+.env.*
+!.env.example
+src/environments/environment.dev.ts
+src/environments/environment.prod.ts
+
 # Miscellaneous
 /.angular
 /.angular/cache

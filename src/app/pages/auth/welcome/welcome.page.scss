@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.welcome-content {
+  height: 100%;
+  --background: var(--ion-background-color);
+  --padding-top: env(safe-area-inset-top, 0px);
+  --padding-bottom: env(safe-area-inset-bottom, 0px);
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+/* Flex center the scroll slot so the stack sits mid-viewport (vertical + horizontal) */
+.welcome-content::part(scroll) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.welcome-stack {
+  margin-inline: auto;
+}

@@ -9,6 +9,12 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+@use 'tailwindcss';
+
+/* Scan app sources for class names (Tailwind v4) */
+@source "./**/*.html";
+@source "./**/*.ts";
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -34,4 +40,58 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* Always dark — mobile app shell */
+@import '@ionic/angular/css/palettes/dark.always.css';
+
+@import './theme/auth-screens.scss';
+@import './theme/vox-ui.scss';
+@import './theme/app-headers.scss';
+
+/*
+ * Full viewport height — Ionic pages (especially header + ion-content) expect
+ * html → app-root → ion-app → ion-router-outlet to establish height. Without this,
+ * nested routes can show only the toolbar and a blank/black main area.
+ */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
+
+ion-app {
+  height: 100%;
+}
+
+/* Stacked labels + dark theme: keep control text readable inside shadow parts */
+ion-input,
+ion-textarea,
+ion-select {
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+}
+
+/*
+ * Tab pages — comfortable thumb scroll room above tab bar (taller bar + safe area).
+ * Horizontal inset respects notched phones without cramming edge-to-edge text.
+ */
+.tab-page-content {
+  --padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  --padding-start: max(1rem, env(safe-area-inset-left, 0px));
+  --padding-end: max(1rem, env(safe-area-inset-right, 0px));
+  --padding-top: 0.5rem;
+}
+
+/* Primary CTAs: consistent minimum tap height */
+.vox-btn-primary {
+  min-height: 3rem;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}

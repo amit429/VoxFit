@@ -1,0 +1,49 @@
+/**
+ * Shared layout helpers for VoxFit feature screens (dummy + future live data).
+ * Macro rows tuned for thumb-friendly mobile readability (≈13px labels, 8px bar).
+ */
+
+.vox-macro-row {
+  margin-bottom: 0.75rem;
+}
+
+.vox-macro-row:last-child {
+  margin-bottom: 0;
+}
+
+.vox-macro-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+.vox-macro-row__bar {
+  height: 0.5rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  background: var(--vox-border-medium);
+}
+
+.vox-macro-row__fill {
+  height: 100%;
+  border-radius: 0.15rem;
+  max-width: 100%;
+}
+
+@keyframes vox-wave {
+  from {
+    transform: scaleY(0.55);
+  }
+  to {
+    transform: scaleY(1.15);
+  }
+}
+
+.vox-wave-bar {
+  transform-origin: center bottom;
+  animation: vox-wave 0.45s ease-in-out infinite alternate;
+}

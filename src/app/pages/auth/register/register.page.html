@@ -1,0 +1,72 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="auth-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/auth/welcome" text="" aria-label="Back" />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="auth-flow">
+  <div class="auth-flow-inner">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col">
+      <span class="auth-page-eyebrow">VoxFit</span>
+      <h1 class="auth-page-title">Create account</h1>
+      <p class="auth-page-lead">Voice-first logging on every device. Use a strong password you don’t reuse elsewhere.</p>
+
+      <div class="auth-form-stack">
+        <ion-input
+          formControlName="displayName"
+          type="text"
+          label="Name (optional)"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="name"
+        />
+        <ion-input
+          formControlName="email"
+          type="email"
+          label="Email"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="email"
+          inputmode="email"
+        />
+        <ion-input
+          formControlName="password"
+          type="password"
+          label="Password"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="new-password"
+        />
+        <p class="auth-hint">At least 8 characters.</p>
+      </div>
+
+      @if (errorMessage) {
+        <div class="auth-banner auth-banner--error mt-4" role="alert">{{ errorMessage }}</div>
+      }
+      @if (infoMessage) {
+        <div class="auth-banner auth-banner--info mt-4" role="status">{{ infoMessage }}</div>
+      }
+
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="mt-2 inline-flex h-[3.25rem] w-full shrink-0 items-center justify-center rounded-[14px] bg-[var(--ion-color-primary)] text-base font-semibold text-[var(--ion-color-primary-contrast)] shadow-sm transition-[opacity,transform] enabled:active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+      >
+        @if (loading) {
+          Creating…
+        } @else {
+          Create account
+        }
+      </button>
+
+      <a
+        routerLink="/auth/login"
+        class="mt-1 inline-flex w-full items-center justify-center py-2.5 text-sm font-medium text-[var(--ion-color-medium)] no-underline active:opacity-80"
+      >
+        Already have an account? <span class="pl-1 text-[var(--ion-color-primary)]">Sign in</span>
+      </a>
+    </form>
+  </div>
+</ion-content>

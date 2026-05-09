@@ -1,0 +1,73 @@
+<ion-header translucent class="vox-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="" aria-label="Back to Home" />
+    </ion-buttons>
+    <ion-title>Profile & Goals</ion-title>
+    <ion-buttons slot="end">
+      <button type="button" (click)="signOut()" class="vox-header-text-action">Sign out</button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
+  <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-6 text-center">
+    <div
+      class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-[var(--vox-accent)]"
+      style="background: var(--vox-accent-dim)"
+    >
+      {{ avatarInitial() }}
+    </div>
+    <p class="m-0 text-lg font-extrabold text-[var(--ion-text-color)]">{{ displayName() }}</p>
+    <p class="m-0 mt-2 text-sm text-[var(--vox-text-muted)]">{{ email() }}</p>
+    <div class="mt-4 flex flex-wrap justify-center gap-2">
+      <span
+        class="rounded-lg px-4 py-2 text-xs font-bold text-[var(--vox-accent)]"
+        style="background: var(--vox-accent-dim)"
+      >
+        {{ sportChip() }}
+      </span>
+      <span
+        class="rounded-lg px-4 py-2 text-xs font-bold text-[var(--vox-green)]"
+        style="background: var(--vox-green-dim)"
+      >
+        {{ goalChip() }}
+      </span>
+    </div>
+  </div>
+
+  <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+    <p class="mb-4 text-base font-bold text-[var(--ion-text-color)]">{{ dummy.calendarTitle }}</p>
+    <div class="grid grid-cols-7 gap-x-1 gap-y-2">
+      @for (d of ['S', 'M', 'T', 'W', 'T', 'F', 'S']; track $index) {
+        <div class="text-center text-xs font-medium text-[var(--vox-text-hint)]">{{ d }}</div>
+      }
+      @for (day of calendarDays(); track day) {
+        <div
+          class="flex aspect-square max-h-10 items-center justify-center rounded-lg text-xs font-semibold"
+          [style.background]="dummy.workoutDays.has(day) ? 'var(--vox-accent)' : 'var(--vox-bg-secondary)'"
+          [style.color]="dummy.workoutDays.has(day) ? '#ffffff' : 'var(--vox-text-hint)'"
+        >
+          {{ day }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="mb-6 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-2">
+    <p class="mb-2 px-1 pt-2 text-base font-bold text-[var(--ion-text-color)]">Goals</p>
+    @for (g of dummy.goals; track g.label; let i = $index) {
+      <div
+        class="flex items-center justify-between gap-3 px-1 py-3.5"
+        [style.border-bottom]="i < dummy.goals.length - 1 ? '1px solid var(--ion-border-color)' : 'none'"
+      >
+        <span class="text-sm text-[var(--vox-text-muted)]">{{ g.label }}</span>
+        <span class="text-right text-sm font-semibold text-[var(--ion-text-color)]">{{ g.value }}</span>
+      </div>
+    }
+  </div>
+
+  <p class="px-1 pb-4 text-center text-xs leading-relaxed text-[var(--vox-text-hint)]">
+    Targets mirror your profile when signed in; calendar preview uses mock workout days.
+  </p>
+</ion-content>
