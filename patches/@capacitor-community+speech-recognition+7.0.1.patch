@@ -1,0 +1,32 @@
+diff --git a/android/src/main/java/com/getcapacitor/community/speechrecognition/SpeechRecognition.java b/android/src/main/java/com/getcapacitor/community/speechrecognition/SpeechRecognition.java
+--- a/android/src/main/java/com/getcapacitor/community/speechrecognition/SpeechRecognition.java
++++ b/android/src/main/java/com/getcapacitor/community/speechrecognition/SpeechRecognition.java
+@@ -85,13 +85,22 @@ public class SpeechRecognition extends Plugin implements Constants {
+     }
+
+     @PluginMethod
+     public void stop(final PluginCall call) {
+-        try {
+-            stopListening();
+-        } catch (Exception ex) {
+-            call.reject(ex.getLocalizedMessage());
+-        }
++        bridge
++            .getWebView()
++            .post(() -> {
++                try {
++                    SpeechRecognition.this.lock.lock();
++                    if (SpeechRecognition.this.listening && speechRecognizer != null) {
++                        speechRecognizer.stopListening();
++                    }
++                    SpeechRecognition.this.listening(false);
++                    call.resolve();
++                } catch (Exception ex) {
++                    call.reject(ex.getLocalizedMessage());
++                } finally {
++                    SpeechRecognition.this.lock.unlock();
++                }
++            });
+     }
+
+     @PluginMethod

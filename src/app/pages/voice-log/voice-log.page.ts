@@ -121,6 +121,7 @@ export class VoiceLogPage {
       finalTranscript = await this.voiceSession.stop();
     } catch (err) {
       console.error('[VoiceLog] Failed to stop listening:', err);
+      finalTranscript = this.voiceSession.transcriptPreview().trim();
     }
     console.log('[VoiceLog] Final transcript:', finalTranscript);
     this.pendingTranscript = finalTranscript;

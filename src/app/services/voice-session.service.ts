@@ -53,6 +53,17 @@ function getWebSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
   return w.webkitSpeechRecognition ?? w.SpeechRecognition ?? null;
 }
 
+/** Bounds how long native bridge calls may hang (see Android SpeechRecognition.stop() plugin bug fix in node_modules or patch-package). */
+function promiseWithTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+  });
+  return Promise.race([promise, deadline]).finally(() => {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }) as Promise<T>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VoiceSessionService {
   /** Live text while listening (partials on native, interim + finals on web). */
@@ -124,14 +135,28 @@ export class VoiceSessionService {
   }
 
   private async stopNative(): Promise<string> {
+    let stopError: unknown;
     try {
       if (this.nativeListening) {
-        await SpeechRecognition.stop();
+        await promiseWithTimeout(
+          SpeechRecognition.stop(),
+          12_000,
+          'Stopping speech recognition timed out (native plug-in did not complete).',
+        );
       }
+    } catch (err) {
+      stopError = err;
+      console.warn('[VoiceSession] Native stop failed:', err);
     } finally {
       await this.cleanupNativeSession();
     }
     const text = this.transcriptPreview().trim();
+    if (stopError !== undefined && text.length === 0) {
+      if (stopError instanceof Error) {
+        throw stopError;
+      }
+      throw new Error(String(stopError));
+    }
     return text;
   }
 
