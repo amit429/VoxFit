@@ -1,3 +1,230 @@
-:host {
-  display: block;
+.vox-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vox-filter-bar__scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.125rem;
+  margin-inline: -0.125rem;
+  padding-inline: 0.125rem;
+  scroll-padding-inline: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.vox-filter-chip {
+  flex: 0 0 auto;
+  min-height: 2.625rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--ion-border-color) 92%, transparent);
+  background: color-mix(in srgb, var(--vox-surface) 88%, var(--vox-bg-primary));
+  color: var(--vox-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ion-text-color) 4%, transparent);
+
+  &--active {
+    border-color: color-mix(in srgb, var(--vox-accent) 55%, var(--ion-border-color));
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--vox-accent) 92%, #000),
+      color-mix(in srgb, var(--vox-accent) 78%, #1a1028)
+    );
+    color: #fff;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, #fff 12%, transparent),
+      0 12px 28px -18px color-mix(in srgb, var(--vox-accent) 75%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.vox-filter-month-link {
+  align-self: flex-start;
+  margin-inline: 0.125rem;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vox-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vox-picker-modal {
+  --width: min(100%, 22rem);
+  --max-height: 90vh;
+  --border-radius: 16px;
+}
+
+.vox-month-year-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.vox-year-label {
+  min-width: 4.5rem;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--ion-text-color);
+}
+
+.vox-year-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 0.75rem;
+  background: var(--vox-bg-tertiary);
+  color: var(--ion-text-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    opacity: 0.82;
+  }
+}
+
+.vox-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.vox-month-cell {
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.5rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--ion-border-color) 90%, transparent);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--vox-surface) 90%, var(--vox-bg-primary));
+  color: var(--ion-text-color);
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &--selected {
+    border-color: color-mix(in srgb, var(--vox-accent) 70%, var(--ion-border-color));
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--vox-accent) 55%, var(--vox-surface)),
+      color-mix(in srgb, var(--vox-accent) 28%, var(--vox-bg-primary))
+    );
+    color: #fff;
+    box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--vox-accent) 80%, transparent);
+  }
+}
+
+.vox-picker-footnote {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--vox-text-hint);
+  text-align: center;
+}
+
+.vox-date-mode-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.vox-date-mode-btn {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 9999px;
+  background: var(--vox-bg-tertiary);
+  color: var(--vox-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  &--active {
+    border-color: color-mix(in srgb, var(--vox-accent) 55%, var(--ion-border-color));
+    background: color-mix(in srgb, var(--vox-accent) 22%, var(--vox-bg-primary));
+    color: #fff;
+  }
+
+  &:active {
+    opacity: 0.92;
+  }
+}
+
+.vox-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.vox-date-field__lab {
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vox-text-muted);
+}
+
+.vox-date-input {
+  min-height: 3rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 0.85rem;
+  background: var(--vox-surface);
+  color: var(--ion-text-color);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+
+  /* iOS Safari */
+  -webkit-appearance: none;
+  appearance: none;
 }

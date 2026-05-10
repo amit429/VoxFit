@@ -1,17 +1,20 @@
 <ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-bg-tertiary)]">
   <div
-    class="border-b border-[var(--vox-border-subtle)] bg-[var(--vox-bg-primary)] pb-3 pt-[max(0.875rem,env(safe-area-inset-top))]"
+    class=" px-3 pb-3 pt-[max(0.875rem,env(safe-area-inset-top))]"
   >
-    <div class="flex items-center justify-between">
-      <div>
+    <div class="flex min-w-0 items-start justify-between gap-3">
+      <div class="min-w-0 flex-1">
         <p class="m-0 text-sm text-[var(--vox-text-muted)]">{{ greeting() }}</p>
-        <h2 class="m-0 mt-1 text-xl font-extrabold tracking-tight text-[var(--ion-text-color)]">
+        <h2
+          class="m-0 mt-1 break-words text-lg font-extrabold leading-snug tracking-tight text-[var(--ion-text-color)] sm:text-xl"
+        >
           {{ displayName() }} 👋
         </h2>
       </div>
       <div
-        class="flex h-11 w-11 items-center justify-center rounded-full text-base font-bold text-[var(--vox-accent)]"
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold text-[var(--vox-accent)]"
         style="background: var(--vox-accent-dim)"
+        routerLink="/tabs/profile"
       >
         {{ initial() }}
       </div>

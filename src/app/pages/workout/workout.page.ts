@@ -7,6 +7,8 @@ import {
   IonButtons,
   IonBackButton,
   IonIcon,
+  IonModal,
+  IonButton,
   ToastController,
 } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
@@ -17,7 +19,7 @@ import type { WorkoutExerciseExtract } from '@/app/models/workout-extract.models
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
 import { exerciseLoggedLikesToExtracts } from '@/app/utils/exercise-logged.mapper';
-import { getCurrentWeekDayKeys, parseLocalDateKey } from '@/app/utils/workout-display.util';
+import { getCurrentWeekDayKeys, parseLocalDateKey, parseIsoDateLocal } from '@/app/utils/workout-display.util';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 
 addIcons({ chevronBackOutline });
@@ -35,6 +37,8 @@ addIcons({ chevronBackOutline });
     IonButtons,
     IonBackButton,
     IonIcon,
+    IonModal,
+    IonButton,
     SessionExerciseReviewCardComponent,
   ],
 })
@@ -44,16 +48,62 @@ export class WorkoutPage implements ViewWillEnter {
   private readonly toastCtrl = inject(ToastController);
 
   protected readonly view = signal<'list' | 'detail'>('list');
-  protected readonly activeFilter = signal<'all' | 'week' | 'prs'>('all');
+  protected readonly activeFilter = signal<'all' | 'week' | 'prs' | 'month' | 'dates'>('all');
+  protected readonly monthPickerOpen = signal(false);
+  /** Year shown in the month-picker modal (browse). */
+  protected readonly monthPickYear = signal<number>(new Date().getFullYear());
+  /** Calendar month for the “Month” journal filter (local). */
+  protected readonly journalMonth = signal<{ year: number; month0: number }>(
+    (() => {
+      const n = new Date();
+      return { year: n.getFullYear(), month0: n.getMonth() };
+    })(),
+  );
+
+  protected readonly dateFilterOpen = signal(false);
+  /** Single calendar day vs inclusive from–to range. */
+  protected readonly dateFilterSubMode = signal<'single' | 'range'>('single');
+  protected readonly singleDateKey = signal<string>(parseLocalDateKey(new Date()));
+  protected readonly rangeFromKey = signal<string>(parseLocalDateKey(new Date()));
+  protected readonly rangeToKey = signal<string>(parseLocalDateKey(new Date()));
+
+  /** 3-letter labels for the month grid (12 months). */
+  protected readonly monthGridLabels = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ] as const;
+
   protected readonly detail = signal<WorkoutDetailMock | null>(null);
   protected readonly detailSessionId = signal<string | null>(null);
   protected readonly detailExercises = signal<WorkoutExerciseExtract[]>([]);
 
   protected readonly filters = [
     { id: 'all' as const, label: 'All' },
-    { id: 'week' as const, label: 'This Week' },
-    { id: 'prs' as const, label: 'PRs Only' },
+    { id: 'week' as const, label: 'This week' },
+    { id: 'prs' as const, label: 'PRs' },
+    { id: 'month' as const, label: 'Month' },
+    { id: 'dates' as const, label: 'Dates' },
   ];
+
+  protected readonly monthFilterChipLabel = computed(() => {
+    const { year, month0 } = this.journalMonth();
+    return new Date(year, month0, 1).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+  });
+
+  protected readonly journalMonthLabel = computed(() => {
+    const { year, month0 } = this.journalMonth();
+    return new Date(year, month0, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  });
 
   protected readonly sessionList = computed(() => {
     const rows = this.journal.sessions();
@@ -66,7 +116,42 @@ export class WorkoutPage implements ViewWillEnter {
     if (f === 'prs') {
       return items.filter((i) => i.hasPr);
     }
+    if (f === 'month') {
+      const { year, month0 } = this.journalMonth();
+      const wantM = month0 + 1;
+      return items.filter((i) => {
+        if (!i.dateKey) return false;
+        const p = i.dateKey.split('-').map((x) => Number(x));
+        const yy = p[0];
+        const mm = p[1];
+        return yy === year && mm === wantM;
+      });
+    }
+    if (f === 'dates') {
+      if (this.dateFilterSubMode() === 'single') {
+        const k = this.singleDateKey();
+        return items.filter((i) => i.dateKey === k);
+      }
+      let a = this.rangeFromKey();
+      let b = this.rangeToKey();
+      if (a > b) {
+        [a, b] = [b, a];
+      }
+      return items.filter((i) => !!i.dateKey && i.dateKey >= a && i.dateKey <= b);
+    }
     return items;
+  });
+
+  protected readonly datesFilterChipLabel = computed(() => {
+    if (this.dateFilterSubMode() === 'single') {
+      return WorkoutPage.formatDayChip(this.singleDateKey());
+    }
+    let a = this.rangeFromKey();
+    let b = this.rangeToKey();
+    if (a > b) {
+      [a, b] = [b, a];
+    }
+    return `${WorkoutPage.formatDayChip(a)}–${WorkoutPage.formatDayChip(b)}`;
   });
 
   protected readonly weeklyBars = computed(() => {
@@ -83,6 +168,85 @@ export class WorkoutPage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     void this.journal.refresh();
+  }
+
+  private static formatDayChip(iso: string): string {
+    const d = parseIsoDateLocal(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  /** Open month sheet: sync browse year to current filter month. */
+  protected openMonthPicker(): void {
+    this.monthPickYear.set(this.journalMonth().year);
+    this.monthPickerOpen.set(true);
+  }
+
+  protected shiftMonthPickYear(delta: number): void {
+    this.monthPickYear.update((y) => y + delta);
+  }
+
+  protected pickGridMonth(month0: number): void {
+    this.journalMonth.set({ year: this.monthPickYear(), month0 });
+    this.monthPickerOpen.set(false);
+  }
+
+  protected isJournalMonthCell(year: number, month0: number): boolean {
+    const j = this.journalMonth();
+    return j.year === year && j.month0 === month0;
+  }
+
+  protected openDateFilterModal(): void {
+    this.dateFilterOpen.set(true);
+  }
+
+  protected setDateFilterMode(mode: 'single' | 'range'): void {
+    this.dateFilterSubMode.set(mode);
+  }
+
+  protected onSingleDateInput(ev: Event): void {
+    const v = (ev.target as HTMLInputElement).value;
+    if (v?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      this.singleDateKey.set(v);
+    }
+  }
+
+  protected onRangeFromInput(ev: Event): void {
+    const v = (ev.target as HTMLInputElement).value;
+    if (v?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      this.rangeFromKey.set(v);
+    }
+  }
+
+  protected onRangeToInput(ev: Event): void {
+    const v = (ev.target as HTMLInputElement).value;
+    if (v?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      this.rangeToKey.set(v);
+    }
+  }
+
+  protected applyDateFilterAndClose(): void {
+    this.dateFilterOpen.set(false);
+  }
+
+  protected onFilterClick(id: 'all' | 'week' | 'prs' | 'month' | 'dates'): void {
+    if (id === 'month') {
+      if (this.activeFilter() === 'month') {
+        this.openMonthPicker();
+      } else {
+        this.activeFilter.set('month');
+      }
+      return;
+    }
+    if (id === 'dates') {
+      if (this.activeFilter() === 'dates') {
+        this.openDateFilterModal();
+      } else {
+        this.activeFilter.set('dates');
+        this.openDateFilterModal();
+      }
+      return;
+    }
+    this.activeFilter.set(id);
   }
 
   protected openDetail(sessionId: string): void {

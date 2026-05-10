@@ -83,9 +83,18 @@ ion-select {
  * Horizontal inset respects notched phones without cramming edge-to-edge text.
  */
 .tab-page-content {
-  --padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  /* Tab bar (~3.5rem) + safe area + extra so last cards/actions clear the bar comfortably */
+  --padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   --padding-start: max(1rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1rem, env(safe-area-inset-right, 0px));
+  --padding-top: 0.5rem;
+}
+
+/* Standalone routes (e.g. /voice) — no tab bar; still need safe inset + scroll breathing room */
+.vox-standalone-page {
+  --padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+  --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
+  --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
   --padding-top: 0.5rem;
 }
 

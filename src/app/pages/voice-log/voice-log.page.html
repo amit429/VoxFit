@@ -9,75 +9,79 @@
 
 <ion-content
   [fullscreen]="false"
-  class="[--background:var(--vox-bg-tertiary)] [--padding-start:max(1.25rem,env(safe-area-inset-left))] [--padding-end:max(1.25rem,env(safe-area-inset-right))]"
-  style="--padding-bottom: env(safe-area-inset-bottom, 0px)"
+  [scrollY]="true"
+  class="vox-standalone-page [--background:var(--vox-bg-tertiary)]"
 >
-  <div class="flex min-h-full flex-col items-center justify-center px-2 pb-12 pt-6">
+  <div class="vox-voice-inner mx-auto w-full max-w-[26rem] pb-6 pt-4">
     @if (state() === 'idle') {
-      <div class="mb-10 max-w-[min(100%,20rem)] text-center">
-        <p class="m-0 mb-3 text-lg font-bold text-[var(--ion-text-color)]">Ready to log?</p>
-        <p class="m-0 text-base leading-relaxed text-[var(--vox-text-muted)]">
-          Hold the button and talk about your workout — exercises, sets, weights, how you felt
-        </p>
+      <div class="flex flex-col items-center px-1 pt-8 text-center">
+        <div class="mb-10 max-w-[min(100%,20rem)]">
+          <p class="m-0 mb-3 text-lg font-bold text-[var(--ion-text-color)]">Ready to log?</p>
+          <p class="m-0 text-base leading-relaxed text-[var(--vox-text-muted)]">
+            Hold the button and talk about your workout — exercises, sets, weights, how you felt
+          </p>
+        </div>
+        <button
+          type="button"
+          (touchstart)="onHoldStart($event)"
+          (touchend)="onHoldEnd($event)"
+          (mousedown)="onHoldStart($event)"
+          (mouseup)="onHoldEnd($event)"
+          (mouseleave)="onHoldCancel()"
+          class="flex h-[7rem] w-[7rem] shrink-0 items-center justify-center rounded-full border-[5px] text-[2.25rem] active:scale-[0.98] sm:h-[7.5rem] sm:w-[7.5rem] sm:text-[2.5rem]"
+          style="
+            background: linear-gradient(135deg, var(--vox-accent), #9b8af5);
+            border-color: rgba(124, 106, 247, 0.35);
+          "
+        >
+          🎙️
+        </button>
+        <p class="mt-5 text-sm text-[var(--vox-text-hint)]">Hold to record</p>
       </div>
-      <button
-        type="button"
-        (touchstart)="onHoldStart($event)"
-        (touchend)="onHoldEnd($event)"
-        (mousedown)="onHoldStart($event)"
-        (mouseup)="onHoldEnd($event)"
-        (mouseleave)="onHoldCancel()"
-        class="flex h-[7rem] w-[7rem] items-center justify-center rounded-full border-[5px] text-[2.25rem] active:scale-[0.98] sm:h-[7.5rem] sm:w-[7.5rem] sm:text-[2.5rem]"
-        style="
-          background: linear-gradient(135deg, var(--vox-accent), #9b8af5);
-          border-color: rgba(124, 106, 247, 0.35);
-        "
-      >
-        🎙️
-      </button>
-      <p class="mt-5 text-sm text-[var(--vox-text-hint)]">Hold to record</p>
     }
 
     @if (state() === 'recording') {
-      <div class="mb-6 text-center">
-        <span
-          class="inline-block rounded-lg px-3 py-1 text-xs font-bold text-[var(--vox-rose)]"
-          style="background: var(--vox-rose-dim)"
+      <div class="flex flex-col items-center px-1 pt-4 text-center">
+        <div class="mb-6">
+          <span
+            class="inline-block rounded-lg px-3 py-1 text-xs font-bold text-[var(--vox-rose)]"
+            style="background: var(--vox-rose-dim)"
+          >
+            ● REC
+          </span>
+          <p class="mt-3 text-base text-[var(--vox-text-muted)]">Listening{{ dots() }}</p>
+        </div>
+        <div class="mb-8 flex h-12 items-center justify-center gap-1">
+          @for (h of waveHeights; track $index) {
+            <div
+              class="vox-wave-bar w-[5px] rounded-sm bg-[var(--vox-rose)]"
+              [style.height.px]="h + 4"
+              [style.opacity]="0.55 + ($index % 3) * 0.14"
+              [style.animation-delay.ms]="$index * 45"
+            ></div>
+          }
+        </div>
+        <div
+          class="w-full max-w-[min(100%,22rem)] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] p-4 text-sm italic leading-relaxed text-[var(--vox-text-muted)]"
         >
-          ● REC
-        </span>
-        <p class="mt-3 text-base text-[var(--vox-text-muted)]">Listening{{ dots() }}</p>
+          @if (voiceSession.transcriptPreview(); as line) {
+            "{{ line }}"
+          } @else {
+            <span class="not-italic opacity-70">Speak now…</span>
+          }
+        </div>
+        <button
+          type="button"
+          (click)="stopRecording()"
+          class="mt-8 min-h-[3rem] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-bg-primary)] px-10 text-base font-bold text-[var(--ion-text-color)] active:opacity-90"
+        >
+          Stop Recording
+        </button>
       </div>
-      <div class="mb-8 flex h-12 items-center justify-center gap-1">
-        @for (h of waveHeights; track $index) {
-          <div
-            class="vox-wave-bar w-[5px] rounded-sm bg-[var(--vox-rose)]"
-            [style.height.px]="h + 4"
-            [style.opacity]="0.55 + ($index % 3) * 0.14"
-            [style.animation-delay.ms]="$index * 45"
-          ></div>
-        }
-      </div>
-      <div
-        class="w-full max-w-[min(100%,22rem)] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] p-4 text-sm italic leading-relaxed text-[var(--vox-text-muted)]"
-      >
-        @if (voiceSession.transcriptPreview(); as line) {
-          "{{ line }}"
-        } @else {
-          <span class="not-italic opacity-70">Speak now…</span>
-        }
-      </div>
-      <button
-        type="button"
-        (click)="stopRecording()"
-        class="mt-8 min-h-[3rem] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-bg-primary)] px-10 text-base font-bold text-[var(--ion-text-color)] active:opacity-90"
-      >
-        Stop Recording
-      </button>
     }
 
     @if (state() === 'processing') {
-      <div class="text-center">
+      <div class="px-1 pt-10 text-center">
         <div class="mb-6 text-[2.5rem] leading-none">🧠</div>
         <p class="m-0 mb-2 text-lg font-bold text-[var(--ion-text-color)]">
           AI is parsing your session...
@@ -96,7 +100,7 @@
 
     @if (state() === 'done') {
       @if (result(); as res) {
-        <div class="vox-done-wrap w-full max-w-[min(100%,26rem)]">
+        <div class="vox-done-wrap w-full pb-2">
           <div class="mb-7 text-center">
             <div class="text-3xl leading-none">✅</div>
             <p class="m-0 mt-3 text-lg font-bold tracking-tight text-[var(--ion-text-color)]">Session extracted!</p>
@@ -131,18 +135,18 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-3 sm:flex-row">
+          <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               (click)="save()"
-              class="vox-btn-primary flex-1 rounded-xl border-0 bg-[var(--vox-accent)] text-base font-bold text-white active:opacity-95"
+              class="vox-btn-primary order-1 flex-1 rounded-xl border-0 bg-[var(--vox-accent)] text-base font-bold text-white active:opacity-95 sm:order-none"
             >
               Save Session
             </button>
             <button
               type="button"
               (click)="reRecord()"
-              class="min-h-[3rem] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-6 text-base font-semibold text-[var(--ion-text-color)] active:opacity-95 sm:min-w-[8rem]"
+              class="order-2 min-h-[3rem] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-6 text-base font-semibold text-[var(--ion-text-color)] active:opacity-95 sm:order-none sm:min-w-[8.5rem]"
             >
               Re-record
             </button>

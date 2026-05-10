@@ -38,7 +38,7 @@
       (exercisesChange)="onJournalExercisesChange($event)"
     />
 
-    <div class="rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+    <div class="mb-2 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
       <p class="m-0 mb-2 text-xs font-bold text-[var(--vox-rose)]">⚠️ {{ d.flagsTitle }}</p>
       <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">{{ d.flagsBody }}</p>
     </div>
@@ -63,17 +63,33 @@
       </p>
     }
 
-    <div class="mb-4 flex flex-wrap gap-2">
-      @for (f of filters; track f.id) {
-        <button
-          type="button"
-          (click)="activeFilter.set(f.id)"
-          class="min-h-[2.75rem] rounded-xl border px-4 text-sm font-semibold active:opacity-90"
-          [style.background]="activeFilter() === f.id ? 'var(--vox-accent)' : 'var(--vox-surface)'"
-          [style.border-color]="activeFilter() === f.id ? 'var(--vox-accent)' : 'var(--ion-border-color)'"
-          [style.color]="activeFilter() === f.id ? '#fff' : 'var(--vox-text-muted)'"
-        >
-          {{ f.label }}
+    <div class="vox-filter-bar mb-4">
+      <div class="vox-filter-bar__scroll">
+        @for (f of filters; track f.id) {
+          <button
+            type="button"
+            (click)="onFilterClick(f.id)"
+            class="vox-filter-chip"
+            [class.vox-filter-chip--active]="activeFilter() === f.id"
+          >
+            @if (f.id === 'month' && activeFilter() === 'month') {
+              {{ monthFilterChipLabel() }}
+            } @else if (f.id === 'dates' && activeFilter() === 'dates') {
+              {{ datesFilterChipLabel() }}
+            } @else {
+              {{ f.label }}
+            }
+          </button>
+        }
+      </div>
+      @if (activeFilter() === 'month') {
+        <button type="button" class="vox-filter-month-link" (click)="openMonthPicker()">
+          {{ journalMonthLabel() }} — change
+        </button>
+      }
+      @if (activeFilter() === 'dates') {
+        <button type="button" class="vox-filter-month-link" (click)="openDateFilterModal()">
+          {{ dateFilterSubMode() === 'single' ? 'Pick a different day' : 'Adjust date range' }}
         </button>
       }
     </div>
@@ -100,7 +116,11 @@
       >
         <p class="m-0 text-base font-bold text-[var(--ion-text-color)]">No sessions yet</p>
         <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--vox-text-muted)]">
-          Log your first workout from the home tab to see it here — your volume chart updates automatically.
+          @if (activeFilter() !== 'all') {
+            No workouts match this filter. Try another month, date, or switch back to All.
+          } @else {
+            Log your first workout from the home tab to see it here — your volume chart updates automatically.
+          }
         </p>
       </div>
     }
@@ -142,5 +162,108 @@
         </div>
       </button>
     }
+
+    <ion-modal [isOpen]="monthPickerOpen()" (didDismiss)="monthPickerOpen.set(false)" class="vox-picker-modal">
+      <ng-template>
+        <ion-header class="ion-no-border">
+          <ion-toolbar>
+            <ion-title>Choose month</ion-title>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" (click)="monthPickerOpen.set(false)">Done</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <div class="vox-month-year-row">
+            <button type="button" class="vox-year-nav" (click)="shiftMonthPickYear(-1)" aria-label="Previous year">
+              ‹
+            </button>
+            <span class="vox-year-label">{{ monthPickYear() }}</span>
+            <button type="button" class="vox-year-nav" (click)="shiftMonthPickYear(1)" aria-label="Next year">
+              ›
+            </button>
+          </div>
+          <div class="vox-month-grid">
+            @for (label of monthGridLabels; track $index) {
+              <button
+                type="button"
+                class="vox-month-cell"
+                [class.vox-month-cell--selected]="isJournalMonthCell(monthPickYear(), $index)"
+                (click)="pickGridMonth($index)"
+              >
+                {{ label }}
+              </button>
+            }
+          </div>
+          <p class="vox-picker-footnote">Tap a month to show workouts logged in that month.</p>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <ion-modal [isOpen]="dateFilterOpen()" (didDismiss)="dateFilterOpen.set(false)" class="vox-picker-modal">
+      <ng-template>
+        <ion-header class="ion-no-border">
+          <ion-toolbar>
+            <ion-title>Dates</ion-title>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" (click)="applyDateFilterAndClose()">Apply</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <div class="vox-date-mode-row" role="tablist">
+            <button
+              type="button"
+              class="vox-date-mode-btn"
+              [class.vox-date-mode-btn--active]="dateFilterSubMode() === 'single'"
+              (click)="setDateFilterMode('single')"
+            >
+              One day
+            </button>
+            <button
+              type="button"
+              class="vox-date-mode-btn"
+              [class.vox-date-mode-btn--active]="dateFilterSubMode() === 'range'"
+              (click)="setDateFilterMode('range')"
+            >
+              From – to
+            </button>
+          </div>
+
+          @if (dateFilterSubMode() === 'single') {
+            <label class="vox-date-field">
+              <span class="vox-date-field__lab">Calendar day</span>
+              <input
+                type="date"
+                class="vox-date-input"
+                [value]="singleDateKey()"
+                (change)="onSingleDateInput($event)"
+              />
+            </label>
+            <p class="vox-picker-footnote">Shows sessions for that single date.</p>
+          } @else {
+            <label class="vox-date-field">
+              <span class="vox-date-field__lab">From</span>
+              <input
+                type="date"
+                class="vox-date-input"
+                [value]="rangeFromKey()"
+                (change)="onRangeFromInput($event)"
+              />
+            </label>
+            <label class="vox-date-field">
+              <span class="vox-date-field__lab">To</span>
+              <input
+                type="date"
+                class="vox-date-input"
+                [value]="rangeToKey()"
+                (change)="onRangeToInput($event)"
+              />
+            </label>
+            <p class="vox-picker-footnote">Inclusive — all workouts on and between these dates.</p>
+          }
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   </ion-content>
 }
