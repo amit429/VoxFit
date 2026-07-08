@@ -1,14 +1,6 @@
-<ion-header translucent class="vox-header">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text="" aria-label="Back to Home" />
-    </ion-buttons>
-    <ion-title>Profile & Goals</ion-title>
-    <ion-buttons slot="end">
-      <button type="button" (click)="signOut()" class="vox-header-text-action">Sign out</button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<vox-page-header title="Profile & Goals" [showBackButton]="true" [backHref]="'/tabs/home'">
+  <button header-end type="button" (click)="signOut()" class="vox-header-text-action">Sign out</button>
+</vox-page-header>
 
 <ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
   <div class="vox-profile-hero">

@@ -40,6 +40,12 @@ export const routes: Routes = [
     ],
   },
     {
+    path: 'log-diet',
+    canActivate: [authGuard, onboardingCompleteGuard],
+    loadComponent: () =>
+      import('@/app/pages/diet-voice-log/diet-voice-log.page').then((m) => m.DietVoiceLogPage),
+  },
+  {
     path: 'voice',
     canActivate: [authGuard, onboardingCompleteGuard],
     loadComponent: () => import('@/app/pages/voice-log/voice-log.page').then((m) => m.VoiceLogPage),

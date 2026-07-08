@@ -1,11 +1,5 @@
-<ion-header translucent class="vox-header">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text="" aria-label="Close" />
-    </ion-buttons>
-    <ion-title>Log Workout</ion-title>
-  </ion-toolbar>
-</ion-header>
+<vox-page-header title="Log Workout" [showBackButton]="true" [backHref]="'/tabs/home'">
+</vox-page-header>
 
 <ion-content
   [fullscreen]="false"

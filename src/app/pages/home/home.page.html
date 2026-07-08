@@ -113,7 +113,7 @@
     <!-- Macros -->
     <div class="mb-6 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
       <p class="mb-4 text-sm font-bold text-[var(--ion-text-color)]">Today's Nutrition</p>
-      @for (row of macros.rows; track row.label) {
+      @for (row of macros().rows; track row.label) {
         <div class="vox-macro-row">
           <div class="vox-macro-row__head">
             <span class="text-[var(--vox-text-muted)]">{{ row.label }}</span>
@@ -127,22 +127,29 @@
               class="vox-macro-row__fill"
               [style.width.%]="macroPct(row)"
               [style.background]="
-                row.label === 'Protein'
-                  ? 'var(--vox-accent)'
-                  : row.label === 'Carbs'
-                    ? 'var(--vox-orange)'
-                    : 'var(--vox-green)'
+                row.label === 'Calories'
+                  ? 'var(--vox-orange)'
+                  : row.label === 'Protein'
+                    ? 'var(--vox-accent)'
+                    : row.label === 'Carbs'
+                      ? 'var(--vox-green)'
+                      : 'var(--vox-text-muted)'
               "
             ></div>
           </div>
         </div>
       }
-      @if (macros.hint) {
+      @if (macros().hint; as hintText) {
         <p
-          class="mt-4 rounded-lg px-3 py-2.5 text-xs leading-snug text-[var(--vox-orange)]"
-          style="background: var(--vox-orange-dim)"
+          class="mt-4 rounded-lg px-3 py-2.5 text-xs leading-snug"
+          [style.background]="hintText.includes('No meals logged') ? 'var(--vox-bg-tertiary)' : 'var(--vox-orange-dim)'"
+          [style.color]="hintText.includes('No meals logged') ? 'var(--vox-text-muted)' : 'var(--vox-orange)'"
         >
-          ⚡ {{ macros.hint }}
+          @if (hintText.includes('No meals logged')) {
+            📊 {{ hintText }}
+          } @else {
+            ⚡ {{ hintText }}
+          }
         </p>
       }
     </div>
@@ -150,10 +157,17 @@
     <a
       routerLink="/voice"
       routerDirection="forward"
-      class="vox-btn-primary flex w-full items-center justify-center gap-2 rounded-2xl text-base font-extrabold text-white no-underline active:opacity-90"
+      class="vox-btn-primary mb-3 flex w-full items-center justify-center gap-2 rounded-2xl text-base font-extrabold text-white no-underline active:opacity-90"
       style="background: var(--vox-accent-dim)"
     >
       🎙️ Log Today's Workout
+    </a>
+    <a
+      routerLink="/log-diet"
+      routerDirection="forward"
+      class="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] text-sm font-bold text-[var(--ion-text-color)] no-underline active:opacity-90"
+    >
+      🍽️ Log meals (voice)
     </a>
   </div>
 </ion-content>

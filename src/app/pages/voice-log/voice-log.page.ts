@@ -1,11 +1,10 @@
+import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonBackButton,
   IonContent,
+  IonIcon,
+  IonModal,
+  IonButton,
   NavController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -27,12 +26,11 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
   templateUrl: './voice-log.page.html',
   styleUrls: ['./voice-log.page.scss'],
   imports: [
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonBackButton,
+    VoxPageHeaderComponent,
     IonContent,
+    IonIcon,
+    IonModal,
+    IonButton,
     SessionExerciseReviewCardComponent,
   ],
 })

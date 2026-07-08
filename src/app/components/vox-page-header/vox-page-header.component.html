@@ -1,0 +1,41 @@
+@if (variant() === 'auth-step') {
+  <ion-header class="ion-no-border">
+    <ion-toolbar class="auth-toolbar auth-toolbar--step">
+      <ng-content select="[header-step]"></ng-content>
+    </ion-toolbar>
+  </ion-header>
+} @else if (variant() === 'auth') {
+  <ion-header class="ion-no-border">
+    <ion-toolbar class="auth-toolbar">
+      <ion-buttons slot="start">
+        @if (showBackButton()) {
+          <ion-back-button [defaultHref]="backHref()" [attr.aria-label]="backLabel()" text=""></ion-back-button>
+        } @else {
+          <ng-content select="[header-start]"></ng-content>
+        }
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+} @else {
+  <ion-header [translucent]="translucent()" [ngClass]="'vox-header vox-header--' + size()">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        @if (showBackButton()) {
+          <ion-back-button [defaultHref]="backHref()" [attr.aria-label]="backLabel()" text="Back"></ion-back-button>
+        } @else {
+          <ng-content select="[header-start]"></ng-content>
+        }
+      </ion-buttons>
+      <ion-title class="vox-page-header__title">
+        @if (title()) {
+          {{ title() }}
+        } @else {
+          <ng-content select="[header-title]"></ng-content>
+        }
+      </ion-title>
+      <ion-buttons slot="end">
+        <ng-content select="[header-end]"></ng-content>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+}

@@ -1,3 +1,5 @@
+import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
+import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import {
   IonHeader,
@@ -5,7 +7,6 @@ import {
   IonTitle,
   IonContent,
   IonButtons,
-  IonBackButton,
   IonIcon,
   IonModal,
   IonButton,
@@ -20,7 +21,6 @@ import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
 import { exerciseLoggedLikesToExtracts } from '@/app/utils/exercise-logged.mapper';
 import { getCurrentWeekDayKeys, parseLocalDateKey, parseIsoDateLocal } from '@/app/utils/workout-display.util';
-import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 
 addIcons({ chevronBackOutline });
 
@@ -30,12 +30,12 @@ addIcons({ chevronBackOutline });
   templateUrl: './workout.page.html',
   styleUrls: ['./workout.page.scss'],
   imports: [
+    VoxPageHeaderComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     IonButtons,
-    IonBackButton,
     IonIcon,
     IonModal,
     IonButton,

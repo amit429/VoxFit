@@ -1,14 +1,8 @@
+import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonBackButton,
-  IonContent,
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
 import type { ProfileGoalRowMock } from '@/app/data/types';
 import type { GoalType } from '@/app/models/user.models';
@@ -21,7 +15,7 @@ import { getCurrentWeekDayKeys } from '@/app/utils/workout-display.util';
   standalone: true,
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent],
+  imports: [VoxPageHeaderComponent, IonContent],
 })
 export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
@@ -86,10 +80,16 @@ export class ProfilePage implements ViewWillEnter {
         : 'Set targets in onboarding';
     const prot =
       p?.target_protein_g != null && p.target_protein_g > 0 ? `${Math.round(p.target_protein_g)} g` : '—';
+    const carbs =
+      p?.target_carbs_g != null && p.target_carbs_g > 0 ? `${Math.round(p.target_carbs_g)} g` : '—';
+    const fat =
+      p?.target_fat_g != null && p.target_fat_g > 0 ? `${Math.round(p.target_fat_g)} g` : '—';
 
     return [
       { label: 'Daily Calories', value: cals },
       { label: 'Protein Target', value: prot },
+      { label: 'Carbs Target', value: carbs },
+      { label: 'Fat Target', value: fat },
       { label: 'Workouts (this week)', value: `${sessionsThisWeek} logged` },
       { label: 'Primary Goal', value: ProfilePage.formatGoalLabel(p?.goal ?? null) },
     ];

@@ -289,3 +289,15 @@ export function flagsSummary(flags: string[] | null | undefined): { title: strin
   if (f.length === 0) return { title: 'Physical Flags', body: 'No issues noted for this session.' };
   return { title: 'Physical Flags', body: f.join(' · ') };
 }
+
+/** Monday–Sunday (local week) containing `dateKey` (`YYYY-MM-DD`). */
+export function getWeekBoundsForDate(dateKey: string): { monday: string; sunday: string } {
+  const d = parseIsoDateLocal(dateKey);
+  const day = d.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { monday: parseLocalDateKey(monday), sunday: parseLocalDateKey(sunday) };
+}

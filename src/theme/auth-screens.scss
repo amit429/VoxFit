@@ -28,6 +28,15 @@
 .auth-toolbar ion-back-button {
   --color: var(--vox-accent);
   --icon-margin-end: 0;
+  --min-width: 44px;
+  --icon-font-size: 1.25rem;
+  --padding-start: 4px;
+}
+
+.auth-toolbar ion-back-button::part(native) {
+  border-radius: 12px;
+  padding: 6px 10px;
+  min-height: 40px;
 }
 
 .auth-toolbar--step {

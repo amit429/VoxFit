@@ -1,0 +1,153 @@
+<vox-page-header title="Log meals" [showBackButton]="true" [backHref]="'/tabs/diet'">
+</vox-page-header>
+
+<ion-content class="vox-standalone-page [--background:var(--vox-bg-tertiary)]">
+  <div class="mx-auto w-full max-w-[26rem] pb-6 pt-4">
+    <div
+      class="mb-6 rounded-2xl border px-4 py-5 text-center"
+      style="background: var(--vox-accent-dim); border-color: rgba(124, 106, 247, 0.28)"
+    >
+      @if (dietFlow() === 'idle') {
+        <p class="m-0 mb-4 text-sm leading-relaxed text-[var(--vox-text-muted)]">
+          Say what you have at home<br />
+          and what you're craving — you will get meal ideas + recipes.
+        </p>
+        <button type="button" class="vox-voice-cta" (click)="startListening()">
+          <span class="vox-voice-cta__pulse" aria-hidden="true"></span>
+          <span class="vox-voice-cta__inner">
+            <span class="vox-voice-cta__mic" aria-hidden="true">🎙️</span>
+            <span class="vox-voice-cta__text">
+              <span class="vox-voice-cta__title">Tap to speak</span>
+              <span class="vox-voice-cta__sub">Pantry, cravings & time — we’ll suggest meals</span>
+            </span>
+          </span>
+        </button>
+      }
+
+      @if (dietFlow() === 'recording') {
+        <div class="py-3">
+          <div class="mb-3 flex h-12 items-center justify-center gap-1">
+            @for (h of waveHeights; track $index) {
+              <div
+                class="vox-wave-bar w-[5px] rounded-sm bg-[var(--vox-accent)]"
+                [style.height.px]="h + 4"
+                [style.opacity]="0.55 + ($index % 3) * 0.14"
+                [style.animation-delay.ms]="$index * 45"
+              ></div>
+            }
+          </div>
+          <p class="m-0 mb-2 text-base font-bold text-[var(--vox-accent)]">Listening{{ dots() }}</p>
+          <div
+            class="mx-auto mb-5 max-w-[min(100%,22rem)] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] p-4 text-sm italic leading-relaxed text-[var(--vox-text-muted)]"
+          >
+            @if (voiceSession.transcriptPreview(); as line) {
+              "{{ line }}"
+            } @else {
+              <span class="not-italic opacity-70">Speak now…</span>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="stopListeningAndPlan()"
+            class="min-h-[3rem] rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-bg-primary)] px-8 text-base font-bold text-[var(--ion-text-color)] active:opacity-90"
+          >
+            Stop &amp; get meals
+          </button>
+        </div>
+      }
+
+      @if (dietFlow() === 'processing') {
+        <div class="py-4">
+          <div class="mb-4 text-[2rem] leading-none">🧑‍🍳</div>
+          <p class="m-0 mb-2 text-base font-bold text-[var(--ion-text-color)]">Planning meals...</p>
+          <p class="m-0 text-sm text-[var(--vox-text-muted)]">Hang tight — macros & recipes incoming</p>
+        </div>
+      }
+    </div>
+
+    @if (dietFlow() === 'results' && meals().length > 0) {
+      <p class="mb-3 text-base font-bold text-[var(--ion-text-color)]">Meal suggestions</p>
+      <p class="m-0 mb-4 text-xs text-[var(--vox-text-muted)]">
+        Tap a meal name for the recipe. Logging one meal clears this list — use Diet to see everything you logged today.
+      </p>
+      @for (meal of meals(); track meal.name + $index) {
+        <div class="mb-4 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
+          <button
+            type="button"
+            class="mb-3 flex w-full items-start justify-between gap-3 rounded-xl border border-transparent bg-transparent p-0 text-left active:opacity-90"
+            (click)="openRecipe(meal)"
+          >
+            <p class="m-0 flex-1 text-base font-bold leading-snug text-[var(--ion-text-color)]">{{ meal.name }}</p>
+            <span
+              class="shrink-0 whitespace-nowrap rounded-lg bg-[var(--vox-bg-tertiary)] px-2 py-1 text-xs font-semibold text-[var(--vox-accent)]"
+            >
+              Recipe ›
+            </span>
+          </button>
+          <div class="mb-2 flex flex-wrap items-center gap-2">
+            <span class="rounded-lg bg-[var(--vox-bg-tertiary)] px-2 py-1 text-[11px] text-[var(--vox-text-muted)]">
+              ⏱ {{ meal.prepMinutes }} min
+            </span>
+          </div>
+          <div class="mb-3 grid grid-cols-4 gap-2">
+            <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+              <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-orange)]">{{ meal.calories }}</p>
+              <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">Cal</p>
+            </div>
+            <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+              <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-accent)]">{{ meal.proteinG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">P</p>
+            </div>
+            <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+              <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-green)]">{{ meal.carbsG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">C</p>
+            </div>
+            <div class="rounded-lg bg-[var(--vox-bg-tertiary)] py-2 text-center">
+              <p class="m-0 text-sm font-bold tabular-nums text-[var(--vox-text-muted)]">{{ meal.fatG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-[var(--vox-text-hint)]">F</p>
+            </div>
+          </div>
+          <p class="m-0 mb-4 text-sm italic leading-relaxed text-[var(--vox-text-muted)]">✓ {{ meal.rationale }}</p>
+          <button
+            type="button"
+            (click)="logMeal(meal)"
+            class="min-h-[3rem] w-full rounded-xl border border-[var(--ion-border-color)] bg-[var(--vox-accent)] py-3 text-base font-bold text-white active:opacity-95"
+          >
+            Log this meal
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <ion-modal
+    [isOpen]="recipeDetail() !== null"
+    (didDismiss)="dismissRecipe()"
+    [handle]="true"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="vox-diet-recipe-sheet"
+  >
+    <ng-template>
+      @if (recipeDetail(); as meal) {
+        <ion-header class="ion-no-border vox-recipe-sheet-head">
+          <ion-toolbar>
+            <ion-title>Recipe</ion-title>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" (click)="dismissRecipe()">Done</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding vox-recipe-sheet-body">
+          <h2 class="vox-recipe-meal-title">{{ meal.name }}</h2>
+          <p class="vox-recipe-kicker">Steps</p>
+          <ol class="vox-recipe-ol">
+            @for (step of meal.recipeSteps; track $index) {
+              <li class="vox-recipe-li">{{ step }}</li>
+            }
+          </ol>
+        </ion-content>
+      }
+    </ng-template>
+  </ion-modal>
+</ion-content>

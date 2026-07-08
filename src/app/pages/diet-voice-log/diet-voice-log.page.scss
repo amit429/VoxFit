@@ -1,0 +1,154 @@
+:host {
+  display: block;
+}
+
+.vox-voice-cta {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 22rem;
+  margin-inline: auto;
+  padding: 0;
+  border: none;
+  border-radius: 1.15rem;
+  cursor: pointer;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+  background: transparent;
+}
+
+.vox-voice-cta__pulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--vox-accent) 95%, #fff 5%),
+    color-mix(in srgb, var(--vox-accent) 45%, #1a1430)
+  );
+  opacity: 0.45;
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.vox-voice-cta__inner {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  border-radius: inherit;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--vox-accent) 92%, #0e0a18),
+    color-mix(in srgb, var(--vox-accent) 58%, #12101c)
+  );
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 18%, transparent),
+    0 14px 36px -18px color-mix(in srgb, var(--vox-accent) 75%, #000);
+  color: #fff;
+  text-align: left;
+}
+
+.vox-voice-cta:active .vox-voice-cta__inner {
+  transform: scale(0.99);
+  opacity: 0.95;
+}
+
+.vox-voice-cta__mic {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, #fff 16%, transparent);
+  font-size: 1.35rem;
+}
+
+.vox-voice-cta__text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.vox-voice-cta__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.vox-voice-cta__sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.82;
+}
+
+ion-modal.vox-diet-recipe-sheet {
+  --height: 88vh;
+  --max-height: 88vh;
+  --width: min(100%, 28rem);
+  --border-radius: 18px 18px 0 0;
+  --backdrop-opacity: 0.55;
+}
+
+ion-modal.vox-diet-recipe-sheet::part(content) {
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
+}
+
+.vox-recipe-sheet-head ion-toolbar {
+  --min-height: 52px;
+  --padding-top: max(6px, env(safe-area-inset-top, 0px));
+  --padding-bottom: 4px;
+}
+
+.vox-recipe-sheet-head ion-title {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-inline: 0.25rem;
+}
+
+.vox-recipe-sheet-body {
+  --padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.vox-recipe-meal-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  word-wrap: break-word;
+  color: var(--ion-text-color);
+}
+
+.vox-recipe-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vox-text-hint);
+}
+
+.vox-recipe-ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.vox-recipe-li {
+  margin-bottom: 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--vox-text-muted);
+}

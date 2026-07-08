@@ -9,6 +9,10 @@ export interface UserProfile {
   goal: GoalType | null;
   target_protein_g: number;
   target_calories: number;
+  /** Daily carb target (grams); defaults from DB migration when unset in UI. */
+  target_carbs_g: number;
+  /** Daily fat target (grams); defaults from DB migration when unset in UI. */
+  target_fat_g: number;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;

@@ -1,14 +1,8 @@
+import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import {
-  IonContent,
-  IonHeader,
-  IonInput,
-  IonToolbar,
-  IonBackButton,
-  IonButtons,
-} from '@ionic/angular/standalone';
+import { IonContent, IonInput, IonBackButton } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
 
 @Component({
@@ -19,12 +13,10 @@ import { AuthService } from '@/app/services/auth.service';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    VoxPageHeaderComponent,
     IonContent,
-    IonHeader,
-    IonToolbar,
     IonInput,
     IonBackButton,
-    IonButtons,
   ],
 })
 export class RegisterPage {

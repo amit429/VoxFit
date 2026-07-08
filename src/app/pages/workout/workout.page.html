@@ -1,14 +1,10 @@
 @if (view() === 'detail' && detail(); as d) {
-  <ion-header translucent class="vox-header">
-    <ion-toolbar>
-      <ion-buttons slot="start">
-        <button type="button" (click)="goList()" class="vox-header-back-native" aria-label="Back to journal">
-          <ion-icon name="chevron-back-outline" aria-hidden="true" />
-        </button>
-      </ion-buttons>
-      <ion-title>{{ d.title }} · {{ d.dateLabel }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <vox-page-header>
+    <button header-start type="button" (click)="goList()" class="vox-header-back-native" aria-label="Back to journal">
+      <ion-icon name="chevron-back-outline" aria-hidden="true" />
+    </button>
+    <span header-title>{{ d.title }} · {{ d.dateLabel }}</span>
+  </vox-page-header>
 
   <ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
     <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4">
@@ -44,14 +40,8 @@
     </div>
   </ion-content>
 } @else {
-  <ion-header translucent class="vox-header">
-    <ion-toolbar>
-      <ion-buttons slot="start">
-        <ion-back-button defaultHref="/tabs/home" text="" aria-label="Back to Home" />
-      </ion-buttons>
-      <ion-title>Workout Journal</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <vox-page-header title="Workout Journal" [showBackButton]="true" [backHref]="'/tabs/home'">
+  </vox-page-header>
 
   <ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
     @if (journal.loadState() === 'loading' && journal.sessions().length === 0) {

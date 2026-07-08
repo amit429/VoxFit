@@ -1,14 +1,13 @@
+import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonButton,
   IonContent,
-  IonHeader,
   IonInput,
   IonSelect,
   IonSelectOption,
-  IonToolbar,
 } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
 import type { GoalType, SportType } from '@/app/models/user.models';
@@ -20,9 +19,8 @@ import type { GoalType, SportType } from '@/app/models/user.models';
   styleUrls: ['./onboarding.page.scss'],
   imports: [
     ReactiveFormsModule,
+    VoxPageHeaderComponent,
     IonContent,
-    IonHeader,
-    IonToolbar,
     IonButton,
     IonInput,
     IonSelect,
