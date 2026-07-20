@@ -1,20 +1,22 @@
 <vox-page-header title="Diet" [showBackButton]="true" [backHref]="'/tabs/home'">
 </vox-page-header>
 
-<ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
+<ion-content class="tab-page-content [--background:var(--vox-canvas)]">
   @if (nutrition.loadState() === 'error' && nutrition.lastError()) {
-    <p class="mb-4 rounded-xl border px-3 py-3 text-sm text-[var(--vox-rose)]" style="background: var(--vox-rose-dim)">
-      Could not load today’s nutrition: {{ nutrition.lastError() }}
-    </p>
+    <div class="mb-4 flex items-start gap-2 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">
+      <vox-icon name="warning-outline" tone="danger" size="sm" />
+      <span>Could not load today's nutrition: {{ nutrition.lastError() }}</span>
+    </div>
   }
 
-  <div class="mb-4 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-4 shadow-sm">
-    <p class="mb-3 text-base font-bold text-[var(--ion-text-color)]">Today's Nutrition</p>
+  <!-- Today's Nutrition -->
+  <vox-card variant="raised" padding="md" class="mb-5 block">
+    <p class="m-0 mb-4 text-sm font-semibold text-ink">Today's Nutrition</p>
     @for (row of macros().rows; track row.label) {
       <div class="vox-macro-row">
         <div class="vox-macro-row__head">
-          <span class="text-[var(--vox-text-muted)]">{{ row.label }}</span>
-          <span class="font-semibold tabular-nums text-[var(--ion-text-color)]">
+          <span class="text-ink-subtle">{{ row.label }}</span>
+          <span class="font-mono font-semibold tabular-nums text-ink">
             {{ row.current }}{{ row.label === 'Calories' ? '' : 'g' }} /
             {{ row.target }}{{ row.label === 'Calories' ? '' : 'g' }}
           </span>
@@ -23,50 +25,37 @@
           <div
             class="vox-macro-row__fill"
             [style.width.%]="macroPct(row)"
-            [style.background]="
-              row.label === 'Calories'
-                ? 'var(--vox-orange)'
-                : row.label === 'Protein'
-                  ? 'var(--vox-accent)'
-                  : row.label === 'Carbs'
-                    ? 'var(--vox-green)'
-                    : 'var(--vox-text-muted)'
-            "
+            [style.background]="macroBarColor(row.label)"
           ></div>
         </div>
       </div>
     }
     @if (macros().hint; as hintText) {
-      <div
-        class="vox-nutrition-hint mt-4 flex gap-2.5 rounded-xl px-3 py-2.5 text-xs leading-snug"
-        [style.background]="hintText.includes('No meals logged') ? 'var(--vox-bg-tertiary)' : 'var(--vox-orange-dim)'"
-        [style.color]="hintText.includes('No meals logged') ? 'var(--vox-text-muted)' : 'var(--vox-orange)'"
-      >
-        <span class="vox-nutrition-hint__emoji shrink-0 select-none" aria-hidden="true">{{
-          hintText.includes('No meals logged') ? '📊' : '⚡'
-        }}</span>
-        <p class="m-0 flex-1 text-left">{{ hintText }}</p>
-      </div>
+      <p class="mt-4 flex items-center gap-1.5 rounded-md bg-surface-3 px-3 py-2.5 text-xs leading-snug text-ink-subtle">
+        @if (hintText.includes('No meals logged')) {
+          <vox-icon name="stats-chart-outline" tone="ink-subtle" size="xs" />
+        } @else {
+          <vox-icon name="flash-outline" tone="warning" size="xs" />
+        }
+        {{ hintText }}
+      </p>
     }
-  </div>
+  </vox-card>
 
-  <a
-    routerLink="/log-diet"
-    routerDirection="forward"
-    class="vox-diet-cta mb-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-extrabold text-white no-underline active:opacity-90"
-  >
-    <span class="text-xl">🎙️</span>
+  <a routerLink="/log-diet" routerDirection="forward" class="vox-btn-primary mb-5 w-full no-underline">
+    <vox-icon name="mic-outline" size="sm" />
     Log meals (voice)
   </a>
 
-  <div class="vox-diet-panel mb-4">
-    <div class="vox-diet-panel__head">
-      <h2 class="vox-diet-panel__title">Your meals</h2>
-      <p class="vox-diet-panel__sub">Browse by period and meal type. Tap a card for the recipe.</p>
-    </div>
+  <!-- Filters -->
+  <vox-card variant="resting" padding="md" class="mb-5 block">
+    <p class="m-0 text-sm font-semibold text-ink">Your meals</p>
+    <p class="m-0 mt-1 mb-3 text-xs leading-relaxed text-ink-subtle">
+      Browse by period and meal type. Tap a card for the recipe.
+    </p>
 
-    <div class="vox-filter-row mb-3">
-      <span class="vox-filter-row__lab">View</span>
+    <div class="mb-3 flex flex-col gap-1.5">
+      <span class="text-[0.6875rem] font-semibold uppercase tracking-wider text-ink-tertiary">View</span>
       <div class="vox-seg">
         <button
           type="button"
@@ -88,36 +77,46 @@
     </div>
 
     <div class="vox-date-nav mb-4">
-      <button type="button" class="vox-date-nav__arrow" (click)="rangeMode() === 'day' ? shiftFocusDay(-1) : shiftFocusWeek(-1)" aria-label="Previous">
-        ‹
+      <button
+        type="button"
+        class="vox-date-nav__arrow"
+        (click)="rangeMode() === 'day' ? shiftFocusDay(-1) : shiftFocusWeek(-1)"
+        aria-label="Previous"
+      >
+        <vox-icon name="chevron-back-outline" size="sm" />
       </button>
-        <div class="vox-date-nav__center">
-          <span class="vox-date-nav__text">{{ rangeSummaryLabel() }}</span>
-          @if (rangeMode() === 'day') {
-            <label class="vox-date-pick-btn">
-              <input
-                type="date"
-                class="vox-date-pick-btn__input"
-                [value]="focusDateKey()"
-                (change)="onPickDate($event)"
-              />
-              <span class="vox-date-pick-btn__lab">Pick date</span>
-            </label>
-          }
-        </div>
-      <button type="button" class="vox-date-nav__arrow" (click)="rangeMode() === 'day' ? shiftFocusDay(1) : shiftFocusWeek(1)" aria-label="Next">
-        ›
+      <div class="vox-date-nav__center">
+        <span class="vox-date-nav__text">{{ rangeSummaryLabel() }}</span>
+        @if (rangeMode() === 'day') {
+          <label class="vox-date-pick-btn">
+            <input
+              type="date"
+              class="vox-date-pick-btn__input"
+              [value]="focusDateKey()"
+              (change)="onPickDate($event)"
+            />
+            <span class="vox-date-pick-btn__lab">Pick date</span>
+          </label>
+        }
+      </div>
+      <button
+        type="button"
+        class="vox-date-nav__arrow"
+        (click)="rangeMode() === 'day' ? shiftFocusDay(1) : shiftFocusWeek(1)"
+        aria-label="Next"
+      >
+        <vox-icon name="chevron-forward-outline" size="sm" />
       </button>
     </div>
 
-    <div class="vox-filter-row mb-1">
-      <span class="vox-filter-row__lab">Type</span>
-      <div class="vox-type-chips">
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[0.6875rem] font-semibold uppercase tracking-wider text-ink-tertiary">Type</span>
+      <div class="flex flex-wrap gap-2">
         @for (c of mealTypeChips; track c.id) {
           <button
             type="button"
-            class="vox-type-chip"
-            [class.vox-type-chip--on]="mealTypeFilter() === c.id"
+            class="vox-type-chip-btn"
+            [class.vox-type-chip-btn--active]="mealTypeFilter() === c.id"
             (click)="setMealFilter(c.id)"
           >
             {{ c.label }}
@@ -125,22 +124,24 @@
         }
       </div>
     </div>
-  </div>
+  </vox-card>
 
   @if (logsError()) {
-    <p class="mb-4 rounded-xl border px-3 py-3 text-sm text-[var(--vox-rose)]" style="background: var(--vox-rose-dim)">
-      {{ logsError() }}
-    </p>
+    <div class="mb-4 flex items-start gap-2 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">
+      <vox-icon name="warning-outline" tone="danger" size="sm" />
+      <span>{{ logsError() }}</span>
+    </div>
   }
 
   @if (logsLoading()) {
-    <p class="mb-4 text-center text-sm text-[var(--vox-text-muted)]">Loading meals…</p>
+    <p class="mb-4 text-center text-sm text-ink-subtle">Loading meals…</p>
   }
 
   @if (!logsLoading() && !logsError() && rawLogs().length === 0) {
-    <div class="vox-empty rounded-2xl border border-dashed border-[var(--ion-border-color)] bg-[color-mix(in_srgb,var(--vox-surface)_90%,transparent)] px-4 py-10 text-center">
-      <p class="m-0 text-sm leading-relaxed text-[var(--vox-text-muted)]">
-        No meals in this view. Try another day, week, or filter — or tap <strong class="text-[var(--ion-text-color)]">Log meals</strong> above.
+    <div class="vox-empty rounded-lg border border-dashed border-hairline px-4 py-10 text-center">
+      <vox-icon name="restaurant-outline" tone="ink-subtle" size="lg" />
+      <p class="m-0 mt-3 text-sm leading-relaxed text-ink-subtle">
+        No meals in this view. Try another day, week, or filter — or tap <strong class="text-ink">Log meals</strong> above.
       </p>
     </div>
   }
@@ -152,22 +153,24 @@
         <ul class="vox-meal-section__list">
           @for (log of section.items; track log.id) {
             <li>
-              <button type="button" class="vox-meal-card" (click)="openRecipe(log)">
-                <div class="vox-meal-card__body">
-                  <p class="vox-meal-card__name">{{ log.meal_name }}</p>
-                  <p class="vox-meal-card__meta">{{ dateLineForLog(log) }}</p>
-                  <div class="vox-meal-card__stats">
-                    <span class="vox-meal-card__cal">{{ log.calories }} cal</span>
-                    <span>P {{ log.protein_g | number: '1.0-1' }}g</span>
-                    <span>C {{ log.carbs_g | number: '1.0-1' }}g</span>
-                    <span>F {{ log.fat_g | number: '1.0-1' }}g</span>
+              <vox-card variant="interactive" padding="none" class="block">
+                <button type="button" class="vox-meal-card" (click)="openRecipe(log)">
+                  <div class="vox-meal-card__body">
+                    <p class="vox-meal-card__name">{{ log.meal_name }}</p>
+                    <p class="vox-meal-card__meta">{{ dateLineForLog(log) }}</p>
+                    <div class="vox-meal-card__stats font-mono">
+                      <span class="vox-meal-card__cal">{{ log.calories }} cal</span>
+                      <span>P {{ log.protein_g | number: '1.0-1' }}g</span>
+                      <span>C {{ log.carbs_g | number: '1.0-1' }}g</span>
+                      <span>F {{ log.fat_g | number: '1.0-1' }}g</span>
+                    </div>
+                    @if (log.rationale) {
+                      <p class="vox-meal-card__note">{{ log.rationale }}</p>
+                    }
                   </div>
-                  @if (log.rationale) {
-                    <p class="vox-meal-card__note">{{ log.rationale }}</p>
-                  }
-                </div>
-                <span class="vox-meal-card__chev" aria-hidden="true">›</span>
-              </button>
+                  <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" />
+                </button>
+              </vox-card>
             </li>
           }
         </ul>
@@ -187,22 +190,24 @@
             <ul class="vox-meal-section__list">
               @for (log of section.items; track log.id) {
                 <li>
-                  <button type="button" class="vox-meal-card" (click)="openRecipe(log)">
-                    <div class="vox-meal-card__body">
-                      <p class="vox-meal-card__name">{{ log.meal_name }}</p>
-                      <p class="vox-meal-card__meta">{{ timeLabel(log.created_at) }}</p>
-                      <div class="vox-meal-card__stats">
-                        <span class="vox-meal-card__cal">{{ log.calories }} cal</span>
-                        <span>P {{ log.protein_g | number: '1.0-1' }}g</span>
-                        <span>C {{ log.carbs_g | number: '1.0-1' }}g</span>
-                        <span>F {{ log.fat_g | number: '1.0-1' }}g</span>
+                  <vox-card variant="interactive" padding="none" class="block">
+                    <button type="button" class="vox-meal-card" (click)="openRecipe(log)">
+                      <div class="vox-meal-card__body">
+                        <p class="vox-meal-card__name">{{ log.meal_name }}</p>
+                        <p class="vox-meal-card__meta">{{ timeLabel(log.created_at) }}</p>
+                        <div class="vox-meal-card__stats font-mono">
+                          <span class="vox-meal-card__cal">{{ log.calories }} cal</span>
+                          <span>P {{ log.protein_g | number: '1.0-1' }}g</span>
+                          <span>C {{ log.carbs_g | number: '1.0-1' }}g</span>
+                          <span>F {{ log.fat_g | number: '1.0-1' }}g</span>
+                        </div>
+                        @if (log.rationale) {
+                          <p class="vox-meal-card__note">{{ log.rationale }}</p>
+                        }
                       </div>
-                      @if (log.rationale) {
-                        <p class="vox-meal-card__note">{{ log.rationale }}</p>
-                      }
-                    </div>
-                    <span class="vox-meal-card__chev" aria-hidden="true">›</span>
-                  </button>
+                      <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" />
+                    </button>
+                  </vox-card>
                 </li>
               }
             </ul>

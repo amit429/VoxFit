@@ -64,6 +64,11 @@ export const routes: Routes = [
         loadComponent: () => import('@/app/pages/workout/workout.page').then((m) => m.WorkoutPage),
       },
       {
+        path: 'workout/:sessionId',
+        loadComponent: () =>
+          import('@/app/pages/workout-detail/workout-detail.page').then((m) => m.WorkoutDetailPage),
+      },
+      {
         path: 'diet',
         loadComponent: () => import('@/app/pages/diet/diet.page').then((m) => m.DietPage),
       },

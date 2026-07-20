@@ -1,10 +1,12 @@
 /**
  * Shared minimal auth / onboarding screens (mobile-first, dark).
- * Typography + outlined controls + spacing rhythm.
+ * Typography + outlined controls + spacing rhythm. Single source of truth
+ * for visual patterns shared across welcome/login/register/onboarding so
+ * each page template stays thin and consistent.
  */
 
 .auth-flow {
-  --background: var(--ion-background-color);
+  --background: var(--vox-canvas);
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
@@ -15,18 +17,20 @@
   max-width: 26rem;
   margin-inline: auto;
   padding-inline: 1.25rem;
-  padding-top: 0.25rem;
+  padding-top: 1.25rem;
 }
 
-/* Toolbar: fade into content; title lives in scroll area for clearer hierarchy */
+/* Toolbar: subtle surface tier + hairline so it reads as a distinct band
+   above the canvas, without a shadow. */
 .auth-toolbar {
-  --background: transparent;
-  --border-width: 0;
+  --background: var(--vox-surface-1);
+  --border-width: 0 0 1px 0;
+  --border-color: var(--vox-border-hairline);
   padding-top: max(0.25rem, env(safe-area-inset-top));
 }
 
 .auth-toolbar ion-back-button {
-  --color: var(--vox-accent);
+  --color: var(--vox-primary);
   --icon-margin-end: 0;
   --min-width: 44px;
   --icon-font-size: 1.25rem;
@@ -34,7 +38,7 @@
 }
 
 .auth-toolbar ion-back-button::part(native) {
-  border-radius: 12px;
+  border-radius: var(--vox-radius-md);
   padding: 6px 10px;
   min-height: 40px;
 }
@@ -51,7 +55,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ion-color-medium);
+  color: var(--vox-ink-subtle);
 }
 
 .auth-page-eyebrow {
@@ -60,24 +64,25 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ion-color-primary);
+  color: var(--vox-primary);
   margin: 0 0 0.75rem;
 }
 
 .auth-page-title {
   font-size: 1.875rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  color: var(--ion-text-color);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  color: var(--vox-ink);
   margin: 0 0 0.625rem;
 }
 
 .auth-page-lead {
   margin: 0 0 1.75rem;
   font-size: 0.9375rem;
+  font-weight: 400;
   line-height: 1.55;
-  color: var(--ion-color-medium);
+  color: var(--vox-ink-subtle);
 }
 
 .auth-form-stack {
@@ -90,43 +95,43 @@
   margin: -0.35rem 0 0;
   padding-inline: 2px;
   font-size: 0.8125rem;
+  font-weight: 400;
   line-height: 1.4;
-  color: var(--ion-color-medium);
+  color: var(--vox-ink-subtle);
 }
 
-/* Outlined floating fields — single column, calm borders */
+/* Outlined fields — hairline border by default, surface-2 fill, accent focus ring */
 .auth-flow ion-input[fill='outline'],
 .auth-flow ion-select[fill='outline'] {
-  --border-radius: 14px;
+  --border-radius: var(--vox-radius-md);
   --padding-start: 14px;
   --padding-end: 14px;
-  --background: rgba(255, 255, 255, 0.03);
-  --border-color: var(--ion-border-color);
-  --highlight-color-focused: var(--ion-color-primary);
-  --color: var(--ion-text-color);
-  --placeholder-color: var(--ion-color-medium);
+  --background: var(--vox-surface-2);
+  --border-color: var(--vox-border-hairline);
+  --highlight-color-focused: var(--vox-primary-focus);
+  --color: var(--vox-ink);
+  --placeholder-color: var(--vox-ink-subtle);
   min-height: 3.25rem;
 }
 
 .auth-flow ion-input.ion-touched.ion-invalid.ion-dirty {
-  --border-color: var(--ion-color-danger);
+  --border-color: var(--vox-danger);
 }
 
 .auth-banner {
   padding: 0.75rem 0.875rem;
-  border-radius: 12px;
+  border-radius: var(--vox-radius-md);
   font-size: 0.875rem;
+  font-weight: 400;
   line-height: 1.45;
 }
 
 .auth-banner--error {
-  background: rgba(248, 113, 113, 0.12);
-  color: var(--ion-color-danger);
-  border: 1px solid rgba(248, 113, 113, 0.28);
+  background: var(--vox-danger-dim);
+  color: var(--vox-danger);
 }
 
 .auth-banner--info {
-  background: rgba(45, 212, 191, 0.08);
-  color: var(--ion-color-primary);
-  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: var(--vox-success-dim);
+  color: var(--vox-success);
 }

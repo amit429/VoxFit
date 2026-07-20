@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.vox-card {
+  box-sizing: border-box;
+  border-radius: var(--vox-radius-lg);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-2);
+}
+
+.vox-card--raised {
+  background: var(--vox-surface-3);
+  border-color: var(--vox-border-hairline-strong);
+}
+
+.vox-card--interactive {
+  transition: background-color 0.15s ease;
+}
+
+.vox-card--interactive:active {
+  background: var(--vox-surface-4);
+}
+
+.vox-card--pad-md {
+  padding: var(--vox-space-md);
+}
+
+.vox-card--pad-sm {
+  padding: var(--vox-space-sm);
+}
+
+.vox-card--pad-none {
+  padding: 0;
+}

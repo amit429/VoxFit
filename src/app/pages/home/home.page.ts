@@ -2,17 +2,31 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent, IonRouterLinkWithHref } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+
+addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline });
 
 @Component({
   selector: 'app-home',
   standalone: true,
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  imports: [IonContent, RouterLink, IonRouterLinkWithHref],
+  imports: [
+    IonContent,
+    RouterLink,
+    IonRouterLinkWithHref,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxIconComponent,
+  ],
 })
 export class HomePage implements ViewWillEnter {
   protected readonly auth = inject(AuthService);
@@ -44,6 +58,12 @@ export class HomePage implements ViewWillEnter {
     const t = row.target;
     if (!t || t <= 0) return 0;
     return Math.min(100, Math.round((row.current / t) * 100));
+  }
+
+  protected macroBarColor(label: string): string {
+    if (label === 'Calories') return 'var(--vox-warning)';
+    if (label === 'Protein') return 'var(--vox-success)';
+    return 'var(--vox-ink-muted)';
   }
 
   private pickGreeting(): string {

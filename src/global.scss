@@ -15,6 +15,55 @@
 @source "./**/*.html";
 @source "./**/*.ts";
 
+/* Self-hosted type — see src/theme/variables.scss for the token source of truth */
+@import './theme/fonts.scss';
+
+/*
+ * Bridge VoxFit's design tokens into Tailwind v4's own namespace (CSS-first
+ * config) so templates can use named utilities — bg-canvas, text-ink-muted,
+ * rounded-lg, font-display — instead of bg-[var(--vox-surface)] arbitrary
+ * values. Values reference the CSS custom properties in variables.scss so
+ * there is a single source of truth.
+ */
+@theme {
+  --color-canvas: var(--vox-canvas);
+  --color-surface-1: var(--vox-surface-1);
+  --color-surface-2: var(--vox-surface-2);
+  --color-surface-3: var(--vox-surface-3);
+  --color-surface-4: var(--vox-surface-4);
+  --color-hairline: var(--vox-border-hairline);
+  --color-hairline-strong: var(--vox-border-hairline-strong);
+  --color-hairline-tertiary: var(--vox-border-hairline-tertiary);
+
+  --color-ink: var(--vox-ink);
+  --color-ink-muted: var(--vox-ink-muted);
+  --color-ink-subtle: var(--vox-ink-subtle);
+  --color-ink-tertiary: var(--vox-ink-tertiary);
+
+  --color-primary: var(--vox-primary);
+  --color-primary-hover: var(--vox-primary-hover);
+  --color-primary-focus: var(--vox-primary-focus);
+  --color-primary-dim: var(--vox-primary-dim);
+
+  --color-success: var(--vox-success);
+  --color-success-dim: var(--vox-success-dim);
+  --color-warning: var(--vox-warning);
+  --color-warning-dim: var(--vox-warning-dim);
+  --color-danger: var(--vox-danger);
+  --color-danger-dim: var(--vox-danger-dim);
+
+  --radius-xs: var(--vox-radius-xs);
+  --radius-sm: var(--vox-radius-sm);
+  --radius-md: var(--vox-radius-md);
+  --radius-lg: var(--vox-radius-lg);
+  --radius-xl: var(--vox-radius-xl);
+  --radius-pill: var(--vox-radius-pill);
+
+  --font-display: var(--vox-font-display);
+  --font-text: var(--vox-font-text);
+  --font-mono: var(--vox-font-mono);
+}
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -46,6 +95,7 @@
 @import './theme/auth-screens.scss';
 @import './theme/vox-ui.scss';
 @import './theme/app-headers.scss';
+@import './theme/vox-buttons.scss';
 
 /*
  * Full viewport height — Ionic pages (especially header + ion-content) expect
@@ -59,6 +109,8 @@ body {
 
 body {
   margin: 0;
+  font-family: var(--vox-font-text);
+  letter-spacing: -0.05px;
 }
 
 app-root {
@@ -96,11 +148,4 @@ ion-select {
   --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
   --padding-top: 0.5rem;
-}
-
-/* Primary CTAs: consistent minimum tap height */
-.vox-btn-primary {
-  min-height: 3rem;
-  padding-top: 0.875rem;
-  padding-bottom: 0.875rem;
 }

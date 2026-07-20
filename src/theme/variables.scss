@@ -1,79 +1,138 @@
 /**
- * VoxFit — dark UI (wireframe-aligned): layered surfaces + purple accent.
+ * VoxFit design tokens — Linear-inspired dark system.
+ * Canvas + 4-step surface ladder, single scarce lavender-blue accent,
+ * hairline borders instead of shadows. See DESIGN-linear.app.md for source.
  * https://ionicframework.com/docs/theming/
  */
 
 :root {
-  /* Layered backgrounds (maps to wireframe tertiary / secondary / primary) */
-  --vox-bg-tertiary: #0a0a0f;
-  --vox-bg-secondary: #12121a;
-  --vox-bg-primary: #16161f;
-  --vox-surface: #1a1a24;
-  --vox-border-subtle: rgba(255, 255, 255, 0.07);
-  --vox-border-medium: rgba(255, 255, 255, 0.12);
+  /* ---- Canvas + surface ladder ---- */
+  --vox-canvas: #0a0a0c;
+  --vox-surface-1: #101113;
+  --vox-surface-2: #16171a;
+  --vox-surface-3: #1b1c1f;
+  --vox-surface-4: #212226;
 
-  --ion-background-color: var(--vox-bg-tertiary);
-  --ion-background-color-rgb: 10, 10, 15;
-  --ion-text-color: #f4f4f8;
-  --ion-text-color-rgb: 244, 244, 248;
-  --ion-toolbar-background: var(--vox-bg-secondary);
-  --ion-item-background: var(--vox-bg-primary);
-  --ion-card-background: var(--vox-surface);
-  --ion-border-color: var(--vox-border-subtle);
+  --vox-border-hairline: #26272c;
+  --vox-border-hairline-strong: #35363c;
+  --vox-border-hairline-tertiary: #3f4046;
 
-  /* Accent — wireframe purple */
-  --ion-color-primary: #7c6af7;
-  --ion-color-primary-rgb: 124, 106, 247;
+  /* ---- Ink scale ---- */
+  --vox-ink: #f7f8f8;
+  --vox-ink-muted: #d0d6e0;
+  --vox-ink-subtle: #8a8f98;
+  --vox-ink-tertiary: #62666d;
+
+  /* ---- Accent — scarce lavender-blue. CTA / focus ring / active tab / brand only. ---- */
+  --vox-primary: #5e6ad2;
+  --vox-primary-hover: #828fff;
+  --vox-primary-focus: #5e69d1;
+  --vox-primary-dim: rgba(94, 106, 210, 0.16);
+
+  /* ---- Semantic (muted so they never compete with the single accent) ---- */
+  --vox-success: #27a644;
+  --vox-success-dim: rgba(39, 166, 68, 0.14);
+  --vox-warning: #d4a72c;
+  --vox-warning-dim: rgba(212, 167, 44, 0.14);
+  --vox-danger: #e5484d;
+  --vox-danger-dim: rgba(229, 72, 77, 0.14);
+
+  /* ---- Radii ---- */
+  --vox-radius-xs: 4px;
+  --vox-radius-sm: 6px;
+  --vox-radius-md: 8px;
+  --vox-radius-lg: 12px;
+  --vox-radius-xl: 16px;
+  --vox-radius-pill: 9999px;
+
+  /* ---- Spacing (4px base unit) ---- */
+  --vox-space-xxs: 4px;
+  --vox-space-xs: 8px;
+  --vox-space-sm: 12px;
+  --vox-space-md: 16px;
+  --vox-space-lg: 24px;
+  --vox-space-xl: 32px;
+  --vox-space-xxl: 48px;
+  --vox-space-section: 96px;
+
+  /* ---- Typography ---- */
+  --vox-font-display: 'Inter', -apple-system, system-ui, sans-serif;
+  --vox-font-text: 'Inter', -apple-system, system-ui, sans-serif;
+  --vox-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---------------------------------------------------------------------
+   * Legacy aliases — kept so existing screens keep rendering correctly
+   * while Phase 2 migrates each page to the new tokens/components one by
+   * one. Remove once every consumer below has been migrated.
+   * ------------------------------------------------------------------- */
+  --vox-bg-tertiary: var(--vox-canvas);
+  --vox-bg-secondary: var(--vox-surface-1);
+  --vox-bg-primary: var(--vox-surface-2);
+  --vox-surface: var(--vox-surface-3);
+  --vox-border-subtle: var(--vox-border-hairline);
+  --vox-border-medium: var(--vox-border-hairline-strong);
+
+  --vox-accent: var(--vox-primary);
+  --vox-accent-dim: var(--vox-primary-dim);
+  --vox-green: var(--vox-success);
+  --vox-green-dim: var(--vox-success-dim);
+  --vox-orange: var(--vox-warning);
+  --vox-orange-dim: var(--vox-warning-dim);
+  --vox-rose: var(--vox-danger);
+  --vox-rose-dim: var(--vox-danger-dim);
+
+  --vox-text-muted: var(--vox-ink-muted);
+  --vox-text-hint: var(--vox-ink-tertiary);
+
+  /* ---- Ionic mapping ---- */
+  --ion-background-color: var(--vox-canvas);
+  --ion-background-color-rgb: 10, 10, 12;
+  --ion-text-color: var(--vox-ink);
+  --ion-text-color-rgb: 247, 248, 248;
+  --ion-toolbar-background: var(--vox-surface-1);
+  --ion-item-background: var(--vox-surface-2);
+  --ion-card-background: var(--vox-surface-3);
+  --ion-border-color: var(--vox-border-hairline);
+
+  --ion-color-primary: var(--vox-primary);
+  --ion-color-primary-rgb: 94, 106, 210;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #6d5ed9;
-  --ion-color-primary-tint: #8979f8;
+  --ion-color-primary-shade: var(--vox-primary-focus);
+  --ion-color-primary-tint: var(--vox-primary-hover);
 
   --ion-color-secondary: #64748b;
   --ion-color-secondary-rgb: 100, 116, 139;
 
-  --ion-color-medium: #8b8b9a;
-  --ion-color-medium-rgb: 139, 139, 154;
+  --ion-color-medium: var(--vox-ink-subtle);
+  --ion-color-medium-rgb: 138, 143, 152;
 
-  --ion-color-success: #22c98a;
-  --ion-color-success-rgb: 34, 201, 138;
+  --ion-color-success: var(--vox-success);
+  --ion-color-success-rgb: 39, 166, 68;
 
-  --ion-color-warning: #f5a623;
-  --ion-color-warning-rgb: 245, 166, 35;
+  --ion-color-warning: var(--vox-warning);
+  --ion-color-warning-rgb: 212, 167, 44;
 
-  --ion-color-danger: #e84393;
-  --ion-color-danger-rgb: 232, 67, 147;
-
-  /* Semantic shortcuts for Tailwind arbitrary values */
-  --vox-accent: #7c6af7;
-  --vox-accent-dim: rgba(124, 106, 247, 0.18);
-  --vox-green: #22c98a;
-  --vox-green-dim: rgba(34, 201, 138, 0.14);
-  --vox-orange: #f5a623;
-  --vox-orange-dim: rgba(245, 166, 35, 0.18);
-  --vox-rose: #e84393;
-  --vox-rose-dim: rgba(232, 67, 147, 0.16);
-
-  --vox-text-muted: #a1a1b0;
-  --vox-text-hint: #6b6b7a;
+  --ion-color-danger: var(--vox-danger);
+  --ion-color-danger-rgb: 229, 72, 77;
 }
 
 .ion-palette-dark,
 .ion-palette-dark.ios,
 .ion-palette-dark.md {
-  --ion-background-color: var(--vox-bg-tertiary);
-  --ion-text-color: #f4f4f8;
-  --ion-toolbar-background: var(--vox-bg-secondary);
-  --ion-item-background: var(--vox-bg-primary);
-  --ion-card-background: var(--vox-surface);
+  --ion-background-color: var(--vox-canvas);
+  --ion-text-color: var(--vox-ink);
+  --ion-toolbar-background: var(--vox-surface-1);
+  --ion-item-background: var(--vox-surface-2);
+  --ion-card-background: var(--vox-surface-3);
 }
 
-.ion-tab-bar {
-  --background: rgba(18, 18, 26, 0.94);
+ion-tab-bar {
+  --background: rgba(16, 17, 19, 0.94);
   backdrop-filter: blur(12px);
-  border-top: 1px solid var(--ion-border-color);
+  border-top: 1px solid var(--vox-border-hairline);
 }
 
 ion-content {
-  --background: var(--vox-bg-tertiary);
+  --background: var(--vox-canvas);
 }

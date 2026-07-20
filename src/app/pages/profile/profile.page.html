@@ -2,75 +2,93 @@
   <button header-end type="button" (click)="signOut()" class="vox-header-text-action">Sign out</button>
 </vox-page-header>
 
-<ion-content class="tab-page-content [--background:var(--vox-bg-tertiary)]">
-  <div class="vox-profile-hero">
-    <div class="vox-profile-hero__avatar" aria-hidden="true">
-      {{ avatarInitial() }}
-    </div>
-    <div class="vox-profile-hero__main">
-      <p class="vox-profile-hero__name">{{ displayName() }}</p>
-      <p class="vox-profile-hero__email">{{ email() }}</p>
-      <div class="vox-profile-hero__pills">
-        <span class="vox-profile-hero__pill vox-profile-hero__pill--accent">{{ sportChip() }}</span>
-        <span class="vox-profile-hero__pill vox-profile-hero__pill--green">{{ goalChip() }}</span>
+<ion-content class="tab-page-content [--background:var(--vox-canvas)]">
+  <!-- Hero -->
+  <vox-card variant="raised" padding="md" class="mb-5 block">
+    <div class="flex items-center gap-3.5">
+      <div
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-pill bg-primary-dim text-base font-semibold text-primary"
+        aria-hidden="true"
+      >
+        {{ avatarInitial() }}
+      </div>
+      <div class="min-w-0 flex-1 text-left">
+        <p class="m-0 truncate text-base font-semibold leading-snug text-ink">{{ displayName() }}</p>
+        <p class="m-0 mt-0.5 truncate text-xs text-ink-subtle">{{ email() }}</p>
+        <div class="mt-2 flex flex-wrap gap-1.5">
+          <vox-badge tone="neutral" shape="pill">{{ sportChip() }}</vox-badge>
+          <vox-badge tone="success" shape="pill">{{ goalChip() }}</vox-badge>
+        </div>
       </div>
     </div>
-  </div>
+  </vox-card>
 
-  <div class="mb-5 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 pb-4 pt-3">
+  <!-- Activity calendar -->
+  <vox-card variant="raised" padding="md" class="mb-5 block">
+    <p class="m-0 mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-subtle">
+      <vox-icon name="calendar-outline" tone="ink-subtle" size="sm" />
+      Activity
+    </p>
     <div class="mb-3 flex items-center justify-between gap-2">
-      <button
-        type="button"
-        class="vox-cal-nav"
-        (click)="shiftMonth(-1)"
-        aria-label="Previous month"
-      >
-        ‹
+      <button type="button" class="vox-cal-nav" (click)="shiftMonth(-1)" aria-label="Previous month">
+        <vox-icon name="chevron-back-outline" size="sm" />
       </button>
-      <p class="m-0 min-w-0 flex-1 text-center text-base font-bold text-[var(--ion-text-color)]">
+      <p class="m-0 min-w-0 flex-1 text-center text-sm font-semibold text-ink">
         {{ calendarTitle() }}
       </p>
-      <button type="button" class="vox-cal-nav" (click)="shiftMonth(1)" aria-label="Next month">›</button>
+      <button type="button" class="vox-cal-nav" (click)="shiftMonth(1)" aria-label="Next month">
+        <vox-icon name="chevron-forward-outline" size="sm" />
+      </button>
     </div>
-    <div class="grid grid-cols-7 gap-x-1 gap-y-2">
+    <div class="grid grid-cols-7 gap-2">
       @for (d of ['S', 'M', 'T', 'W', 'T', 'F', 'S']; track $index) {
-        <div class="text-center text-xs font-medium text-[var(--vox-text-hint)]">{{ d }}</div>
+        <div class="text-center text-xs font-medium text-ink-tertiary">{{ d }}</div>
       }
       @for (cell of calendarCells(); track $index) {
         @if (cell === null) {
           <div class="aspect-square max-h-10 min-h-[1.75rem]" aria-hidden="true"></div>
         } @else {
           <div
-            class="flex aspect-square max-h-10 min-h-[1.75rem] items-center justify-center rounded-lg text-xs font-semibold"
-            [style.background]="workoutDaysInMonth().has(cell) ? 'var(--vox-accent)' : 'var(--vox-bg-secondary)'"
-            [style.color]="workoutDaysInMonth().has(cell) ? '#ffffff' : 'var(--vox-text-hint)'"
+            class="flex aspect-square max-h-10 min-h-[1.75rem] items-center justify-center rounded-sm text-xs font-semibold"
+            [style.background]="cellBackground(cell)"
+            [style.color]="cellColor(cell)"
+            [style.outline]="isTodayCell(cell) ? '2px solid var(--vox-primary)' : 'none'"
+            style="outline-offset: -1px"
           >
             {{ cell }}
           </div>
         }
       }
     </div>
-    <p class="m-0 mt-3 text-center text-[11px] leading-snug text-[var(--vox-text-hint)]">
-      Days highlighted when you logged a workout that day.
+    <p class="m-0 mt-3 text-center text-[11px] leading-snug text-ink-tertiary">
+      Shade deepens with more workouts logged that day. Today is outlined.
     </p>
-  </div>
+  </vox-card>
 
-  <div class="mb-2 rounded-2xl border border-[var(--ion-border-color)] bg-[var(--vox-surface)] px-4 py-2">
-    <p class="mb-2 px-1 pt-2 text-base font-bold text-[var(--ion-text-color)]">Targets & activity</p>
+  <!-- Targets & activity -->
+  <vox-card variant="raised" padding="sm" class="mb-5 block">
+    <p class="m-0 mb-1 flex items-center gap-1.5 px-1 pt-2 text-xs font-semibold uppercase tracking-wider text-ink-subtle">
+      <vox-icon name="flag-outline" tone="ink-subtle" size="sm" />
+      Targets &amp; activity
+    </p>
     @for (g of goalRows(); track g.label; let last = $last) {
       <div
         class="flex items-center justify-between gap-3 px-1 py-3.5"
-        [style.border-bottom]="!last ? '1px solid var(--ion-border-color)' : 'none'"
+        [class.border-b]="!last"
+        [class.border-hairline]="!last"
       >
-        <span class="text-sm text-[var(--vox-text-muted)]">{{ g.label }}</span>
-        <span class="max-w-[60%] text-right text-sm font-semibold leading-snug text-[var(--ion-text-color)]">{{
-          g.value
-        }}</span>
+        <span class="text-sm text-ink-subtle">{{ g.label }}</span>
+        <span
+          class="max-w-[60%] text-right text-sm font-semibold leading-snug text-ink"
+          [class.font-mono]="g.label !== 'Primary Goal'"
+        >
+          {{ g.value }}
+        </span>
       </div>
     }
-  </div>
+  </vox-card>
 
-  <p class="px-1 pb-2 text-center text-xs leading-relaxed text-[var(--vox-text-hint)]">
+  <p class="px-1 pb-2 text-center text-xs leading-relaxed text-ink-tertiary">
     Nutrition targets come from your account profile. Refresh the app after changing goals in onboarding.
   </p>
 </ion-content>

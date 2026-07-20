@@ -16,7 +16,7 @@
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
-  background: var(--vox-bg-tertiary);
+  background: var(--vox-canvas);
 }
 
 .vbs-header {
@@ -25,7 +25,7 @@
 
 .vbs-toolbar {
   --min-height: 3.25rem;
-  --background: var(--vox-bg-tertiary);
+  --background: var(--vox-canvas);
   --border-width: 0;
   --padding-top: max(0.35rem, env(safe-area-inset-top, 0px));
   --padding-bottom: 0.35rem;
@@ -47,10 +47,10 @@
   margin: 0;
   width: 100%;
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.3;
-  color: var(--ion-text-color);
+  color: var(--vox-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -73,14 +73,14 @@
 .vbs-content {
   flex: 1 1 auto;
   min-height: 0;
-  --background: var(--vox-bg-tertiary);
+  --background: var(--vox-canvas);
 }
 
 .vbs-body {
   box-sizing: border-box;
   max-width: 32rem;
   margin-inline: auto;
-  padding: 0.5rem 1rem 1rem;
+  padding: 1rem;
 }
 
 .vbs-footer-outer {
@@ -88,7 +88,7 @@
 }
 
 .vbs-footer-bar {
-  --background: var(--vox-bg-tertiary);
+  --background: var(--vox-canvas);
   --border-width: 0;
   --min-height: auto;
   --padding-top: 0.5rem;
@@ -105,10 +105,14 @@
 
 .vbs-primary {
   margin: 0;
-  font-weight: 750;
+  font-weight: 600;
   min-height: 3.25rem;
   --padding-top: 0.85rem;
   --padding-bottom: 0.85rem;
+  --border-radius: var(--vox-radius-md);
+  --background: var(--vox-primary);
+  --background-activated: var(--vox-primary-focus);
+  --box-shadow: none;
 }
 
 /* Form fields ------------------------------------------------------------- */
@@ -120,11 +124,16 @@
 
 .eed-field,
 .eed-toggle {
-  --background: color-mix(in srgb, var(--vox-surface) 88%, transparent);
-  --border-radius: 1rem;
-  margin-bottom: 0.65rem;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 75%, transparent);
+  --background: var(--vox-surface-2);
+  --border-radius: var(--vox-radius-md);
+  --padding-start: 1rem;
+  --padding-end: 0.75rem;
+  --padding-top: 0.85rem;
+  --padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+  min-height: 3.25rem;
+  border-radius: var(--vox-radius-md);
+  border: 1px solid var(--vox-border-hairline);
 }
 
 .eed-toggle {
@@ -133,25 +142,32 @@
   min-height: 3.25rem;
 }
 
+.eed-field ion-input,
+.eed-field ion-select {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
 .eed-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 1.25rem 0 0.65rem;
+  margin: 1.25rem 0 0.85rem;
 }
 
 .eed-section-label {
   font-size: 0.7rem;
-  font-weight: 750;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--vox-text-muted);
+  color: var(--vox-ink-subtle);
 }
 
 .eed-add {
-  --padding-start: 0.35rem;
-  --padding-end: 0.35rem;
-  font-weight: 650;
+  --padding-start: 0.6rem;
+  --padding-end: 0.6rem;
+  --color: var(--vox-primary);
+  font-weight: 600;
   font-size: 0.8125rem;
 }
 
@@ -162,11 +178,10 @@
 }
 
 .eed-line-card {
-  border-radius: 1.1rem;
+  border-radius: var(--vox-radius-lg);
   padding: 0.85rem 0.9rem 1rem;
-  background: color-mix(in srgb, var(--vox-surface) 94%, var(--vox-bg-primary));
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 80%, transparent);
-  box-shadow: 0 10px 28px -22px rgba(0, 0, 0, 0.8);
+  background: var(--vox-surface-2);
+  border: 1px solid var(--vox-border-hairline);
 }
 
 .eed-line-card__top {
@@ -178,21 +193,21 @@
 
 .eed-line-badge {
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--vox-accent);
-  opacity: 0.95;
+  color: var(--vox-primary-hover);
 }
 
 .eed-remove {
   margin: 0;
-  height: 2rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
 }
 
 .eed-grid {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .eed-grid--str {
@@ -220,11 +235,17 @@
   --padding-start: 0;
   --padding-end: 0;
   margin: 0;
+  min-height: 3rem;
+}
+
+.eed-mini ion-input {
+  --padding-start: 0.5rem;
+  --padding-end: 0.5rem;
 }
 
 .eed-hint {
   margin: 1.25rem 0 1.25rem;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: var(--vox-text-muted);
+  color: var(--vox-ink-subtle);
 }

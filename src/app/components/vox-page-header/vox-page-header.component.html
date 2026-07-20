@@ -21,7 +21,7 @@
     <ion-toolbar>
       <ion-buttons slot="start">
         @if (showBackButton()) {
-          <ion-back-button [defaultHref]="backHref()" [attr.aria-label]="backLabel()" text="Back"></ion-back-button>
+          <ion-back-button [defaultHref]="backHref()" [attr.aria-label]="backLabel()" text=""></ion-back-button>
         } @else {
           <ng-content select="[header-start]"></ng-content>
         }

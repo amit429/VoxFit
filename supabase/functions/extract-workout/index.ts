@@ -2,7 +2,7 @@
 /** Keep SYSTEM in sync with `src/app/prompts/workout-extract.prompt.ts` (`WORKOUT_EXTRACT_SYSTEM_PROMPT`). */
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const SYSTEM = `You are the AI engine behind VoxFit: a voice-first workout logger. Your competitive advantage is that users log in seconds with messy, rushed speech—and you still return structured data that matches our database exactly.
 
 ## How users actually behave

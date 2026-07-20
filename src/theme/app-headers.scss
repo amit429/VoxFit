@@ -5,9 +5,9 @@
 
 ion-header.vox-header {
   ion-toolbar {
-    --background: rgba(14, 14, 20, 0.78);
+    --background: rgba(16, 17, 19, 0.85);
     --border-width: 0 0 1px 0;
-    --border-color: var(--vox-border-subtle);
+    --border-color: var(--vox-border-hairline);
     --min-height: 68px;
     --padding-top: max(8px, env(safe-area-inset-top));
     --padding-bottom: 8px;
@@ -19,10 +19,10 @@ ion-header.vox-header {
   ion-title,
   ion-title.vox-page-header__title {
     font-size: 1.375rem !important;
-    font-weight: 750 !important;
-    letter-spacing: -0.03em;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em;
     line-height: 1.25;
-    color: var(--ion-text-color);
+    color: var(--vox-ink);
   }
 
   ion-title.vox-page-header__title {
@@ -32,7 +32,7 @@ ion-header.vox-header {
   }
 
   ion-back-button {
-    --color: var(--vox-accent);
+    --color: var(--vox-primary);
     --icon-margin-end: 0;
     --padding-start: 6px;
     --min-width: 48px;
@@ -61,7 +61,7 @@ ion-header.vox-header--normal {
   ion-title,
   ion-title.vox-page-header__title {
     font-size: 1.1875rem !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
   }
 
   ion-back-button {
@@ -85,7 +85,7 @@ button.vox-header-back-native {
   border: none;
   border-radius: 12px;
   background: transparent;
-  color: var(--vox-accent);
+  color: var(--vox-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }

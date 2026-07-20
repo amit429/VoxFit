@@ -8,89 +8,6 @@ ion-toolbar ion-buttons[slot='end'] {
   z-index: 2;
 }
 
-.vox-profile-hero {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  margin-bottom: 1.1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 88%, transparent);
-  background: color-mix(in srgb, var(--vox-surface) 94%, var(--vox-bg-primary));
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--ion-text-color) 4%, transparent);
-}
-
-.vox-profile-hero__avatar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 9999px;
-  background: var(--vox-accent-dim);
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--vox-accent);
-}
-
-.vox-profile-hero__main {
-  min-width: 0;
-  flex: 1;
-  text-align: left;
-}
-
-.vox-profile-hero__name {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: var(--ion-text-color);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vox-profile-hero__email {
-  margin: 0.15rem 0 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
-  color: var(--vox-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vox-profile-hero__pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.45rem;
-}
-
-.vox-profile-hero__pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-
-  &--accent {
-    background: var(--vox-accent-dim);
-    color: var(--vox-accent);
-  }
-
-  &--green {
-    background: var(--vox-green-dim);
-    color: var(--vox-green);
-  }
-}
-
 .vox-cal-nav {
   display: inline-flex;
   align-items: center;
@@ -99,17 +16,14 @@ ion-toolbar ion-buttons[slot='end'] {
   min-height: 2.5rem;
   margin: 0;
   padding: 0;
-  border: 0;
-  border-radius: 0.65rem;
-  background: var(--vox-bg-tertiary);
-  color: var(--ion-text-color);
-  font-size: 1.35rem;
-  font-weight: 600;
-  line-height: 1;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .vox-cal-nav:active {
-  opacity: 0.78;
+  background: var(--vox-surface-3);
 }

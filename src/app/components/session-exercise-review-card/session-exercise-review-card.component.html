@@ -6,66 +6,86 @@
   (saved)="onEditorSaved($event)"
 />
 
-<div class="vox-session-card">
-  <p class="vox-session-card__title">{{ sessionTitle() }}</p>
+<vox-card variant="raised" padding="md" class="block">
+  <p class="m-0 mb-4 text-base font-semibold tracking-tight text-ink">{{ sessionTitle() }}</p>
+
   @if (coachSummary()) {
-    <div class="vox-coach-note">
-      <p class="vox-coach-note__label">Coach</p>
-      <p class="vox-coach-note__body">{{ coachSummary() }}</p>
+    <div class="mb-6 flex gap-2 rounded-md border-l-2 border-primary bg-surface-3 px-3 py-3">
+      <vox-icon name="sparkles-outline" tone="accent" size="sm" class="mt-0.5 shrink-0" />
+      <div class="min-w-0">
+        <p class="m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-primary">Coach</p>
+        <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ coachSummary() }}</p>
+      </div>
     </div>
   }
 
-  <div class="vox-exercise-list">
+  <div class="flex flex-col gap-4">
     @for (ex of voiceExerciseRows(); track $index; let i = $index) {
-      <div class="vox-exercise-card" [class.vox-exercise-card--open]="isExerciseExpanded(i)">
-        <div class="vox-exercise-card__head">
-          <button
-            type="button"
-            class="vox-exercise-trigger"
-            (click)="toggleExercise(i)"
-            [attr.aria-expanded]="isExerciseExpanded(i)"
-            [attr.aria-controls]="'vox-exercise-panel-' + i"
-            [id]="'vox-exercise-trigger-' + i"
-          >
-            <div class="vox-exercise-trigger__main">
-              <div class="vox-exercise-trigger__title-row">
-                <span class="vox-exercise-name">{{ ex.name }}</span>
+      <vox-card [variant]="isExerciseExpanded(i) ? 'interactive' : 'resting'" padding="none" class="block">
+        <div class="overflow-hidden rounded-lg">
+          <div class="flex items-stretch">
+            <button
+              type="button"
+              class="vox-exercise-trigger flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-4 text-left"
+              (click)="toggleExercise(i)"
+              [attr.aria-expanded]="isExerciseExpanded(i)"
+              [attr.aria-controls]="'vox-exercise-panel-' + i"
+              [id]="'vox-exercise-trigger-' + i"
+            >
+              <span class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                <span class="text-[1rem] font-semibold text-ink">{{ ex.name }}</span>
                 @if (ex.isPr) {
-                  <span class="vox-exercise-pr">PR</span>
+                  <vox-badge tone="warning" shape="sm">
+                    <vox-icon name="trophy-outline" size="xs" tone="warning" />
+                    PR
+                  </vox-badge>
                 }
                 @if (ex.exerciseType === 'cardio') {
-                  <span class="vox-exercise-type-chip">Cardio</span>
+                  <vox-badge tone="neutral" shape="sm">Cardio</vox-badge>
                 }
-              </div>
-            </div>
-            <ion-icon
-              class="vox-exercise-ion-chevron"
-              [name]="isExerciseExpanded(i) ? 'chevron-up-outline' : 'chevron-down-outline'"
-              aria-hidden="true"
-            />
-          </button>
-          <button type="button" class="vox-icon-btn" (click)="openExerciseEditor(i, undefined, $event)" aria-label="Edit exercise">
-            <ion-icon name="create-outline" />
-          </button>
-        </div>
-
-        @if (isExerciseExpanded(i)) {
-          <div class="vox-exercise-panel" [id]="'vox-exercise-panel-' + i" role="region" [attr.aria-labelledby]="'vox-exercise-trigger-' + i">
-            @if (ex.setRows.length === 0) {
-              <p class="vox-exercise-panel__empty">No set breakdown — tap edit to add rows.</p>
-              <button type="button" class="vox-panel-edit-link" (click)="openExerciseEditor(i)">Edit exercise</button>
-            } @else {
-              <p class="vox-panel-hint">Tap a row to edit</p>
-              <app-exercise-sets-preview-table
-                [exerciseType]="ex.exerciseType"
-                [setRows]="ex.setRows"
-                [highlightRowIndex]="highlightRowForExercise(i)"
-                (rowClick)="openExerciseEditor(i, $event)"
+              </span>
+              <vox-icon
+                class="shrink-0"
+                [name]="isExerciseExpanded(i) ? 'chevron-up-outline' : 'chevron-down-outline'"
+                tone="ink-subtle"
+                size="sm"
               />
-            }
+            </button>
+            <button
+              type="button"
+              class="vox-exercise-edit-btn"
+              (click)="openExerciseEditor(i, undefined, $event)"
+              aria-label="Edit exercise"
+            >
+              <vox-icon name="create-outline" tone="accent" size="sm" />
+            </button>
           </div>
-        }
-      </div>
+
+          @if (isExerciseExpanded(i)) {
+            <div
+              class="vox-exercise-panel border-t border-hairline px-4 py-4"
+              [id]="'vox-exercise-panel-' + i"
+              role="region"
+              [attr.aria-labelledby]="'vox-exercise-trigger-' + i"
+            >
+              @if (ex.setRows.length === 0) {
+                <p class="m-0 mb-2 text-sm text-ink-subtle">No set breakdown — tap edit to add rows.</p>
+                <button type="button" class="vox-panel-edit-link text-sm font-semibold text-primary" (click)="openExerciseEditor(i)">
+                  Edit exercise
+                </button>
+              } @else {
+                <p class="m-0 mb-2 text-xs font-semibold uppercase tracking-wider text-ink-subtle">Tap a row to edit</p>
+                <app-exercise-sets-preview-table
+                  [exerciseType]="ex.exerciseType"
+                  [setRows]="ex.setRows"
+                  [highlightRowIndex]="highlightRowForExercise(i)"
+                  (rowClick)="openExerciseEditor(i, $event)"
+                />
+              }
+            </div>
+          }
+        </div>
+      </vox-card>
     }
   </div>
-</div>
+</vox-card>

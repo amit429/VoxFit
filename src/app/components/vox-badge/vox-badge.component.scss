@@ -1,0 +1,48 @@
+:host {
+  display: inline-flex;
+}
+
+.vox-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--vox-font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 0.125rem 0.5rem;
+  white-space: nowrap;
+}
+
+.vox-badge--sm {
+  border-radius: var(--vox-radius-sm);
+}
+
+.vox-badge--pill {
+  border-radius: var(--vox-radius-pill);
+}
+
+.vox-badge--neutral {
+  background: var(--vox-surface-4);
+  color: var(--vox-ink-subtle);
+}
+
+.vox-badge--accent {
+  background: var(--vox-primary-dim);
+  color: var(--vox-primary-hover);
+}
+
+.vox-badge--success {
+  background: var(--vox-success-dim);
+  color: var(--vox-success);
+}
+
+.vox-badge--warning {
+  background: var(--vox-warning-dim);
+  color: var(--vox-warning);
+}
+
+.vox-badge--danger {
+  background: var(--vox-danger-dim);
+  color: var(--vox-danger);
+}

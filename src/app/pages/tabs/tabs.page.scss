@@ -11,6 +11,8 @@ ion-tab-bar {
 }
 
 ion-tab-button {
+  --color: var(--vox-ink-subtle);
+  --color-selected: var(--vox-primary);
   font-size: 0.6875rem;
   letter-spacing: 0.01em;
   min-height: 3rem;

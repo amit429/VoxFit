@@ -33,11 +33,7 @@
         <div class="auth-banner auth-banner--error mt-4" role="alert">{{ errorMessage }}</div>
       }
 
-      <button
-        type="submit"
-        [disabled]="loading"
-        class="mt-2 inline-flex h-[3.25rem] w-full shrink-0 items-center justify-center rounded-[14px] bg-[var(--ion-color-primary)] text-base font-semibold text-[var(--ion-color-primary-contrast)] shadow-sm transition-[opacity,transform] enabled:active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
-      >
+      <button type="submit" [disabled]="loading" class="vox-btn-primary mt-4 w-full">
         @if (loading) {
           Signing in…
         } @else {
@@ -45,11 +41,8 @@
         }
       </button>
 
-      <a
-        routerLink="/auth/register"
-        class="mt-1 inline-flex w-full items-center justify-center py-2.5 text-sm font-medium text-[var(--ion-color-medium)] no-underline active:opacity-80"
-      >
-        New here? <span class="pl-1 text-[var(--ion-color-primary)]">Create an account</span>
+      <a routerLink="/auth/register" class="vox-btn-ghost mt-5 w-full no-underline">
+        New here? <span class="pl-1 text-primary">Create an account</span>
       </a>
     </form>
   </div>

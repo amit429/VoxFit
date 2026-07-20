@@ -7,7 +7,8 @@ export class WorkoutSessionLogService {
   private readonly supabase = inject(SupabaseService);
 
   async saveSession(userId: string, transcript: string, parsed: WorkoutExtractResult): Promise<string> {
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const sessionInsert = {
       user_id: userId,
       date: dateStr,

@@ -1,0 +1,13 @@
+/**
+ * Self-hosted fonts (no external font requests — works offline in the
+ * Capacitor WebView). Only the weights actually used are imported.
+ */
+
+/* Inter — display + body voice (500/600/700 per Linear's weight ceiling) */
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+/* JetBrains Mono — numeric/stat display (reps, weights, macros) */
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";

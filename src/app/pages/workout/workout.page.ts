@@ -1,28 +1,17 @@
-import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { Component, computed, inject, signal } from '@angular/core';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButtons,
-  IonIcon,
-  IonModal,
-  IonButton,
-  ToastController,
-} from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonModal, IonButton } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline } from 'ionicons/icons';
-import type { WorkoutDetailMock } from '@/app/data/types';
-import type { WorkoutExerciseExtract } from '@/app/models/workout-extract.models';
+import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
-import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
-import { exerciseLoggedLikesToExtracts } from '@/app/utils/exercise-logged.mapper';
 import { getCurrentWeekDayKeys, parseLocalDateKey, parseIsoDateLocal } from '@/app/utils/workout-display.util';
 
-addIcons({ chevronBackOutline });
+addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline });
 
 @Component({
   selector: 'app-workout',
@@ -31,23 +20,22 @@ addIcons({ chevronBackOutline });
   styleUrls: ['./workout.page.scss'],
   imports: [
     VoxPageHeaderComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxIconComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     IonButtons,
-    IonIcon,
     IonModal,
     IonButton,
-    SessionExerciseReviewCardComponent,
   ],
 })
 export class WorkoutPage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
-  private readonly workoutLog = inject(WorkoutSessionLogService);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly router = inject(Router);
 
-  protected readonly view = signal<'list' | 'detail'>('list');
   protected readonly activeFilter = signal<'all' | 'week' | 'prs' | 'month' | 'dates'>('all');
   protected readonly monthPickerOpen = signal(false);
   /** Year shown in the month-picker modal (browse). */
@@ -82,10 +70,6 @@ export class WorkoutPage implements ViewWillEnter {
     'Nov',
     'Dec',
   ] as const;
-
-  protected readonly detail = signal<WorkoutDetailMock | null>(null);
-  protected readonly detailSessionId = signal<string | null>(null);
-  protected readonly detailExercises = signal<WorkoutExerciseExtract[]>([]);
 
   protected readonly filters = [
     { id: 'all' as const, label: 'All' },
@@ -250,41 +234,6 @@ export class WorkoutPage implements ViewWillEnter {
   }
 
   protected openDetail(sessionId: string): void {
-    const row = this.journal.sessions().find((s) => s.id === sessionId);
-    if (!row) return;
-    this.detailSessionId.set(sessionId);
-    this.detailExercises.set(exerciseLoggedLikesToExtracts(row.exercises_logged ?? []));
-    this.detail.set(this.journal.sessionToDetail(row));
-    this.view.set('detail');
-  }
-
-  protected async onJournalExercisesChange(next: WorkoutExerciseExtract[]): Promise<void> {
-    const sid = this.detailSessionId();
-    if (!sid) return;
-    try {
-      await this.workoutLog.replaceSessionExercises(sid, next);
-      await this.journal.refresh();
-      const row = this.journal.sessions().find((s) => s.id === sid);
-      if (row) {
-        this.detail.set(this.journal.sessionToDetail(row));
-        this.detailExercises.set(exerciseLoggedLikesToExtracts(row.exercises_logged ?? []));
-      }
-    } catch (err) {
-      console.error('[WorkoutPage] Exercise update failed:', err);
-      const t = await this.toastCtrl.create({
-        message: err instanceof Error ? err.message : 'Could not update exercises',
-        duration: 3200,
-        color: 'danger',
-        position: 'bottom',
-      });
-      await t.present();
-    }
-  }
-
-  protected goList(): void {
-    this.view.set('list');
-    this.detail.set(null);
-    this.detailSessionId.set(null);
-    this.detailExercises.set([]);
+    void this.router.navigate(['/tabs/workout', sessionId]);
   }
 }

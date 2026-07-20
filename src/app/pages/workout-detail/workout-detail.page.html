@@ -1,0 +1,56 @@
+<vox-page-header [showBackButton]="true" [backHref]="'/tabs/workout'">
+  @if (detail(); as d) {
+    <span header-title>{{ d.title }} · {{ d.dateLabel }}</span>
+  } @else {
+    <span header-title>Session</span>
+  }
+</vox-page-header>
+
+<ion-content class="tab-page-content [--background:var(--vox-canvas)]">
+  @if (detail(); as d) {
+    <vox-card variant="raised" padding="md" class="mb-5 block">
+      <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+          <p class="m-0 text-xs text-ink-subtle">Mood</p>
+          <p class="m-0 mt-1 text-lg leading-none">{{ d.moodEmoji }}</p>
+          <p class="m-0 mt-1 text-xs font-semibold text-success">{{ d.moodLabel }}</p>
+        </div>
+        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+          <p class="m-0 text-xs text-ink-subtle">Energy</p>
+          <p class="m-0 mt-1 text-sm font-semibold leading-tight text-warning">{{ d.energyLabel }}</p>
+        </div>
+        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+          <p class="m-0 text-xs text-ink-subtle">Volume</p>
+          <p class="m-0 mt-1 text-sm font-semibold tabular-nums text-primary font-mono">{{ d.volumeLabel }}</p>
+        </div>
+      </div>
+    </vox-card>
+
+    <app-session-exercise-review-card
+      class="mb-5 block"
+      [sessionContextId]="detailSessionId() ?? undefined"
+      [sessionTitle]="d.title"
+      [coachSummary]="d.coachNote || null"
+      [exercises]="detailExercises()"
+      (exercisesChange)="onJournalExercisesChange($event)"
+    />
+
+    <vox-card variant="raised" padding="md" class="mb-2 block">
+      <p class="m-0 mb-2 flex items-center gap-1.5 text-xs font-semibold text-danger">
+        <vox-icon name="warning-outline" tone="danger" size="xs" />
+        {{ d.flagsTitle }}
+      </p>
+      <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ d.flagsBody }}</p>
+    </vox-card>
+  } @else if (notFound()) {
+    <vox-card variant="raised" padding="md" class="mt-6 block text-center">
+      <p class="m-0 text-base font-semibold text-ink">Session not found</p>
+      <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
+        This workout may have been deleted, or the link is out of date.
+      </p>
+      <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4">Back to journal</button>
+    </vox-card>
+  } @else {
+    <p class="mt-6 text-center text-sm text-ink-subtle">Loading session…</p>
+  }
+</ion-content>

@@ -11,12 +11,19 @@ import {
   IonButton,
   ToastController,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { mic, sparklesOutline, checkmarkCircle, timeOutline } from 'ionicons/icons';
 import type { DietMealSuggestion } from '@/app/models/diet-meals.models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
 import { GeminiDietMealsService } from '@/app/services/gemini-diet-meals.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { DietLogService } from '@/app/services/diet-log.service';
 import { AuthService } from '@/app/services/auth.service';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+
+addIcons({ mic, sparklesOutline, checkmarkCircle, timeOutline });
 
 type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
 
@@ -34,6 +41,9 @@ type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
     IonButtons,
     IonModal,
     IonButton,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxIconComponent,
   ],
 })
 export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy {

@@ -1,4 +1,6 @@
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -13,11 +15,31 @@ import {
   IonModal,
   IonButton,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  micOutline,
+  statsChartOutline,
+  flashOutline,
+  warningOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
+  restaurantOutline,
+} from 'ionicons/icons';
 import type { DietLogListRow, DietMealTypeDb } from '@/app/services/diet-log.service';
 import { DietLogService } from '@/app/services/diet-log.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { AuthService } from '@/app/services/auth.service';
 import { getWeekBoundsForDate, parseIsoDateLocal, parseLocalDateKey } from '@/app/utils/workout-display.util';
+
+addIcons({
+  micOutline,
+  statsChartOutline,
+  flashOutline,
+  warningOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
+  restaurantOutline,
+});
 
 export interface MealSectionVm {
   readonly key: string;
@@ -49,6 +71,8 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
   styleUrls: ['./diet.page.scss'],
   imports: [
     VoxPageHeaderComponent,
+    VoxCardComponent,
+    VoxIconComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -175,6 +199,13 @@ export class DietPage implements ViewWillEnter {
     const t = row.target;
     if (!t || t <= 0) return 0;
     return Math.min(100, Math.round((row.current / t) * 100));
+  }
+
+  /** Semantic colour set only — never the scarce accent for a data ramp. Mirrors home.page.ts. */
+  protected macroBarColor(label: string): string {
+    if (label === 'Calories') return 'var(--vox-warning)';
+    if (label === 'Protein') return 'var(--vox-success)';
+    return 'var(--vox-ink-muted)';
   }
 
   protected timeLabel(iso: string): string {

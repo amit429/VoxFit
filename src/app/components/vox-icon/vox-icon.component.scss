@@ -1,0 +1,56 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vox-icon--xs {
+  font-size: 0.875rem;
+}
+
+.vox-icon--sm {
+  font-size: 1rem;
+}
+
+.vox-icon--md {
+  font-size: 1.25rem;
+}
+
+.vox-icon--lg {
+  font-size: 1.5rem;
+}
+
+.vox-icon--xl {
+  font-size: 2rem;
+}
+
+.vox-icon--inherit {
+  color: inherit;
+}
+
+.vox-icon--ink {
+  color: var(--vox-ink);
+}
+
+.vox-icon--ink-muted {
+  color: var(--vox-ink-muted);
+}
+
+.vox-icon--ink-subtle {
+  color: var(--vox-ink-subtle);
+}
+
+.vox-icon--accent {
+  color: var(--vox-primary);
+}
+
+.vox-icon--success {
+  color: var(--vox-success);
+}
+
+.vox-icon--warning {
+  color: var(--vox-warning);
+}
+
+.vox-icon--danger {
+  color: var(--vox-danger);
+}

@@ -20,10 +20,10 @@
             (keydown.enter)="onRowClick(row.index)"
             (keydown.space)="$event.preventDefault(); onRowClick(row.index)"
           >
-            <td>{{ row.index }}</td>
-            <td>{{ row.sets }}</td>
-            <td>{{ row.weightKg != null ? row.weightKg : '—' }}</td>
-            <td>{{ row.repsDisplay ?? '—' }}</td>
+            <td class="est-mono">{{ row.index }}</td>
+            <td class="est-mono">{{ row.sets }}</td>
+            <td class="est-mono">{{ row.weightKg != null ? row.weightKg : '—' }}</td>
+            <td class="est-mono">{{ row.repsDisplay ?? '—' }}</td>
           </tr>
         }
       </tbody>
@@ -48,11 +48,11 @@
             (keydown.enter)="onRowClick(row.index)"
             (keydown.space)="$event.preventDefault(); onRowClick(row.index)"
           >
-            <td>{{ row.index }}</td>
+            <td class="est-mono">{{ row.index }}</td>
             <td>{{ row.segmentLabel ?? '—' }}</td>
-            <td>{{ row.sets }}</td>
-            <td>{{ row.durationDisplay ?? '—' }}</td>
-            <td>{{ row.distanceDisplay ?? '—' }}</td>
+            <td class="est-mono">{{ row.sets }}</td>
+            <td class="est-mono">{{ row.durationDisplay ?? '—' }}</td>
+            <td class="est-mono">{{ row.distanceDisplay ?? '—' }}</td>
           </tr>
         }
       </tbody>

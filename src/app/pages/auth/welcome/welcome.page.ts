@@ -1,12 +1,9 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-  IonButton,
-  IonContent,
-  IonIcon,
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { micOutline, arrowForwardOutline } from 'ionicons/icons';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
 addIcons({ micOutline, arrowForwardOutline });
 
@@ -15,6 +12,6 @@ addIcons({ micOutline, arrowForwardOutline });
   standalone: true,
   templateUrl: './welcome.page.html',
   styleUrls: ['./welcome.page.scss'],
-  imports: [IonContent, IonIcon, RouterLink],
+  imports: [IonContent, RouterLink, VoxIconComponent],
 })
 export class WelcomePage {}

@@ -2,7 +2,7 @@
 /** Keep SYSTEM in sync with `src/app/prompts/diet-meals.prompt.ts` rules + JSON shape. */
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const SYSTEM = `You are VoxFit’s fitness-forward cook.
 Users speak casually about pantry ingredients and cravings.

@@ -1,18 +1,26 @@
 import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronDownOutline, chevronUpOutline, createOutline } from 'ionicons/icons';
+import { chevronDownOutline, chevronUpOutline, createOutline, sparklesOutline, trophyOutline } from 'ionicons/icons';
 import type { WorkoutExerciseExtract } from '@/app/models/workout-extract.models';
 import { ExerciseSetsPreviewTableComponent } from '@/app/components/exercise-sets-preview-table/exercise-sets-preview-table.component';
 import { ExerciseEditorModalComponent } from '@/app/components/exercise-editor-modal/exercise-editor-modal.component';
 import { workoutExercisesToVoiceMocks } from '@/app/utils/workout-extract-ui.mapper';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
-addIcons({ createOutline, chevronDownOutline, chevronUpOutline });
+addIcons({ createOutline, chevronDownOutline, chevronUpOutline, sparklesOutline, trophyOutline });
 
 @Component({
   selector: 'app-session-exercise-review-card',
   standalone: true,
-  imports: [IonIcon, ExerciseSetsPreviewTableComponent, ExerciseEditorModalComponent],
+  imports: [
+    ExerciseSetsPreviewTableComponent,
+    ExerciseEditorModalComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxIconComponent,
+  ],
   templateUrl: './session-exercise-review-card.component.html',
   styleUrl: './session-exercise-review-card.component.scss',
 })

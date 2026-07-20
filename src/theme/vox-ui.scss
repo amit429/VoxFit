@@ -49,15 +49,24 @@
 }
 
 /** Host-only variables for sheet modal; inner layout is in `exercise-editor-modal.component.scss`
- *  (global selectors cannot pierce ion-modal shadow for `.vbs-shell`, etc.). */
+ *  (global selectors cannot pierce ion-modal shadow for `.vbs-shell`, etc.). No box-shadow per the
+ *  Linear-inspired system — hierarchy comes from a subtle top hairline border instead. */
 ion-modal.vox-bottom-sheet {
-  --border-radius: 1.15rem 1.15rem 0 0;
-  --box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+  --border-radius: var(--vox-radius-xl) var(--vox-radius-xl) 0 0;
+  --box-shadow: none;
   --backdrop-opacity: 0.42;
+}
+
+ion-modal.vox-bottom-sheet::part(content) {
+  border-top: 1px solid var(--vox-border-hairline-strong);
 }
 
 /* Legacy class */
 ion-modal.eed-sheet {
-  --border-radius: 1.15rem 1.15rem 0 0;
-  --box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+  --border-radius: var(--vox-radius-xl) var(--vox-radius-xl) 0 0;
+  --box-shadow: none;
+}
+
+ion-modal.eed-sheet::part(content) {
+  border-top: 1px solid var(--vox-border-hairline-strong);
 }

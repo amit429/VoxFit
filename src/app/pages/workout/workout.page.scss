@@ -1,18 +1,30 @@
+.vox-session-card {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: var(--vox-space-md);
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .vox-filter-bar {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 .vox-filter-bar__scroll {
   display: flex;
   flex-wrap: nowrap;
+  align-items: center;
   gap: 0.5rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 0.125rem;
+  padding: 0.125rem 0.125rem 0.375rem;
   margin-inline: -0.125rem;
-  padding-inline: 0.125rem;
   scroll-padding-inline: 0.25rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -22,57 +34,66 @@
   }
 }
 
-.vox-filter-chip {
+.vox-filter-chip-btn {
   flex: 0 0 auto;
-  min-height: 2.625rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  margin: 0;
   padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 92%, transparent);
-  background: color-mix(in srgb, var(--vox-surface) 88%, var(--vox-bg-primary));
-  color: var(--vox-text-muted);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-pill);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink-subtle);
   font-size: 0.8125rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--ion-text-color) 4%, transparent);
-
-  &--active {
-    border-color: color-mix(in srgb, var(--vox-accent) 55%, var(--ion-border-color));
-    background: linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--vox-accent) 92%, #000),
-      color-mix(in srgb, var(--vox-accent) 78%, #1a1028)
-    );
-    color: #fff;
-    box-shadow:
-      0 1px 0 color-mix(in srgb, #fff 12%, transparent),
-      0 12px 28px -18px color-mix(in srgb, var(--vox-accent) 75%, transparent);
-  }
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
   &:active {
-    transform: scale(0.98);
+    opacity: 0.85;
+  }
+
+  &--active {
+    border-color: var(--vox-primary);
+    background: var(--vox-primary-dim);
+    color: var(--vox-primary-hover);
   }
 }
 
-.vox-filter-month-link {
+.vox-filter-sublink {
   align-self: flex-start;
   margin-inline: 0.125rem;
   padding: 0.35rem 0.5rem;
   border: none;
-  border-radius: 0.65rem;
+  border-radius: var(--vox-radius-sm);
   background: transparent;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--vox-accent);
+  color: var(--vox-primary);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.vox-picker-modal {
+ion-modal.vox-picker-modal {
   --width: min(100%, 22rem);
   --max-height: 90vh;
-  --border-radius: 16px;
+  --border-radius: var(--vox-radius-xl) var(--vox-radius-xl) 0 0;
+  --box-shadow: none;
+  --backdrop-opacity: 0.55;
+}
+
+ion-modal.vox-picker-modal::part(content) {
+  border: 1px solid var(--vox-border-hairline-strong);
+  border-bottom: none;
 }
 
 .vox-month-year-row {
@@ -87,9 +108,9 @@
   min-width: 4.5rem;
   text-align: center;
   font-size: 1.125rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--ion-text-color);
+  color: var(--vox-ink);
 }
 
 .vox-year-nav {
@@ -100,10 +121,10 @@
   height: 2.75rem;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--ion-border-color);
-  border-radius: 0.75rem;
-  background: var(--vox-bg-tertiary);
-  color: var(--ion-text-color);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink);
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1;
@@ -125,12 +146,12 @@
   min-height: 3rem;
   margin: 0;
   padding: 0.5rem 0.35rem;
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 90%, transparent);
-  border-radius: 0.85rem;
-  background: color-mix(in srgb, var(--vox-surface) 90%, var(--vox-bg-primary));
-  color: var(--ion-text-color);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink);
   font-size: 0.9rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition:
@@ -140,18 +161,13 @@
   -webkit-tap-highlight-color: transparent;
 
   &:active {
-    transform: scale(0.98);
+    opacity: 0.85;
   }
 
   &--selected {
-    border-color: color-mix(in srgb, var(--vox-accent) 70%, var(--ion-border-color));
-    background: linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--vox-accent) 55%, var(--vox-surface)),
-      color-mix(in srgb, var(--vox-accent) 28%, var(--vox-bg-primary))
-    );
-    color: #fff;
-    box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--vox-accent) 80%, transparent);
+    border-color: var(--vox-primary);
+    background: var(--vox-primary-dim);
+    color: var(--vox-primary-hover);
   }
 }
 
@@ -159,7 +175,7 @@
   margin: 1rem 0 0;
   font-size: 0.75rem;
   line-height: 1.45;
-  color: var(--vox-text-hint);
+  color: var(--vox-ink-tertiary);
   text-align: center;
 }
 
@@ -173,12 +189,12 @@
   flex: 1;
   min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--ion-border-color);
-  border-radius: 9999px;
-  background: var(--vox-bg-tertiary);
-  color: var(--vox-text-muted);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-pill);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink-muted);
   font-size: 0.8125rem;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -187,13 +203,13 @@
     color 0.15s ease;
 
   &--active {
-    border-color: color-mix(in srgb, var(--vox-accent) 55%, var(--ion-border-color));
-    background: color-mix(in srgb, var(--vox-accent) 22%, var(--vox-bg-primary));
-    color: #fff;
+    border-color: var(--vox-primary);
+    background: var(--vox-primary-dim);
+    color: var(--vox-primary-hover);
   }
 
   &:active {
-    opacity: 0.92;
+    opacity: 0.9;
   }
 }
 
@@ -206,10 +222,10 @@
 
 .vox-date-field__lab {
   font-size: 0.7rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--vox-text-muted);
+  color: var(--vox-ink-muted);
 }
 
 .vox-date-input {
@@ -217,10 +233,10 @@
   width: 100%;
   box-sizing: border-box;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--ion-border-color);
-  border-radius: 0.85rem;
-  background: var(--vox-surface);
-  color: var(--ion-text-color);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink);
   font-size: 1rem;
   font-variant-numeric: tabular-nums;
 

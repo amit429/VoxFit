@@ -1,0 +1,67 @@
+/**
+ * Shared button classes — replaces the copy-pasted Tailwind button strings
+ * scattered across pages. `md` radius always (never pill per the Linear
+ * spec); accent fill is reserved for the single primary CTA on a screen.
+ */
+
+.vox-btn-primary,
+.vox-btn-secondary,
+.vox-btn-ghost {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--vox-radius-md);
+  font-family: var(--vox-font-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.vox-btn-primary {
+  min-height: 3rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--vox-primary);
+  color: #ffffff;
+}
+
+.vox-btn-primary:active {
+  background: var(--vox-primary-focus);
+}
+
+.vox-btn-primary[disabled],
+.vox-btn-primary.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.vox-btn-secondary {
+  min-height: 3rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--vox-surface-3);
+  border-color: var(--vox-border-hairline);
+  color: var(--vox-ink);
+}
+
+.vox-btn-secondary:active {
+  background: var(--vox-surface-4);
+}
+
+.vox-btn-ghost {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: var(--vox-ink-subtle);
+}
+
+.vox-btn-ghost:active {
+  color: var(--vox-ink);
+}

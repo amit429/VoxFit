@@ -3,7 +3,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  IonButton,
   IonContent,
   IonInput,
   IonSelect,
@@ -21,7 +20,6 @@ import type { GoalType, SportType } from '@/app/models/user.models';
     ReactiveFormsModule,
     VoxPageHeaderComponent,
     IonContent,
-    IonButton,
     IonInput,
     IonSelect,
     IonSelectOption,

@@ -1,11 +1,8 @@
 .est-wrap {
   overflow-x: auto;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--ion-border-color) 85%, transparent);
-  background: color-mix(in srgb, var(--vox-bg-primary) 92%, var(--vox-surface));
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--ion-text-color) 6%, transparent),
-    0 12px 32px -18px rgba(0, 0, 0, 0.55);
+  border-radius: var(--vox-radius-lg);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-2);
 }
 
 .est-table {
@@ -16,18 +13,18 @@
 
 .est-table th,
 .est-table td {
-  padding: 0.65rem 0.75rem;
+  padding: 0.75rem 0.85rem;
   text-align: left;
-  border-bottom: 1px solid color-mix(in srgb, var(--ion-border-color) 70%, transparent);
+  border-bottom: 1px solid var(--vox-border-hairline);
 }
 
 .est-table th {
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--vox-text-muted);
-  background: color-mix(in srgb, var(--vox-accent) 8%, transparent);
+  color: var(--vox-ink-subtle);
+  background: var(--vox-surface-3);
 }
 
 .est-table tbody tr:last-child td {
@@ -35,30 +32,32 @@
 }
 
 .est-table td {
-  color: var(--ion-text-color);
+  color: var(--vox-ink);
+}
+
+.est-mono {
+  font-family: var(--vox-font-mono);
   font-variant-numeric: tabular-nums;
 }
 
 .est-row {
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    transform 0.12s ease;
+  transition: background-color 0.15s ease;
 }
 
 .est-row:hover {
-  background: color-mix(in srgb, var(--vox-accent) 12%, transparent);
+  background: var(--vox-surface-3);
 }
 
 .est-row:active {
-  transform: scale(0.99);
+  background: var(--vox-surface-4);
 }
 
 .est-row--hi {
-  background: color-mix(in srgb, var(--vox-accent) 18%, transparent);
+  background: var(--vox-primary-dim);
 }
 
 .est-row:focus-visible {
-  outline: 2px solid var(--vox-accent);
+  outline: 2px solid var(--vox-primary);
   outline-offset: -2px;
 }

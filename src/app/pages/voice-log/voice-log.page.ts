@@ -1,13 +1,9 @@
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
-import {
-  IonContent,
-  IonIcon,
-  IonModal,
-  IonButton,
-  NavController,
-  ToastController,
-} from '@ionic/angular/standalone';
+import { NgClass } from '@angular/common';
+import { IonContent, NavController, ToastController } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { mic, sparklesOutline, checkmarkCircle, warningOutline } from 'ionicons/icons';
 import type { VoiceDoneMock } from '@/app/data/types';
 import type { WorkoutExerciseExtract, WorkoutExtractResult } from '@/app/models/workout-extract.models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
@@ -17,6 +13,11 @@ import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { AuthService } from '@/app/services/auth.service';
 import { workoutExtractToVoiceDoneMock } from '@/app/utils/workout-extract-ui.mapper';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+
+addIcons({ mic, sparklesOutline, checkmarkCircle, warningOutline });
 
 type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
 
@@ -28,10 +29,11 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
   imports: [
     VoxPageHeaderComponent,
     IonContent,
-    IonIcon,
-    IonModal,
-    IonButton,
+    NgClass,
     SessionExerciseReviewCardComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxIconComponent,
   ],
 })
 export class VoiceLogPage {
@@ -53,6 +55,11 @@ export class VoiceLogPage {
   private pendingExtract: WorkoutExtractResult | null = null;
 
   protected readonly waveHeights = [8, 14, 22, 18, 30, 24, 16, 28, 20, 12, 26, 18, 10, 22, 16];
+
+  /** Display-only: distinguishes the synthetic "no flags" checkmark from a real warning glyph. */
+  protected flagsOk(res: VoiceDoneMock): boolean {
+    return res.flagsEmoji !== '⚠️';
+  }
 
   private holdActive = false;
   private dotsInterval?: ReturnType<typeof setInterval>;
