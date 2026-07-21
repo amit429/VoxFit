@@ -73,6 +73,17 @@ export class VoiceSessionService {
   private nativeListening = false;
   private webRecognition?: SpeechRecognitionInstance;
   private webFinalBuffer = '';
+  /**
+   * Tracks the highest result index already committed to webFinalBuffer.
+   * Mobile Chrome fires resultIndex=0 on every event, which causes duplicate
+   * finals — this guard prevents re-processing already-handled entries.
+   */
+  private webLastFinalIndex = 0;
+  /**
+   * True while we deliberately want recognition running.
+   * Used to auto-restart after mobile browsers silently stop continuous mode.
+   */
+  private webActive = false;
 
   /**
    * Ends any in-flight session without returning text (e.g. navigate away).
@@ -89,6 +100,7 @@ export class VoiceSessionService {
     await this.cancel();
     this.transcriptPreview.set('');
     this.webFinalBuffer = '';
+    this.webLastFinalIndex = 0;
 
     if (Capacitor.isNativePlatform()) {
       await this.startNative();
@@ -181,6 +193,7 @@ export class VoiceSessionService {
       throw new Error('This browser does not support the Web Speech API. Try Chrome or the native app.');
     }
 
+    this.webActive = true;
     const recognition = new Ctor();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -188,26 +201,40 @@ export class VoiceSessionService {
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      // Mobile Chrome bug: resultIndex is sometimes 0 even for subsequent events,
+      // so we take the higher of the two to avoid re-processing already-final chunks.
+      const startFrom = Math.max(event.resultIndex, this.webLastFinalIndex);
+      for (let i = startFrom; i < event.results.length; i++) {
         const chunk = event.results[i]?.[0]?.transcript ?? '';
         if (event.results[i].isFinal) {
-          this.webFinalBuffer += chunk;
+          this.webFinalBuffer += (this.webFinalBuffer.length > 0 ? ' ' : '') + chunk.trim();
+          this.webLastFinalIndex = i + 1;
         } else {
           interim += chunk;
         }
       }
-      const display = `${this.webFinalBuffer}${interim}`.trim();
+      const display = `${this.webFinalBuffer}${interim.length > 0 ? ' ' + interim : ''}`.trim();
       if (display.length > 0) {
         this.transcriptPreview.set(display);
       }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      // 'no-speech' and 'aborted' are non-fatal on mobile — suppress them.
+      if (event.error === 'no-speech' || event.error === 'aborted') return;
       console.warn('[VoiceSession] Web speech error:', event.error);
     };
 
     recognition.onend = () => {
-      /* replaced in stopWeb while stopping */
+      // Mobile Chrome silently stops continuous recognition after silence.
+      // Auto-restart if we haven't explicitly stopped yet.
+      if (this.webActive && this.webRecognition === recognition) {
+        try {
+          recognition.start();
+        } catch {
+          /* recognition may have been aborted — ignore */
+        }
+      }
     };
 
     this.webRecognition = recognition;
@@ -215,6 +242,7 @@ export class VoiceSessionService {
   }
 
   private stopWeb(): Promise<string> {
+    this.webActive = false;
     return new Promise((resolve) => {
       const rec = this.webRecognition;
       if (!rec) {
@@ -243,6 +271,7 @@ export class VoiceSessionService {
   }
 
   private abortWebSession(): void {
+    this.webActive = false;
     const rec = this.webRecognition;
     this.webRecognition = undefined;
     if (!rec) return;

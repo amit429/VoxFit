@@ -131,6 +131,13 @@ ion-tab-bar {
   --background: rgba(16, 17, 19, 0.94);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--vox-border-hairline);
+  /*
+   * Promote to its own GPU compositor layer so the backdrop-filter blur
+   * is composited independently of the scroll layer. Without this, fast
+   * scroll causes the browser to repaint the bar on every frame → jitter.
+   */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 ion-content {
