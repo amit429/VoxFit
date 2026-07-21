@@ -53,6 +53,30 @@ function getWebSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
   return w.webkitSpeechRecognition ?? w.SpeechRecognition ?? null;
 }
 
+function normalizeForCompare(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Exact match only, modulo case/punctuation/whitespace — deliberately NOT
+ * fuzzy (no substring-containment, no word-overlap ratio). An earlier version
+ * of this used fuzzy matching (one phrase containing the other, or >70% word
+ * overlap) and it was a real regression: workout logging is full of short,
+ * legitimately-repeated phrases ("3 sets", "10 reps" for one exercise then
+ * again for the next), and that fuzzy check silently dropped real content —
+ * users reported voice logging "not working at all" on mobile because most
+ * of the transcript was being eaten as a false-positive "duplicate".
+ */
+function isExactDuplicate(a: string, b: string): boolean {
+  const na = normalizeForCompare(a);
+  const nb = normalizeForCompare(b);
+  return na.length > 0 && na === nb;
+}
+
 /** Bounds how long native bridge calls may hang (see Android SpeechRecognition.stop() plugin bug fix in node_modules or patch-package). */
 function promiseWithTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -72,13 +96,28 @@ export class VoiceSessionService {
   private partialListener?: PluginListenerHandle;
   private nativeListening = false;
   private webRecognition?: SpeechRecognitionInstance;
-  private webFinalBuffer = '';
   /**
-   * Tracks the highest result index already committed to webFinalBuffer.
-   * Mobile Chrome fires resultIndex=0 on every event, which causes duplicate
-   * finals — this guard prevents re-processing already-handled entries.
+   * Final segments keyed by a *global* index spanning every recognition instance
+   * in this recording (see `webIndexOffset`). Written with plain assignment
+   * (`segments[i] = text`), never appended — so re-processing the same index
+   * any number of times (mobile Chrome's `resultIndex` is unreliable) is a
+   * no-op instead of a duplicate. The displayed transcript is rebuilt by
+   * joining this array fresh on every event, rather than mutating a running
+   * string, which is what made the old approach fragile.
    */
-  private webLastFinalIndex = 0;
+  private webFinalSegments: string[] = [];
+  /** This instance's local result index 0 maps to `webFinalSegments[webIndexOffset]`. */
+  private webIndexOffset = 0;
+  /**
+   * Set to the last committed segment whenever a fresh instance starts (i.e.
+   * only at a restart boundary), and cleared after the new instance's first
+   * final result is checked against it. Mobile Chrome sometimes re-transcribes
+   * the same trailing audio right after restarting continuous recognition —
+   * this catches *that* specific, narrow case without touching dedup logic
+   * for the rest of the recording (see `isExactDuplicate`'s comment for why
+   * broader fuzzy dedup was actively harmful here).
+   */
+  private webBoundaryCheckSegment: string | null = null;
   /**
    * True while we deliberately want recognition running.
    * Used to auto-restart after mobile browsers silently stop continuous mode.
@@ -99,8 +138,9 @@ export class VoiceSessionService {
   async start(): Promise<void> {
     await this.cancel();
     this.transcriptPreview.set('');
-    this.webFinalBuffer = '';
-    this.webLastFinalIndex = 0;
+    this.webFinalSegments = [];
+    this.webIndexOffset = 0;
+    this.webBoundaryCheckSegment = null;
 
     if (Capacitor.isNativePlatform()) {
       await this.startNative();
@@ -200,40 +240,49 @@ export class VoiceSessionService {
    * Creates and starts one recognition instance. Mobile Chrome silently ends
    * "continuous" recognition after a couple seconds of silence, so `onend`
    * below restarts by calling this again — spinning up a genuinely *fresh*
-   * instance rather than restarting the ended one. The ended instance's result
-   * indices don't carry over cleanly to the new session (this was previously a
-   * source of dropped/duplicated chunks), so each fresh instance gets its own
-   * zeroed `webLastFinalIndex` while `webFinalBuffer` (the accumulated text
-   * across the whole recording) is left untouched.
+   * instance rather than restarting the ended one. `webIndexOffset` is set to
+   * however many segments are already committed, so this instance's own
+   * local index 0 maps to the next free slot in `webFinalSegments` instead of
+   * colliding with (and overwriting) earlier content.
    */
   private startWebRecognitionInstance(Ctor: SpeechRecognitionConstructor): void {
     const recognition = new Ctor();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-    this.webLastFinalIndex = 0;
+    this.webIndexOffset = this.webFinalSegments.length;
+    // Only set on a restart (webIndexOffset > 0 means segments already exist);
+    // the very first instance of a recording has nothing to check against.
+    this.webBoundaryCheckSegment =
+      this.webIndexOffset > 0 ? (this.webFinalSegments[this.webFinalSegments.length - 1] ?? null) : null;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = '';
-      // Mobile Chrome bug: resultIndex is sometimes 0 even for subsequent events,
-      // so we take the higher of the two to avoid re-processing already-final chunks.
-      const startFrom = Math.max(event.resultIndex, this.webLastFinalIndex);
-      for (let i = startFrom; i < event.results.length; i++) {
+      // Deliberately ignore event.resultIndex and rescan the whole array every
+      // time — mobile Chrome reports it unreliably (sometimes 0 on every
+      // event), but since writes below are plain index assignment (not
+      // append), reprocessing an already-final index is a harmless no-op.
+      for (let i = 0; i < event.results.length; i++) {
+        const globalIndex = this.webIndexOffset + i;
         const chunk = (event.results[i]?.[0]?.transcript ?? '').trim();
         if (event.results[i].isFinal) {
-          this.webLastFinalIndex = i + 1;
           if (chunk.length === 0) continue;
-          // Extra safety net: mobile Chrome occasionally re-finalizes the same
-          // trailing audio as a "new" result (especially around a restart
-          // boundary) even with the index guard above. Skip it if the buffer
-          // already ends with this exact phrase.
-          if (this.webFinalBuffer.toLowerCase().endsWith(chunk.toLowerCase())) continue;
-          this.webFinalBuffer += (this.webFinalBuffer.length > 0 ? ' ' : '') + chunk;
+          // Only ever checked against the *single* segment right at a
+          // restart boundary, and only once (cleared immediately after) —
+          // never against general recording history. See the class field's
+          // comment and `isExactDuplicate`'s comment for why.
+          if (this.webBoundaryCheckSegment !== null) {
+            const isBoundaryDup = isExactDuplicate(this.webBoundaryCheckSegment, chunk);
+            this.webBoundaryCheckSegment = null;
+            if (isBoundaryDup) continue;
+          }
+          this.webFinalSegments[globalIndex] = chunk;
         } else {
           interim += chunk;
         }
       }
-      const display = `${this.webFinalBuffer}${interim.length > 0 ? ' ' + interim : ''}`.trim();
+      const finalText = this.webFinalSegments.filter(Boolean).join(' ');
+      const display = `${finalText}${interim.length > 0 ? ' ' + interim : ''}`.trim();
       if (display.length > 0) {
         this.transcriptPreview.set(display);
       }
