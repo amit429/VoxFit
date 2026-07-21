@@ -192,12 +192,26 @@ export class VoiceSessionService {
     if (!Ctor) {
       throw new Error('This browser does not support the Web Speech API. Try Chrome or the native app.');
     }
-
     this.webActive = true;
+    this.startWebRecognitionInstance(Ctor);
+  }
+
+  /**
+   * Creates and starts one recognition instance. Mobile Chrome silently ends
+   * "continuous" recognition after a couple seconds of silence, so `onend`
+   * below restarts by calling this again — spinning up a genuinely *fresh*
+   * instance rather than restarting the ended one. The ended instance's result
+   * indices don't carry over cleanly to the new session (this was previously a
+   * source of dropped/duplicated chunks), so each fresh instance gets its own
+   * zeroed `webLastFinalIndex` while `webFinalBuffer` (the accumulated text
+   * across the whole recording) is left untouched.
+   */
+  private startWebRecognitionInstance(Ctor: SpeechRecognitionConstructor): void {
     const recognition = new Ctor();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
+    this.webLastFinalIndex = 0;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = '';
@@ -205,10 +219,16 @@ export class VoiceSessionService {
       // so we take the higher of the two to avoid re-processing already-final chunks.
       const startFrom = Math.max(event.resultIndex, this.webLastFinalIndex);
       for (let i = startFrom; i < event.results.length; i++) {
-        const chunk = event.results[i]?.[0]?.transcript ?? '';
+        const chunk = (event.results[i]?.[0]?.transcript ?? '').trim();
         if (event.results[i].isFinal) {
-          this.webFinalBuffer += (this.webFinalBuffer.length > 0 ? ' ' : '') + chunk.trim();
           this.webLastFinalIndex = i + 1;
+          if (chunk.length === 0) continue;
+          // Extra safety net: mobile Chrome occasionally re-finalizes the same
+          // trailing audio as a "new" result (especially around a restart
+          // boundary) even with the index guard above. Skip it if the buffer
+          // already ends with this exact phrase.
+          if (this.webFinalBuffer.toLowerCase().endsWith(chunk.toLowerCase())) continue;
+          this.webFinalBuffer += (this.webFinalBuffer.length > 0 ? ' ' : '') + chunk;
         } else {
           interim += chunk;
         }
@@ -227,12 +247,12 @@ export class VoiceSessionService {
 
     recognition.onend = () => {
       // Mobile Chrome silently stops continuous recognition after silence.
-      // Auto-restart if we haven't explicitly stopped yet.
+      // Auto-restart with a fresh instance if we haven't explicitly stopped yet.
       if (this.webActive && this.webRecognition === recognition) {
         try {
-          recognition.start();
+          this.startWebRecognitionInstance(Ctor);
         } catch {
-          /* recognition may have been aborted — ignore */
+          /* recognition may be unavailable right now — give up restarting silently */
         }
       }
     };
@@ -243,13 +263,12 @@ export class VoiceSessionService {
 
   private stopWeb(): Promise<string> {
     this.webActive = false;
-    return new Promise((resolve) => {
-      const rec = this.webRecognition;
-      if (!rec) {
-        resolve(this.transcriptPreview().trim());
-        return;
-      }
+    const rec = this.webRecognition;
+    if (!rec) {
+      return Promise.resolve(this.transcriptPreview().trim());
+    }
 
+    const stopPromise = new Promise<string>((resolve) => {
       const finish = (): void => {
         const text = this.transcriptPreview().trim();
         this.webRecognition = undefined;
@@ -267,6 +286,15 @@ export class VoiceSessionService {
           finish();
         }
       }
+    });
+
+    // Mobile browsers can leave a recognition instance in a state where `stop()`
+    // is a silent no-op and `onend` never fires again — without this, the UI
+    // would hang on the "processing" screen forever. Fall back to whatever
+    // transcript was captured so far.
+    return promiseWithTimeout(stopPromise, 5_000, 'Stopping speech recognition timed out.').catch(() => {
+      this.webRecognition = undefined;
+      return this.transcriptPreview().trim();
     });
   }
 

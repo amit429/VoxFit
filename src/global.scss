@@ -105,12 +105,24 @@
 html,
 body {
   height: 100%;
+  /*
+   * Without this, a fast fling can rubber-band/elastic-bounce the whole document
+   * (not just the intended scroll container) — since ion-tab-bar is a plain flex
+   * sibling in ion-tabs (not position: fixed), it visibly drags along with that
+   * whole-page bounce and jitters. This contains overscroll to each scroller
+   * (ion-content's own inner-scroll) instead of chaining to the document.
+   */
+  overscroll-behavior-y: none;
 }
 
 body {
   margin: 0;
   font-family: var(--vox-font-text);
   letter-spacing: -0.05px;
+}
+
+ion-content::part(scroll) {
+  overscroll-behavior-y: contain;
 }
 
 app-root {
