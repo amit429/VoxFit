@@ -1,5 +1,6 @@
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
-import { Component, DestroyRef, inject, signal, type OnDestroy } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal, type OnDestroy } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { interval } from 'rxjs';
 import type { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import {
   IonHeader,
@@ -12,7 +13,7 @@ import {
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { mic, sparklesOutline, checkmarkCircle, timeOutline } from 'ionicons/icons';
+import { mic, sparklesOutline, checkmarkCircle, timeOutline, chevronBackOutline } from 'ionicons/icons';
 import type { DietMealSuggestion } from '@/app/models/diet-meals.models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
 import { GeminiDietMealsService } from '@/app/services/gemini-diet-meals.service';
@@ -23,7 +24,7 @@ import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
-addIcons({ mic, sparklesOutline, checkmarkCircle, timeOutline });
+addIcons({ mic, sparklesOutline, checkmarkCircle, timeOutline, chevronBackOutline });
 
 type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
 
@@ -33,7 +34,7 @@ type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
   templateUrl: './diet-voice-log.page.html',
   styleUrls: ['./diet-voice-log.page.scss'],
   imports: [
-    VoxPageHeaderComponent,
+    RouterLink,
     IonHeader,
     IonToolbar,
     IonTitle,

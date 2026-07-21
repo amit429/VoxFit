@@ -1,28 +1,59 @@
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
-import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, chevronForwardOutline, calendarOutline, flagOutline } from 'ionicons/icons';
+import {
+  flagOutline,
+  logOutOutline,
+  flameOutline,
+  nutritionOutline,
+  leafOutline,
+  waterOutline,
+  barbellOutline,
+  settingsOutline,
+} from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
-import type { ProfileGoalRowMock } from '@/app/data/types';
 import type { GoalType } from '@/app/models/user.models';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
-import { getCurrentWeekDayKeys } from '@/app/utils/workout-display.util';
+import { getCurrentWeekDayKeys, parseLocalDateKey } from '@/app/utils/workout-display.util';
 
-addIcons({ chevronBackOutline, chevronForwardOutline, calendarOutline, flagOutline });
+addIcons({
+  flagOutline,
+  logOutOutline,
+  flameOutline,
+  nutritionOutline,
+  leafOutline,
+  waterOutline,
+  barbellOutline,
+  settingsOutline,
+});
+
+export interface HeatmapCellVm {
+  readonly key: string;
+  readonly intensity: 0 | 1 | 2 | 3 | 4;
+  readonly isToday: boolean;
+}
+
+const HEATMAP_WEEKS = 52;
+
+/** Success-based ramp, never the accent — matches this design system's own heatmap convention. */
+const HEATMAP_BACKGROUNDS = [
+  'var(--vox-surface-2)',
+  'var(--vox-surface-4)',
+  'var(--vox-success-dim)',
+  'color-mix(in oklab, var(--vox-success) 55%, var(--vox-success-dim))',
+  'var(--vox-success)',
+] as const;
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  imports: [VoxPageHeaderComponent, VoxCardComponent, VoxBadgeComponent, VoxIconComponent, IonContent],
+  imports: [VoxIconComponent, IonContent],
 })
 export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
@@ -31,95 +62,51 @@ export class ProfilePage implements ViewWillEnter {
 
   protected readonly profile = this.auth.profile;
 
-  /** Calendar month shown on the profile heatmap. */
-  protected readonly visibleMonth = signal<{ year: number; month0: number }>(
-    (() => {
-      const n = new Date();
-      return { year: n.getFullYear(), month0: n.getMonth() };
-    })(),
-  );
-
-  protected readonly calendarTitle = computed(() => {
-    const { year, month0 } = this.visibleMonth();
-    return new Date(year, month0, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  /** Workouts / Streak / PRs hero stats — derived client-side from data already loaded via `journal.refresh()`. */
+  protected readonly heroStats = computed(() => {
+    const sessions = this.journal.sessions();
+    const prs = sessions.filter((s) => (s.exercises_logged ?? []).some((e) => e.is_pr)).length;
+    return [
+      { label: 'Workouts', value: sessions.length },
+      { label: 'Streak', value: this.journal.streak().days },
+      { label: 'PRs', value: prs },
+    ];
   });
 
-  protected readonly calendarCells = computed(() => {
-    const { year, month0 } = this.visibleMonth();
-    const first = new Date(year, month0, 1);
-    const pad = first.getDay();
-    const dim = new Date(year, month0 + 1, 0).getDate();
-    const cells: (number | null)[] = [];
-    for (let i = 0; i < pad; i++) {
-      cells.push(null);
+  /** 52 weeks × 7 days, oldest-first, flattened column-major so `grid-flow-col` renders it directly. */
+  protected readonly heatmapCells = computed((): HeatmapCellVm[] => {
+    const counts = new Map<string, number>();
+    for (const s of this.journal.sessions()) {
+      if (!s.date) continue;
+      counts.set(s.date, (counts.get(s.date) ?? 0) + 1);
     }
-    for (let d = 1; d <= dim; d++) {
-      cells.push(d);
+
+    const today = new Date();
+    const todayKey = parseLocalDateKey(today);
+    const currentWeekStart = new Date(today);
+    currentWeekStart.setDate(today.getDate() - today.getDay());
+    const gridStart = new Date(currentWeekStart);
+    gridStart.setDate(currentWeekStart.getDate() - (HEATMAP_WEEKS - 1) * 7);
+
+    const cells: HeatmapCellVm[] = [];
+    for (let w = 0; w < HEATMAP_WEEKS; w++) {
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(gridStart);
+        date.setDate(gridStart.getDate() + w * 7 + d);
+        const key = parseLocalDateKey(date);
+        cells.push({ key, intensity: intensityForCount(counts.get(key) ?? 0), isToday: key === todayKey });
+      }
     }
     return cells;
   });
 
-  /** Workout session count per day-of-month — drives the heatmap intensity ramp. */
-  protected readonly sessionCountsInMonth = computed(() => {
-    const { year, month0 } = this.visibleMonth();
-    const wantM = month0 + 1;
-    const counts = new Map<number, number>();
-    for (const s of this.journal.sessions()) {
-      if (!s.date) continue;
-      const parts = s.date.split('-').map((x) => Number(x));
-      const yy = parts[0];
-      const mm = parts[1];
-      const dd = parts[2];
-      if (yy === year && mm === wantM && dd) {
-        counts.set(dd, (counts.get(dd) ?? 0) + 1);
-      }
-    }
-    return counts;
-  });
+  protected readonly heatmapLegendColors = HEATMAP_BACKGROUNDS;
 
-  /** 0 = no activity, 1 = low, 2 = medium, 3 = high. Ink/success ramp only — never the accent. */
-  protected cellIntensity(day: number): 0 | 1 | 2 | 3 {
-    const n = this.sessionCountsInMonth().get(day) ?? 0;
-    if (n <= 0) return 0;
-    if (n === 1) return 1;
-    if (n === 2) return 2;
-    return 3;
+  protected heatmapCellBackground(cell: HeatmapCellVm): string {
+    return HEATMAP_BACKGROUNDS[cell.intensity];
   }
 
-  protected cellBackground(day: number): string {
-    switch (this.cellIntensity(day)) {
-      case 0:
-        return 'var(--vox-surface-2)';
-      case 1:
-        return 'var(--vox-surface-4)';
-      case 2:
-        return 'var(--vox-success-dim)';
-      default:
-        return 'var(--vox-success)';
-    }
-  }
-
-  protected cellColor(day: number): string {
-    switch (this.cellIntensity(day)) {
-      case 0:
-        return 'var(--vox-ink-tertiary)';
-      case 1:
-        return 'var(--vox-ink-muted)';
-      case 2:
-        return 'var(--vox-success)';
-      default:
-        return '#ffffff';
-    }
-  }
-
-  /** The one deliberate accent touch on the heatmap — today's cell, per the design system's own example. */
-  protected isTodayCell(day: number): boolean {
-    const { year, month0 } = this.visibleMonth();
-    const now = new Date();
-    return year === now.getFullYear() && month0 === now.getMonth() && day === now.getDate();
-  }
-
-  protected readonly goalRows = computed((): ProfileGoalRowMock[] => {
+  protected readonly goalRows = computed(() => {
     const p = this.profile();
     const weekKeys = new Set(getCurrentWeekDayKeys());
     const sessionsThisWeek = this.journal.sessions().filter((s) => s.date && weekKeys.has(s.date)).length;
@@ -136,12 +123,12 @@ export class ProfilePage implements ViewWillEnter {
       p?.target_fat_g != null && p.target_fat_g > 0 ? `${Math.round(p.target_fat_g)} g` : '—';
 
     return [
-      { label: 'Daily Calories', value: cals },
-      { label: 'Protein Target', value: prot },
-      { label: 'Carbs Target', value: carbs },
-      { label: 'Fat Target', value: fat },
-      { label: 'Workouts (this week)', value: `${sessionsThisWeek} logged` },
-      { label: 'Primary Goal', value: ProfilePage.formatGoalLabel(p?.goal ?? null) },
+      { icon: 'flame-outline', label: 'Daily Calories', value: cals },
+      { icon: 'nutrition-outline', label: 'Protein Target', value: prot },
+      { icon: 'leaf-outline', label: 'Carbs Target', value: carbs },
+      { icon: 'water-outline', label: 'Fat Target', value: fat },
+      { icon: 'barbell-outline', label: 'Workouts (this week)', value: `${sessionsThisWeek} logged` },
+      { icon: 'flag-outline', label: 'Primary Goal', value: ProfilePage.formatGoalLabel(p?.goal ?? null) },
     ];
   });
 
@@ -185,13 +172,6 @@ export class ProfilePage implements ViewWillEnter {
     void this.journal.refresh();
   }
 
-  protected shiftMonth(delta: number): void {
-    this.visibleMonth.update((cur) => {
-      const d = new Date(cur.year, cur.month0 + delta, 1);
-      return { year: d.getFullYear(), month0: d.getMonth() };
-    });
-  }
-
   async signOut(): Promise<void> {
     try {
       await this.auth.signOut();
@@ -200,4 +180,12 @@ export class ProfilePage implements ViewWillEnter {
       console.error('Sign out failed', err);
     }
   }
+}
+
+function intensityForCount(n: number): 0 | 1 | 2 | 3 | 4 {
+  if (n <= 0) return 0;
+  if (n === 1) return 1;
+  if (n === 2) return 2;
+  if (n === 3) return 3;
+  return 4;
 }

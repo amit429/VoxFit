@@ -3,30 +3,22 @@ import { RouterLink } from '@angular/router';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent, IonRouterLinkWithHref } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline } from 'ionicons/icons';
+import { flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
-import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { exerciseListDetailLine } from '@/app/utils/workout-display.util';
 
-addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline });
+addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline });
 
 @Component({
   selector: 'app-home',
   standalone: true,
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  imports: [
-    IonContent,
-    RouterLink,
-    IonRouterLinkWithHref,
-    VoxCardComponent,
-    VoxBadgeComponent,
-    VoxIconComponent,
-  ],
+  imports: [IonContent, RouterLink, IonRouterLinkWithHref, VoxIconComponent],
 })
 export class HomePage implements ViewWillEnter {
   protected readonly auth = inject(AuthService);
@@ -35,12 +27,48 @@ export class HomePage implements ViewWillEnter {
 
   protected readonly macros = computed(() => this.nutrition.macros());
 
-  protected readonly greeting = signal(this.pickGreeting());
-  protected readonly displayName = computed(() => {
+  protected readonly caloriesRow = computed(() => this.macros().rows.find((r) => r.label === 'Calories') ?? null);
+
+  protected readonly macroTiles = computed(() => {
+    const rows = this.macros().rows;
+    const cal = rows.find((r) => r.label === 'Calories');
+    const remaining = cal ? Math.max(0, cal.target - cal.current) : 0;
+    return [
+      ...rows
+        .filter((r) => r.label !== 'Calories')
+        .map((r) => ({ label: r.label, value: r.current, unit: 'g', accent: false })),
+      { label: 'Rem', value: remaining, unit: '', accent: true },
+    ];
+  });
+
+  /** Latest saved session's transcript + a short parsed-exercise recap, for the "Recent parsed" card. */
+  protected readonly recentParsed = computed(() => {
+    const s = this.journal.latestSession();
+    const transcript = s?.raw_transcript?.trim();
+    if (!s || !transcript) return null;
+    const ex = s.exercises_logged ?? [];
+    return {
+      transcript,
+      timeLabel: new Date(s.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
+      exercises: ex.slice(0, 4).map((e) => ({
+        name: e.exercise_name,
+        detail: exerciseListDetailLine(e),
+        pr: !!e.is_pr,
+      })),
+    };
+  });
+
+  protected readonly todayLabel = signal(
+    new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }),
+  );
+
+  protected readonly firstName = computed(() => {
     const n = this.auth.profile()?.display_name?.trim();
     if (n) return n.split(/\s+/)[0] ?? n;
     return DUMMY_PROFILE_DISPLAY.name.split(/\s+/)[0] ?? 'Athlete';
   });
+
+  protected readonly greeting = computed(() => `${this.pickGreeting()}, ${this.firstName()}`);
 
   protected readonly initial = computed(() => {
     const n = this.auth.profile()?.display_name?.trim();
@@ -52,18 +80,6 @@ export class HomePage implements ViewWillEnter {
     void this.journal.refresh();
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
-  }
-
-  protected macroPct(row: { current: number; target: number }): number {
-    const t = row.target;
-    if (!t || t <= 0) return 0;
-    return Math.min(100, Math.round((row.current / t) * 100));
-  }
-
-  protected macroBarColor(label: string): string {
-    if (label === 'Calories') return 'var(--vox-warning)';
-    if (label === 'Protein') return 'var(--vox-success)';
-    return 'var(--vox-ink-muted)';
   }
 
   private pickGreeting(): string {

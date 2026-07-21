@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import type { HomeStreakMock, HomeWorkoutCardMock, WeeklyVolumeMock, WorkoutDetailMock, WorkoutSessionListMock } from '@/app/data/types';
 import { AuthService } from '@/app/services/auth.service';
 import { SupabaseService } from '@/app/services/supabase.service';
@@ -46,6 +46,7 @@ export interface WorkoutSessionRow {
   energy_level: string | null;
   physical_flags: string[] | null;
   created_at: string;
+  raw_transcript: string | null;
   exercises_logged: ExerciseLoggedRow[] | null;
 }
 
@@ -58,6 +59,9 @@ export class WorkoutJournalService {
 
   /** Full history for journal + aggregates (newest first). */
   readonly sessions = signal<WorkoutSessionRow[]>([]);
+
+  /** Most recently logged session, if any — for the Home "recent parsed" recap. */
+  readonly latestSession = computed(() => this.sessions()[0] ?? null);
 
   readonly streak = signal<HomeStreakMock>({ days: 0, weekDots: [] });
 
@@ -129,7 +133,7 @@ export class WorkoutJournalService {
       .from('workout_sessions')
       .select(
         `
-        id, user_id, date, session_label, ai_summary, mood, energy_level, physical_flags, created_at,
+        id, user_id, date, session_label, ai_summary, mood, energy_level, physical_flags, created_at, raw_transcript,
         exercises_logged (
           id, session_id, exercise_name, exercise_type, sets, reps, weight_kg,
           duration_secs, distance_km, is_pr, summary_line, set_lines

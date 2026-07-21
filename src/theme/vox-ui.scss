@@ -3,6 +3,61 @@
  * Macro rows tuned for thumb-friendly mobile readability (≈13px labels, 8px bar).
  */
 
+/**
+ * Micro-typography + one-off precise values with no equivalent in Tailwind's default scale.
+ * The installed tailwindcss/@tailwindcss-postcss (4.2.4) has a content-scanning bug: any class
+ * containing `.`, `[`, `]`, or `/` silently fails to generate (reproduced with a minimal
+ * postcss + @tailwindcss/postcss script with zero Angular involvement — not an Angular/config
+ * issue). These fill that gap with plain CSS until the Tailwind version is patched/upgraded.
+ */
+.vx-text-9 {
+  font-size: 0.5625rem; /* 9px */
+  line-height: 1.3;
+}
+
+.vx-text-10 {
+  font-size: 0.625rem; /* 10px */
+  line-height: 1.3;
+}
+
+.vx-text-11 {
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.35;
+}
+
+.vx-tracking-8 {
+  letter-spacing: 0.08em;
+}
+
+.vx-tracking-16 {
+  letter-spacing: 0.16em;
+}
+
+.vx-tracking-18 {
+  letter-spacing: 0.18em;
+}
+
+.vx-tracking-20 {
+  letter-spacing: 0.2em;
+}
+
+.vx-rounded-2 {
+  border-radius: 2px;
+}
+
+.vx-wave-dot {
+  width: 3px;
+}
+
+.vx-gap-3px {
+  gap: 3px;
+}
+
+.vx-grid-cta {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+}
+
 .vox-macro-row {
   margin-bottom: 0.75rem;
 }

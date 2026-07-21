@@ -1,94 +1,81 @@
-<vox-page-header title="Profile & Goals" [showBackButton]="true" [backHref]="'/tabs/home'">
-  <button header-end type="button" (click)="signOut()" class="vox-header-text-action">Sign out</button>
-</vox-page-header>
+<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
+  <header class="flex shrink-0 items-center justify-between px-6 pb-4 pt-4">
+    <div class="min-w-0 mb-4">
+      <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-18 text-ink-subtle">Profile</p>
+      <div class="m-0 mt-1 truncate text-xl font-semibold tracking-tight text-ink">{{ displayName() }}</div>
+    </div>
+    <button type="button" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-surface-2 transition-colors">
+      <vox-icon name="settings-outline" tone="ink-muted" size="md" />
+    </button>
+  </header>
 
-<ion-content class="tab-page-content [--background:var(--vox-canvas)]">
-  <!-- Hero -->
-  <vox-card variant="raised" padding="md" class="mb-5 block">
-    <div class="flex items-center gap-3.5">
-      <div
-        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-pill bg-primary-dim text-base font-semibold text-primary"
-        aria-hidden="true"
-      >
-        {{ avatarInitial() }}
-      </div>
-      <div class="min-w-0 flex-1 text-left">
-        <p class="m-0 truncate text-base font-semibold leading-snug text-ink">{{ displayName() }}</p>
-        <p class="m-0 mt-0.5 truncate text-xs text-ink-subtle">{{ email() }}</p>
-        <div class="mt-2 flex flex-wrap gap-1.5">
-          <vox-badge tone="neutral" shape="pill">{{ sportChip() }}</vox-badge>
-          <vox-badge tone="success" shape="pill">{{ goalChip() }}</vox-badge>
+  <main class="flex-1 space-y-6 px-2 pb-6">
+    <!-- Identity chips -->
+    <div class="flex flex-wrap gap-2">
+      <span class="rounded-full bg-surface-2 px-3 py-1 vx-text-11 font-medium text-ink-subtle ring-1 ring-hairline">{{ sportChip() }}</span>
+      <span class="rounded-full bg-success-dim px-3 py-1 vx-text-11 font-medium text-success border border-success-dim">{{ goalChip() }}</span>
+      <span class="rounded-full bg-surface-2 px-3 py-1 vx-text-11 font-medium text-ink-subtle ring-1 ring-hairline">{{ email() }}</span>
+    </div>
+
+    <!-- Hero stats -->
+    <section class="grid grid-cols-3 gap-2">
+      @for (s of heroStats(); track s.label) {
+        <div class="rounded-xl bg-surface-1 p-4 text-center ring-1 ring-hairline">
+          <p class="m-0 font-mono text-xl text-ink">{{ s.value }}</p>
+          <p class="m-0 mt-1 text-sm uppercase tracking-wide text-ink-subtle">{{ s.label }}</p>
+        </div>
+      }
+    </section>
+
+    <!-- Activity heatmap -->
+    <section class="space-y-3 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="m-0 vx-text-10 uppercase tracking-[0.16em] text-ink-subtle">Activity</p>
+          <h3 class="m-0 mt-0.5 text-sm font-medium text-ink">Last 12 months</h3>
+        </div>
+        <div class="flex items-center gap-1 text-ink-subtle" style="font-size: 9px">
+          <span>less</span>
+          @for (c of heatmapLegendColors; track c) {
+            <span class="h-2 w-2 rounded-[2px]" [style.background]="c"></span>
+          }
+          <span>more</span>
         </div>
       </div>
-    </div>
-  </vox-card>
-
-  <!-- Activity calendar -->
-  <vox-card variant="raised" padding="md" class="mb-5 block">
-    <p class="m-0 mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-subtle">
-      <vox-icon name="calendar-outline" tone="ink-subtle" size="sm" />
-      Activity
-    </p>
-    <div class="mb-3 flex items-center justify-between gap-2">
-      <button type="button" class="vox-cal-nav" (click)="shiftMonth(-1)" aria-label="Previous month">
-        <vox-icon name="chevron-back-outline" size="sm" />
-      </button>
-      <p class="m-0 min-w-0 flex-1 text-center text-sm font-semibold text-ink">
-        {{ calendarTitle() }}
-      </p>
-      <button type="button" class="vox-cal-nav" (click)="shiftMonth(1)" aria-label="Next month">
-        <vox-icon name="chevron-forward-outline" size="sm" />
-      </button>
-    </div>
-    <div class="grid grid-cols-7 gap-2">
-      @for (d of ['S', 'M', 'T', 'W', 'T', 'F', 'S']; track $index) {
-        <div class="text-center text-xs font-medium text-ink-tertiary">{{ d }}</div>
-      }
-      @for (cell of calendarCells(); track $index) {
-        @if (cell === null) {
-          <div class="aspect-square max-h-10 min-h-[1.75rem]" aria-hidden="true"></div>
-        } @else {
-          <div
-            class="flex aspect-square max-h-10 min-h-[1.75rem] items-center justify-center rounded-sm text-xs font-semibold"
-            [style.background]="cellBackground(cell)"
-            [style.color]="cellColor(cell)"
-            [style.outline]="isTodayCell(cell) ? '2px solid var(--vox-primary)' : 'none'"
-            style="outline-offset: -1px"
-          >
-            {{ cell }}
-          </div>
-        }
-      }
-    </div>
-    <p class="m-0 mt-3 text-center text-[11px] leading-snug text-ink-tertiary">
-      Shade deepens with more workouts logged that day. Today is outlined.
-    </p>
-  </vox-card>
-
-  <!-- Targets & activity -->
-  <vox-card variant="raised" padding="sm" class="mb-5 block">
-    <p class="m-0 mb-1 flex items-center gap-1.5 px-1 pt-2 text-xs font-semibold uppercase tracking-wider text-ink-subtle">
-      <vox-icon name="flag-outline" tone="ink-subtle" size="sm" />
-      Targets &amp; activity
-    </p>
-    @for (g of goalRows(); track g.label; let last = $last) {
       <div
-        class="flex items-center justify-between gap-3 px-1 py-3.5"
-        [class.border-b]="!last"
-        [class.border-hairline]="!last"
+        class="grid grid-flow-col grid-rows-7 gap-[3px] overflow-x-auto"
+        style="grid-auto-columns: 8px"
       >
-        <span class="text-sm text-ink-subtle">{{ g.label }}</span>
-        <span
-          class="max-w-[60%] text-right text-sm font-semibold leading-snug text-ink"
-          [class.font-mono]="g.label !== 'Primary Goal'"
-        >
-          {{ g.value }}
-        </span>
+        @for (cell of heatmapCells(); track cell.key) {
+          <span
+            class="h-2 w-2 rounded-[2px]"
+            [style.background]="heatmapCellBackground(cell)"
+          ></span>
+        }
       </div>
-    }
-  </vox-card>
+    </section>
 
-  <p class="px-1 pb-2 text-center text-xs leading-relaxed text-ink-tertiary">
-    Nutrition targets come from your account profile. Refresh the app after changing goals in onboarding.
-  </p>
+    <!-- Preferences -->
+    <section class="space-y-2">
+      <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">Preferences</h3>
+      @for (g of goalRows(); track g.label) {
+        <div class="flex w-full items-center gap-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline transition-colors hover:bg-surface-2 mb-5">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-3 ring-1 ring-hairline">
+            <vox-icon [name]="g.icon" tone="ink-muted" size="sm" />
+          </span>
+          <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
+          <span class="font-mono text-xs text-ink-subtle">{{ g.value }}</span>
+        </div>
+      }
+    </section>
+
+    <div
+      type="button"
+      (click)="signOut()"
+      class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
+    >
+      <vox-icon name="log-out-outline" tone="danger" size="sm" />
+      Sign out
+    </div>
+  </main>
 </ion-content>

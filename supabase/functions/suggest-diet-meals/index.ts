@@ -4,6 +4,12 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const SYSTEM = `You are VoxFit’s fitness-forward cook.
 Users speak casually about pantry ingredients and cravings.
 Suggest realistic meals they can cook or assemble today.
@@ -36,8 +42,12 @@ Rules:
 Optional user hints may appear after the transcript — treat them as soft guidance only; pantry transcript wins for ingredients.`;
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   }
 
   let transcript = '';
@@ -59,14 +69,14 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
   if (!transcript) {
     return new Response(JSON.stringify({ error: 'transcript required' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -74,7 +84,7 @@ Deno.serve(async (req: Request) => {
   if (!key) {
     return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -108,7 +118,7 @@ Deno.serve(async (req: Request) => {
     const detail = await r.text();
     return new Response(JSON.stringify({ error: 'Gemini request failed', detail }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -119,11 +129,11 @@ Deno.serve(async (req: Request) => {
   if (!part?.trim()) {
     return new Response(JSON.stringify({ error: 'Empty model response' }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
   return new Response(part.trim(), {
-    headers: { 'Content-Type': 'application/json', Connection: 'keep-alive' },
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', Connection: 'keep-alive' },
   });
 });

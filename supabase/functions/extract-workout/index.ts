@@ -3,6 +3,13 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const SYSTEM = `You are the AI engine behind VoxFit: a voice-first workout logger. Your competitive advantage is that users log in seconds with messy, rushed speech—and you still return structured data that matches our database exactly.
 
 ## How users actually behave
@@ -77,8 +84,12 @@ For strength: built from set_lines, e.g. "1×10–12 @ 10 · 1×10–12 @ 20 · 
 For cardio: reflect **each** segment from set_lines, not a hand-wavy total that hides the breakdown.`;
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   }
 
   let transcript = '';
@@ -88,14 +99,14 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
   if (!transcript) {
     return new Response(JSON.stringify({ error: 'transcript required' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -103,7 +114,7 @@ Deno.serve(async (req: Request) => {
   if (!key) {
     return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -128,7 +139,7 @@ Deno.serve(async (req: Request) => {
     const detail = await r.text();
     return new Response(JSON.stringify({ error: 'Gemini request failed', detail }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
@@ -139,11 +150,11 @@ Deno.serve(async (req: Request) => {
   if (!part?.trim()) {
     return new Response(JSON.stringify({ error: 'Empty model response' }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
   }
 
   return new Response(part.trim(), {
-    headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive' },
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Connection': 'keep-alive' },
   });
 });

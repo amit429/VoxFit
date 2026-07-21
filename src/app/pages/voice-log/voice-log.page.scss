@@ -2,33 +2,19 @@
   display: block;
 }
 
-.vox-done-wrap {
-  padding-inline: 0.125rem;
-}
-
-.vox-record-btn {
-  transition:
-    transform 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.vox-stop-btn {
-  background: var(--vox-surface-4);
-  border-color: var(--vox-border-hairline-strong);
-}
-
 @keyframes vox-pulse {
   0%,
   100% {
-    opacity: 0.75;
+    opacity: 0.5;
     transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.06);
+    transform: scale(1.05);
   }
 }
 
-.vox-processing-orb {
-  animation: vox-pulse 1.6s ease-in-out infinite;
+/** Matches Lovable's `mic-pulse` utility (`styles.css`) — breathing glow on the idle record button. */
+.mic-pulse {
+  animation: vox-pulse 2.4s ease-in-out infinite;
 }

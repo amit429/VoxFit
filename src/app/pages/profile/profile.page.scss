@@ -1,29 +1,3 @@
 :host {
   display: block;
 }
-
-/* Centered ion-title can span the full toolbar and steal taps; keep end actions above. */
-ion-toolbar ion-buttons[slot='end'] {
-  position: relative;
-  z-index: 2;
-}
-
-.vox-cal-nav {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.5rem;
-  min-height: 2.5rem;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: var(--vox-radius-md);
-  background: var(--vox-surface-1);
-  color: var(--vox-ink);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.vox-cal-nav:active {
-  background: var(--vox-surface-3);
-}

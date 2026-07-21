@@ -1,6 +1,3 @@
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
-import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -9,7 +6,12 @@ import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
-import { getCurrentWeekDayKeys, parseLocalDateKey, parseIsoDateLocal } from '@/app/utils/workout-display.util';
+import {
+  getCurrentWeekDayKeys,
+  parseLocalDateKey,
+  parseIsoDateLocal,
+  sessionTotalVolumeKg,
+} from '@/app/utils/workout-display.util';
 
 addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline });
 
@@ -19,9 +21,6 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
   templateUrl: './workout.page.html',
   styleUrls: ['./workout.page.scss'],
   imports: [
-    VoxPageHeaderComponent,
-    VoxCardComponent,
-    VoxBadgeComponent,
     VoxIconComponent,
     IonHeader,
     IonToolbar,
@@ -136,6 +135,34 @@ export class WorkoutPage implements ViewWillEnter {
       [a, b] = [b, a];
     }
     return `${WorkoutPage.formatDayChip(a)}–${WorkoutPage.formatDayChip(b)}`;
+  });
+
+  protected readonly weeklyVolumeTotal = computed(() =>
+    Math.round(this.journal.weeklyVolume().values.reduce((a, b) => a + b, 0)).toLocaleString(),
+  );
+
+  /** Week-over-week % change in strength tonnage, computed client-side from already-loaded sessions. Null if no prior-week volume to compare against. */
+  protected readonly weeklyVolumeChangePct = computed(() => {
+    const thisWeekTotal = this.journal.weeklyVolume().values.reduce((a, b) => a + b, 0);
+
+    const thisMonday = parseIsoDateLocal(getCurrentWeekDayKeys()[0]);
+    const prevMonday = new Date(thisMonday);
+    prevMonday.setDate(thisMonday.getDate() - 7);
+    const prevWeekKeys = new Set(
+      Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(prevMonday);
+        d.setDate(prevMonday.getDate() + i);
+        return parseLocalDateKey(d);
+      }),
+    );
+
+    const prevWeekTotal = this.journal
+      .sessions()
+      .filter((r) => r.date && prevWeekKeys.has(r.date))
+      .reduce((sum, r) => sum + sessionTotalVolumeKg(r.exercises_logged ?? []), 0);
+
+    if (prevWeekTotal <= 0) return null;
+    return Math.round(((thisWeekTotal - prevWeekTotal) / prevWeekTotal) * 100);
   });
 
   protected readonly weeklyBars = computed(() => {

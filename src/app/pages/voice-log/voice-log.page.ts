@@ -1,9 +1,18 @@
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { IonContent, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { mic, sparklesOutline, checkmarkCircle, warningOutline } from 'ionicons/icons';
+import {
+  mic,
+  sparklesOutline,
+  checkmarkCircle,
+  warningOutline,
+  close,
+  refreshOutline,
+  checkmarkOutline,
+  chevronBackOutline,
+} from 'ionicons/icons';
 import type { VoiceDoneMock } from '@/app/data/types';
 import type { WorkoutExerciseExtract, WorkoutExtractResult } from '@/app/models/workout-extract.models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
@@ -13,11 +22,9 @@ import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { AuthService } from '@/app/services/auth.service';
 import { workoutExtractToVoiceDoneMock } from '@/app/utils/workout-extract-ui.mapper';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
-import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
-addIcons({ mic, sparklesOutline, checkmarkCircle, warningOutline });
+addIcons({ mic, sparklesOutline, checkmarkCircle, warningOutline, close, refreshOutline, checkmarkOutline, chevronBackOutline });
 
 type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
 
@@ -27,12 +34,10 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
   templateUrl: './voice-log.page.html',
   styleUrls: ['./voice-log.page.scss'],
   imports: [
-    VoxPageHeaderComponent,
+    RouterLink,
     IonContent,
     NgClass,
     SessionExerciseReviewCardComponent,
-    VoxCardComponent,
-    VoxBadgeComponent,
     VoxIconComponent,
   ],
 })
@@ -50,11 +55,21 @@ export class VoiceLogPage {
   protected readonly dots = signal('');
   protected readonly result = signal<VoiceDoneMock | null>(null);
   protected readonly cardExercises = signal<WorkoutExerciseExtract[]>([]);
+  /** Raw transcript for the done-state recap card. */
+  protected readonly transcriptText = signal('');
+  /** Live recording duration for the recording-state timer. */
+  protected readonly elapsedSeconds = signal(0);
 
   private pendingTranscript = '';
   private pendingExtract: WorkoutExtractResult | null = null;
 
-  protected readonly waveHeights = [8, 14, 22, 18, 30, 24, 16, 28, 20, 12, 26, 18, 10, 22, 16];
+  /** Mirrors Lovable's `Waveform` component formula (bars=28) for pixel parity. */
+  protected readonly waveformBars = Array.from({ length: 28 }, (_, i) => ({
+    height: 8 + ((i * 37) % 20),
+    delaySec: (i % 6) * 0.09,
+    durationSec: 0.9 + ((i * 13) % 7) / 10,
+    opacity: 0.5 + ((i * 17) % 5) / 10,
+  }));
 
   /** Display-only: distinguishes the synthetic "no flags" checkmark from a real warning glyph. */
   protected flagsOk(res: VoiceDoneMock): boolean {
@@ -63,7 +78,14 @@ export class VoiceLogPage {
 
   private holdActive = false;
   private dotsInterval?: ReturnType<typeof setInterval>;
+  private timerInterval?: ReturnType<typeof setInterval>;
   private pendingTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+  protected formatTime(s: number): string {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const r = (s % 60).toString().padStart(2, '0');
+    return `${m}:${r}`;
+  }
 
   constructor() {
     this.destroyRef.onDestroy(() => {
@@ -87,12 +109,15 @@ export class VoiceLogPage {
     this.cleanupTimers();
     this.result.set(null);
     this.cardExercises.set([]);
+    this.transcriptText.set('');
     this.state.set('recording');
     let n = 0;
     this.dotsInterval = setInterval(() => {
       n += 1;
       this.dots.set('.'.repeat(n % 4));
     }, 400);
+    this.elapsedSeconds.set(0);
+    this.timerInterval = setInterval(() => this.elapsedSeconds.update((s) => s + 1), 1000);
     try {
       await this.voiceSession.start();
     } catch (err) {
@@ -101,6 +126,19 @@ export class VoiceLogPage {
       this.state.set('idle');
       this.holdActive = false;
     }
+  }
+
+  /** Discard the in-progress recording without parsing it — distinct from Stop, which proceeds to extraction. */
+  protected async cancelRecording(): Promise<void> {
+    if (this.state() !== 'recording') return;
+    this.holdActive = false;
+    this.cleanupTimers();
+    try {
+      await this.voiceSession.cancel();
+    } catch (err) {
+      console.error('[VoiceLog] Failed to cancel recording:', err);
+    }
+    this.state.set('idle');
   }
 
   protected onHoldEnd(ev: Event): void {
@@ -130,6 +168,7 @@ export class VoiceLogPage {
     }
     console.log('[VoiceLog] Final transcript:', finalTranscript);
     this.pendingTranscript = finalTranscript;
+    this.transcriptText.set(finalTranscript);
 
     if (!finalTranscript.trim()) {
       await this.presentToast('No speech detected — try again.', 'warning');
@@ -155,6 +194,7 @@ export class VoiceLogPage {
   protected async reRecord(): Promise<void> {
     this.pendingExtract = null;
     this.pendingTranscript = '';
+    this.transcriptText.set('');
     this.result.set(null);
     this.cardExercises.set([]);
     this.cleanupTimers();
@@ -164,6 +204,8 @@ export class VoiceLogPage {
       n += 1;
       this.dots.set('.'.repeat(n % 4));
     }, 400);
+    this.elapsedSeconds.set(0);
+    this.timerInterval = setInterval(() => this.elapsedSeconds.update((s) => s + 1), 1000);
     try {
       await this.voiceSession.start();
     } catch (err) {
@@ -212,6 +254,10 @@ export class VoiceLogPage {
 
   private cleanupTimers(): void {
     this.clearDotsInterval();
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = undefined;
+    }
     this.pendingTimeouts.forEach((id) => clearTimeout(id));
     this.pendingTimeouts = [];
   }

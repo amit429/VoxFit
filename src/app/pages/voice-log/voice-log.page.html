@@ -1,18 +1,32 @@
-<vox-page-header title="Log Workout" [showBackButton]="true" [backHref]="'/tabs/home'">
-</vox-page-header>
-
 <ion-content
-  [fullscreen]="false"
+  [fullscreen]="true"
   [scrollY]="true"
   class="vox-standalone-page [--background:var(--vox-canvas)]"
 >
-  <div class="vox-voice-inner mx-auto w-full max-w-[26rem] pb-6 pt-4">
+  <div class="flex h-full w-full flex-col">
+    <header class="flex shrink-0 items-center justify-between px-2 pb-4 pt-4">
+      <div class="min-w-0 flex items-center gap-3">
+        <div
+          type="button"
+          class="grid h-10 w-10 shrink-0 place-items-center text-ink-subtle hover:bg-surface-2 rounded-full transition-colors"
+          [routerLink]="'/tabs/home'"
+        >
+          <vox-icon name="chevron-back-outline" size="md" />
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="m-0 text-xl font-semibold tracking-tight text-ink">Workout</span>
+          <span class="m-0 text-xl font-semibold tracking-tight text-ink">Voice</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="vox-voice-inner flex flex-1 w-full max-w-md mx-auto flex-col items-center justify-center">
     @if (state() === 'idle') {
-      <div class="flex flex-col items-center px-1 pt-6 text-center">
-        <div class="mb-10 max-w-[min(100%,20rem)]">
-          <p class="m-0 mb-3 text-lg font-semibold text-ink">Ready to log?</p>
-          <p class="m-0 text-base leading-relaxed text-ink-subtle">
-            Hold the button and talk about your workout — exercises, sets, weights, how you felt
+      <div class="flex flex-col items-center justify-center gap-8 pb-16 text-center">
+        <div>
+          <h1 class="m-0 text-2xl font-semibold tracking-tight text-ink">Log a workout</h1>
+          <p class="mx-auto mt-2 max-w-[250px] text-sm leading-relaxed text-ink-subtle">
+            Say the exercise, sets, reps, and weights. VoxFit does the rest.
           </p>
         </div>
         <button
@@ -22,123 +36,164 @@
           (mousedown)="onHoldStart($event)"
           (mouseup)="onHoldEnd($event)"
           (mouseleave)="onHoldCancel()"
-          class="vox-record-btn flex h-[7rem] w-[7rem] shrink-0 items-center justify-center rounded-full border-2 border-primary bg-surface-3 active:scale-[0.98] sm:h-[7.5rem] sm:w-[7.5rem]"
+          class="mic-pulse group relative grid h-32 w-32 place-items-center rounded-full bg-primary ring-1 ring-primary transition-transform active:scale-95"
+          aria-label="Hold to record"
         >
-          <vox-icon name="mic" tone="accent" size="xl" />
+          <span class="absolute inset-0 rounded-full bg-primary-dim blur-2xl"></span>
+          <vox-icon name="mic" tone="inherit" size="xl" class="relative text-white" />
         </button>
-        <p class="mt-5 text-sm text-ink-tertiary">Hold to record</p>
+        <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-20 text-ink-subtle">Tap to record</p>
       </div>
     }
 
     @if (state() === 'recording') {
-      <div class="flex flex-col items-center px-1 pt-6 text-center">
-        <div class="mb-6">
-          <vox-badge tone="accent">● REC</vox-badge>
-          <p class="mt-3 text-base text-ink-subtle">Listening{{ dots() }}</p>
+      <div class="flex flex-1 flex-col items-center justify-between pb-10 pt-4 text-center">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-danger"></span>
+          <span class="font-mono vx-text-11 uppercase vx-tracking-20 text-danger">Recording{{ dots() }}</span>
         </div>
-        <div class="mb-6 flex h-12 items-center justify-center gap-1">
-          @for (h of waveHeights; track $index) {
-            <div
-              class="vox-wave-bar w-[5px] rounded-sm bg-primary"
-              [style.height.px]="h + 4"
-              [style.opacity]="0.55 + ($index % 3) * 0.14"
-              [style.animation-delay.ms]="$index * 45"
-            ></div>
-          }
+
+        <div class="flex w-full flex-col items-center gap-8">
+          <div class="flex h-16 w-full items-center justify-center vx-gap-3px">
+            @for (bar of waveformBars; track $index) {
+              <span
+                class="vox-wave-bar block vx-wave-dot rounded-full bg-primary"
+                [style.height.px]="bar.height"
+                [style.opacity]="bar.opacity"
+                [style.animation-delay.s]="bar.delaySec"
+                [style.animation-duration.s]="bar.durationSec"
+              ></span>
+            }
+          </div>
+          <p class="m-0 font-mono text-4xl tracking-tight text-ink">{{ formatTime(elapsedSeconds()) }}</p>
+          <p class="mx-auto max-w-xs text-sm italic leading-relaxed text-ink-muted">
+            @if (voiceSession.transcriptPreview(); as line) {
+              "{{ line }}"
+            } @else {
+              <span class="not-italic opacity-70">Speak now…</span>
+            }
+          </p>
         </div>
-        <vox-card
-          variant="resting"
-          padding="md"
-          class="block w-full max-w-[min(100%,22rem)] text-sm italic leading-relaxed text-ink-subtle"
-        >
-          @if (voiceSession.transcriptPreview(); as line) {
-            "{{ line }}"
-          } @else {
-            <span class="not-italic opacity-70">Speak now…</span>
-          }
-        </vox-card>
-        <button type="button" (click)="stopRecording()" class="vox-btn-secondary vox-stop-btn mt-6">
-          Stop Recording
-        </button>
+
+        <div class="flex w-full items-center justify-around">
+          <button
+            type="button"
+            (click)="cancelRecording()"
+            class="flex flex-col items-center gap-2 text-ink-subtle transition-colors"
+            aria-label="Cancel"
+          >
+            <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-2 ring-1 ring-hairline-strong">
+              <vox-icon name="close" size="md" />
+            </span>
+            <span class="vx-text-10 uppercase tracking-wide">Cancel</span>
+          </button>
+
+          <button type="button" (click)="stopRecording()" class="flex flex-col items-center gap-2" aria-label="Stop recording">
+            <span class="grid h-20 w-20 place-items-center rounded-full bg-danger outline outline-4 outline-danger-dim">
+              <span class="h-6 w-6 rounded bg-white"></span>
+            </span>
+            <span class="font-mono vx-text-10 uppercase tracking-widest text-ink-subtle">Stop</span>
+          </button>
+
+          <div class="w-12"></div>
+        </div>
       </div>
     }
 
     @if (state() === 'processing') {
-      <div class="px-1 pt-6 text-center">
-        <div class="vox-processing-orb mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-3">
-          <vox-icon name="sparkles-outline" tone="accent" size="lg" />
+      <div class="flex flex-col items-center justify-center gap-6 pb-16 text-center">
+        <div class="relative grid h-24 w-24 place-items-center">
+          <span class="absolute inset-0 animate-ping rounded-full bg-primary-dim"></span>
+          <span class="relative grid h-16 w-16 place-items-center rounded-full bg-primary-dim border border-primary-dim">
+            <vox-icon name="sparkles-outline" tone="accent" size="lg" />
+          </span>
         </div>
-        <p class="m-0 mb-2 text-lg font-semibold text-ink">AI is parsing your session...</p>
-        <p class="m-0 text-sm text-ink-subtle">Extracting exercises, mood &amp; insights</p>
-        <div class="mt-6 flex justify-center gap-2">
-          @for (i of [0, 1, 2]; track i) {
-            <span class="inline-block h-2.5 w-2.5 rounded-full bg-primary" [style.opacity]="0.35 + i * 0.28"></span>
-          }
+        <div>
+          <p class="m-0 text-lg font-medium text-ink">Parsing your session{{ dots() }}</p>
+          <p class="m-0 mt-1 text-sm text-ink-subtle">Extracting exercises, sets, and weights.</p>
         </div>
       </div>
     }
 
     @if (state() === 'done') {
       @if (result(); as res) {
-        <div class="vox-done-wrap w-full pb-2 pt-6">
-          <div class="mb-5 text-center">
-            <vox-icon name="checkmark-circle" tone="success" size="xl" />
-            <p class="m-0 mt-3 text-lg font-semibold tracking-tight text-ink">Session extracted!</p>
-            <p class="m-0 mt-2 text-sm leading-relaxed text-ink-subtle">
-              Review sets below — tap a row to fix details before saving.
-            </p>
+        <div class="flex flex-1 flex-col gap-5 pb-6">
+          <div class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+            <div class="flex items-center justify-between">
+              <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-16 text-primary">Transcript</p>
+              <span class="font-mono vx-text-11 text-ink-subtle">{{ formatTime(elapsedSeconds()) }}</span>
+            </div>
+            <p class="m-0 mt-2 text-sm leading-relaxed text-ink-muted">{{ transcriptText() }}</p>
           </div>
 
-          <app-session-exercise-review-card
-            class="mb-5 block"
-            [sessionTitle]="res.sessionTitle"
-            [coachSummary]="res.coachSummary || null"
-            [exercises]="cardExercises()"
-            (exercisesChange)="onCardExercisesChange($event)"
-          />
+          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p class="m-0 text-xs text-ink-subtle">Mood</p>
+                <p class="m-0 mt-1 text-xl leading-none">{{ res.moodEmoji }}</p>
+                <p class="m-0 mt-1 text-xs font-semibold text-success">{{ res.moodLabel }}</p>
+              </div>
+              <div>
+                <p class="m-0 text-xs text-ink-subtle">Energy</p>
+                <p class="m-0 mt-1 text-xl leading-none">{{ res.energyEmoji }}</p>
+                <p class="m-0 mt-1 text-xs font-semibold text-warning">{{ res.energyLabel }}</p>
+              </div>
+              <div>
+                <p class="m-0 text-xs text-ink-subtle">Flags</p>
+                <vox-icon
+                  class="mt-1 inline-flex"
+                  [name]="flagsOk(res) ? 'checkmark-circle' : 'warning-outline'"
+                  [tone]="flagsOk(res) ? 'success' : 'warning'"
+                  size="md"
+                />
+                <p class="m-0 mt-1 text-xs font-semibold" [ngClass]="flagsOk(res) ? 'text-success' : 'text-warning'">
+                  {{ res.flagsLabel }}
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <div class="mb-6 grid grid-cols-3 gap-3">
-            <vox-card variant="resting" padding="sm" class="block text-center">
-              <p class="m-0 text-xs text-ink-subtle">Mood</p>
-              <p class="m-0 mt-1 text-xl leading-none">{{ res.moodEmoji }}</p>
-              <p class="m-0 mt-1 text-xs font-semibold text-success">{{ res.moodLabel }}</p>
-            </vox-card>
-            <vox-card variant="resting" padding="sm" class="block text-center">
-              <p class="m-0 text-xs text-ink-subtle">Energy</p>
-              <p class="m-0 mt-1 text-xl leading-none">{{ res.energyEmoji }}</p>
-              <p class="m-0 mt-1 text-xs font-semibold text-warning">{{ res.energyLabel }}</p>
-            </vox-card>
-            <vox-card variant="resting" padding="sm" class="block text-center">
-              <p class="m-0 text-xs text-ink-subtle">Flags</p>
-              <vox-icon
-                class="mt-1 inline-flex"
-                [name]="flagsOk(res) ? 'checkmark-circle' : 'warning-outline'"
-                [tone]="flagsOk(res) ? 'success' : 'warning'"
-                size="md"
+          <div class="rounded-2xl bg-surface-1 ring-1 ring-hairline">
+            <div class="flex items-center justify-between border-b border-hairline p-4">
+              <div>
+                <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">AI extracted</p>
+                <h3 class="m-0 mt-1 text-base font-semibold text-ink">{{ res.sessionTitle }}</h3>
+              </div>
+              <span class="rounded bg-primary-dim px-2 py-1 font-mono vx-text-10 uppercase tracking-wider text-primary border border-primary-dim">
+                Editable
+              </span>
+            </div>
+            <div class="p-4">
+              <app-session-exercise-review-card
+                [sessionTitle]="res.sessionTitle"
+                [coachSummary]="res.coachSummary || null"
+                [exercises]="cardExercises()"
+                (exercisesChange)="onCardExercisesChange($event)"
               />
-              <p
-                class="m-0 mt-1 text-xs font-semibold"
-                [ngClass]="flagsOk(res) ? 'text-success' : 'text-warning'"
-              >
-                {{ res.flagsLabel }}
-              </p>
-            </vox-card>
+            </div>
           </div>
 
-          <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <button type="button" (click)="save()" class="vox-btn-primary order-1 flex-1 sm:order-none">
-              Save Session
-            </button>
-            <button
+          <div class="vx-grid-cta gap-3 pt-1">
+            <div
               type="button"
               (click)="reRecord()"
-              class="vox-btn-secondary order-2 sm:order-none sm:min-w-[8.5rem]"
+              class="flex items-center justify-center gap-2 rounded-xl bg-surface-2 py-3 text-sm font-medium text-ink-muted ring-1 ring-hairline-strong transition-colors mb-4"
             >
+              <vox-icon name="refresh-outline" size="sm" />
               Re-record
-            </button>
+            </div>
+            <div
+              type="button"
+              (click)="save()"
+              class="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors"
+            >
+              <vox-icon name="checkmark-outline" size="sm" />
+              Save session
+            </div>
           </div>
         </div>
       }
     }
+    </div>
   </div>
 </ion-content>

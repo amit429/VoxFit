@@ -1,5 +1,3 @@
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -70,8 +68,6 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
   templateUrl: './diet.page.html',
   styleUrls: ['./diet.page.scss'],
   imports: [
-    VoxPageHeaderComponent,
-    VoxCardComponent,
     VoxIconComponent,
     IonHeader,
     IonToolbar,
@@ -102,6 +98,30 @@ export class DietPage implements ViewWillEnter {
   protected readonly recipeModalLog = signal<DietLogListRow | null>(null);
 
   protected readonly macros = computed(() => this.nutrition.macros());
+
+  /** Overall calorie % + a calorie-weighted P/C/F stacked-bar breakdown (protein/carbs = 4 kcal/g, fat = 9 kcal/g). */
+  protected readonly macroSummary = computed(() => {
+    const rows = this.macros().rows;
+    const cal = rows.find((r) => r.label === 'Calories');
+    const protein = rows.find((r) => r.label === 'Protein');
+    const carbs = rows.find((r) => r.label === 'Carbs');
+    const fat = rows.find((r) => r.label === 'Fat');
+    const target = cal?.target ?? 0;
+    const pct = target > 0 && cal ? Math.min(100, Math.round((cal.current / target) * 100)) : 0;
+
+    const kcalWidth = (row: typeof protein, kcalPerG: number) =>
+      row && target > 0 ? Math.min(100, ((row.current * kcalPerG) / target) * 100) : 0;
+
+    return {
+      pct,
+      calories: cal ?? null,
+      segments: [
+        { label: 'Protein', row: protein, widthPct: kcalWidth(protein, 4) },
+        { label: 'Carbs', row: carbs, widthPct: kcalWidth(carbs, 4) },
+        { label: 'Fat', row: fat, widthPct: kcalWidth(fat, 9) },
+      ] as const,
+    };
+  });
 
   protected readonly daySections = computed((): readonly MealSectionVm[] => {
     if (this.rangeMode() !== 'day') return [];
@@ -193,19 +213,6 @@ export class DietPage implements ViewWillEnter {
       .split('\n')
       .map((s) => s.replace(/^\d+\.\s*/, '').trim())
       .filter(Boolean);
-  }
-
-  protected macroPct(row: { current: number; target: number }): number {
-    const t = row.target;
-    if (!t || t <= 0) return 0;
-    return Math.min(100, Math.round((row.current / t) * 100));
-  }
-
-  /** Semantic colour set only — never the scarce accent for a data ramp. Mirrors home.page.ts. */
-  protected macroBarColor(label: string): string {
-    if (label === 'Calories') return 'var(--vox-warning)';
-    if (label === 'Protein') return 'var(--vox-success)';
-    return 'var(--vox-ink-muted)';
   }
 
   protected timeLabel(iso: string): string {
