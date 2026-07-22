@@ -7,6 +7,7 @@ import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import {
+  formatSessionDateLabel,
   getCurrentWeekDayKeys,
   parseLocalDateKey,
   parseIsoDateLocal,
@@ -141,6 +142,33 @@ export class WorkoutPage implements ViewWillEnter {
     Math.round(this.journal.weeklyVolume().values.reduce((a, b) => a + b, 0)).toLocaleString(),
   );
 
+  /** Tapped day bar — null means "show the weekly total", set means "show that day's volume". */
+  protected readonly selectedDayIdx = signal<number | null>(null);
+
+  /** Card header: weekly total by default, or the tapped day's volume once a bar is selected. */
+  protected readonly weeklyVolumeStat = computed(() => {
+    const w = this.journal.weeklyVolume();
+    const sel = this.selectedDayIdx();
+    if (sel == null) {
+      return {
+        caption: 'Weekly volume',
+        value: Math.round(w.values.reduce((a, b) => a + b, 0)).toLocaleString(),
+        unit: 'KG',
+      };
+    }
+    const dateKey = getCurrentWeekDayKeys()[sel];
+    return {
+      caption: dateKey ? formatSessionDateLabel(dateKey) : (w.dayLabels[sel] ?? '?'),
+      value: Math.round(w.values[sel] ?? 0).toLocaleString(),
+      unit: 'KG',
+    };
+  });
+
+  /** Tap a bar to inspect that day; tap the same bar again to go back to the weekly total. */
+  protected toggleDay(i: number): void {
+    this.selectedDayIdx.update((cur) => (cur === i ? null : i));
+  }
+
   /** Week-over-week % change in strength tonnage, computed client-side from already-loaded sessions. Null if no prior-week volume to compare against. */
   protected readonly weeklyVolumeChangePct = computed(() => {
     const thisWeekTotal = this.journal.weeklyVolume().values.reduce((a, b) => a + b, 0);
@@ -170,10 +198,12 @@ export class WorkoutPage implements ViewWillEnter {
     const keys = getCurrentWeekDayKeys();
     const todayKey = parseLocalDateKey(new Date());
     const max = Math.max(...w.values, 1);
+    const sel = this.selectedDayIdx();
     return w.values.map((v, i) => ({
       heightPx: v <= 0 ? 4 : 8 + Math.round((v / max) * 44),
       label: w.dayLabels[i] ?? '?',
       isToday: keys[i] === todayKey,
+      isSelected: i === sel,
     }));
   });
 

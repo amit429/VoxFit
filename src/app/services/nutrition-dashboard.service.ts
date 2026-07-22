@@ -2,7 +2,12 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import type { HomeMacrosMock, MacroRowMock } from '@/app/data/types';
 import { AuthService } from '@/app/services/auth.service';
 import { SupabaseService } from '@/app/services/supabase.service';
-import { parseLocalDateKey } from '@/app/utils/workout-display.util';
+import { getLastNMonthKeys, monthKeysRangeStart, parseLocalDateKey } from '@/app/utils/workout-display.util';
+
+export interface DailyCalorieRow {
+  readonly date: string;
+  readonly calories: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class NutritionDashboardService {
@@ -14,6 +19,12 @@ export class NutritionDashboardService {
 
   /** Aggregates for local calendar day. */
   private readonly totals = signal({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+  /**
+   * `date, calories` rows for the last N months — powers the Profile monthly chart only.
+   * Not loaded on every Home/Diet refresh; call `refreshMonthlyHistory()` explicitly.
+   */
+  readonly monthlyCalorieRows = signal<DailyCalorieRow[]>([]);
 
   readonly macros = computed((): HomeMacrosMock => {
     const p = this.auth.profile();
@@ -93,5 +104,33 @@ export class NutritionDashboardService {
 
     this.totals.set({ calories, protein, carbs, fat });
     this.loadState.set('idle');
+  }
+
+  /** Scoped fetch for the Profile "calorie intake per month" chart — last `months` calendar months only. */
+  async refreshMonthlyHistory(months = 6): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) {
+      this.monthlyCalorieRows.set([]);
+      return;
+    }
+
+    const fromDate = monthKeysRangeStart(getLastNMonthKeys(months));
+    const toDate = parseLocalDateKey(new Date());
+
+    const { data, error } = await this.supabase.client
+      .from('diet_logs')
+      .select('date, calories')
+      .eq('user_id', uid)
+      .gte('date', fromDate)
+      .lte('date', toDate);
+
+    if (error) {
+      console.error('[NutritionDashboard] monthly history', error);
+      return;
+    }
+
+    this.monthlyCalorieRows.set(
+      (data ?? []).map((r) => ({ date: String(r['date'] ?? ''), calories: Number(r['calories'] ?? 0) })),
+    );
   }
 }

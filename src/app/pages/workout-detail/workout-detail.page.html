@@ -1,56 +1,81 @@
-<vox-page-header [showBackButton]="true" [backHref]="'/tabs/workout'">
-  @if (detail(); as d) {
-    <span header-title>{{ d.title }} · {{ d.dateLabel }}</span>
-  } @else {
-    <span header-title>Session</span>
-  }
-</vox-page-header>
+<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
+  <header class="flex shrink-0 items-center gap-3 px-2 pb-4 pt-2">
+    <button
+      type="button"
+      (click)="goToJournal()"
+      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-2"
+      aria-label="Back to journal"
+    >
+      <vox-icon name="chevron-back-outline" size="md" />
+    </button>
+    <div class="min-w-0">
+      <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Session</p>
+      @if (detail(); as d) {
+        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">{{ d.title }} · {{ d.dateLabel }}</span>
+      } @else {
+        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">Session</span>
+      }
+    </div>
+  </header>
 
-<ion-content class="tab-page-content [--background:var(--vox-canvas)]">
-  @if (detail(); as d) {
-    <vox-card variant="raised" padding="md" class="mb-5 block">
-      <div class="grid grid-cols-3 gap-3">
-        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-          <p class="m-0 text-xs text-ink-subtle">Mood</p>
-          <p class="m-0 mt-1 text-lg leading-none">{{ d.moodEmoji }}</p>
-          <p class="m-0 mt-1 text-xs font-semibold text-success">{{ d.moodLabel }}</p>
+  <main class="flex-1 space-y-6 px-2 pb-6">
+    @if (detail(); as d) {
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+            <p class="m-0 text-xs text-ink-subtle">Mood</p>
+            <p class="m-0 mt-1 text-lg leading-none">{{ d.moodEmoji }}</p>
+            <p class="m-0 mt-1 text-xs font-semibold text-success">{{ d.moodLabel }}</p>
+          </div>
+          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+            <p class="m-0 text-xs text-ink-subtle">Energy</p>
+            <p class="m-0 mt-1 text-sm font-semibold leading-tight text-warning">{{ d.energyLabel }}</p>
+          </div>
+          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+            <p class="m-0 text-xs text-ink-subtle">Volume</p>
+            <p class="m-0 mt-1 font-mono text-sm font-semibold tabular-nums text-primary">{{ d.volumeLabel }}</p>
+          </div>
         </div>
-        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-          <p class="m-0 text-xs text-ink-subtle">Energy</p>
-          <p class="m-0 mt-1 text-sm font-semibold leading-tight text-warning">{{ d.energyLabel }}</p>
-        </div>
-        <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-          <p class="m-0 text-xs text-ink-subtle">Volume</p>
-          <p class="m-0 mt-1 text-sm font-semibold tabular-nums text-primary font-mono">{{ d.volumeLabel }}</p>
-        </div>
-      </div>
-    </vox-card>
+      </section>
 
-    <app-session-exercise-review-card
-      class="mb-5 block"
-      [sessionContextId]="detailSessionId() ?? undefined"
-      [sessionTitle]="d.title"
-      [coachSummary]="d.coachNote || null"
-      [exercises]="detailExercises()"
-      (exercisesChange)="onJournalExercisesChange($event)"
-    />
+      <section class="rounded-2xl bg-surface-1 ring-1 ring-hairline">
+        <div class="flex items-center justify-between border-b border-hairline p-4">
+          <div>
+            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">Session</p>
+            <h3 class="m-0 mt-1 text-base font-semibold text-ink">{{ d.title }}</h3>
+          </div>
+          <span class="rounded bg-primary-dim px-2 py-1 font-mono vx-text-10 uppercase tracking-wider text-primary border border-primary-dim">
+            Editable
+          </span>
+        </div>
+        <div class="p-4">
+          <app-session-exercise-review-card
+            [sessionContextId]="detailSessionId() ?? undefined"
+            [sessionTitle]="d.title"
+            [coachSummary]="d.coachNote || null"
+            [exercises]="detailExercises()"
+            (exercisesChange)="onJournalExercisesChange($event)"
+          />
+        </div>
+      </section>
 
-    <vox-card variant="raised" padding="md" class="mb-2 block">
-      <p class="m-0 mb-2 flex items-center gap-1.5 text-xs font-semibold text-danger">
-        <vox-icon name="warning-outline" tone="danger" size="xs" />
-        {{ d.flagsTitle }}
-      </p>
-      <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ d.flagsBody }}</p>
-    </vox-card>
-  } @else if (notFound()) {
-    <vox-card variant="raised" padding="md" class="mt-6 block text-center">
-      <p class="m-0 text-base font-semibold text-ink">Session not found</p>
-      <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
-        This workout may have been deleted, or the link is out of date.
-      </p>
-      <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4">Back to journal</button>
-    </vox-card>
-  } @else {
-    <p class="mt-6 text-center text-sm text-ink-subtle">Loading session…</p>
-  }
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <p class="m-0 mb-2 flex items-center gap-1.5 text-xs font-semibold text-danger">
+          <vox-icon name="warning-outline" tone="danger" size="xs" />
+          {{ d.flagsTitle }}
+        </p>
+        <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ d.flagsBody }}</p>
+      </section>
+    } @else if (notFound()) {
+      <section class="rounded-2xl bg-surface-1 p-5 text-center ring-1 ring-hairline">
+        <p class="m-0 text-base font-semibold text-ink">Session not found</p>
+        <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
+          This workout may have been deleted, or the link is out of date.
+        </p>
+        <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4">Back to journal</button>
+      </section>
+    } @else {
+      <p class="m-0 mt-6 text-center text-sm text-ink-subtle">Loading session…</p>
+    }
+  </main>
 </ion-content>

@@ -1,5 +1,5 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent } from '@ionic/angular/standalone';
@@ -17,8 +17,16 @@ import {
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
 import type { GoalType } from '@/app/models/user.models';
 import { AuthService } from '@/app/services/auth.service';
+import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
-import { getCurrentWeekDayKeys, parseLocalDateKey } from '@/app/utils/workout-display.util';
+import {
+  buildMonthlySeries,
+  getCurrentWeekDayKeys,
+  getLastNMonthKeys,
+  monthLongLabel,
+  monthShortLabel,
+  parseLocalDateKey,
+} from '@/app/utils/workout-display.util';
 
 addIcons({
   flagOutline,
@@ -37,7 +45,21 @@ export interface HeatmapCellVm {
   readonly isToday: boolean;
 }
 
-const HEATMAP_WEEKS = 52;
+const HEATMAP_WEEKS = 26;
+const MONTHLY_CHART_MONTHS = 6;
+
+export interface MonthlyBarVm {
+  readonly label: string;
+  readonly heightPx: number;
+  readonly isCurrent: boolean;
+  readonly isSelected: boolean;
+}
+
+export interface MonthlyChartStatVm {
+  readonly caption: string;
+  readonly value: number;
+  readonly unit: string;
+}
 
 /** Success-based ramp, never the accent — matches this design system's own heatmap convention. */
 const HEATMAP_BACKGROUNDS = [
@@ -59,8 +81,13 @@ export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
   private readonly navCtrl = inject(NavController);
   protected readonly journal = inject(WorkoutJournalService);
+  private readonly nutrition = inject(NutritionDashboardService);
 
   protected readonly profile = this.auth.profile;
+
+  /** Oldest→newest window for both monthly charts below — captured once per page load. */
+  private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);
+  private readonly monthLabels = this.monthKeys.map(monthShortLabel);
 
   /** Workouts / Streak / PRs hero stats — derived client-side from data already loaded via `journal.refresh()`. */
   protected readonly heroStats = computed(() => {
@@ -104,6 +131,79 @@ export class ProfilePage implements ViewWillEnter {
 
   protected heatmapCellBackground(cell: HeatmapCellVm): string {
     return HEATMAP_BACKGROUNDS[cell.intensity];
+  }
+
+  /** Tapped bar per chart — null means "show the 6-month aggregate", set means "show that month's stat". */
+  protected readonly selectedWorkoutMonthIdx = signal<number | null>(null);
+  protected readonly selectedCalorieMonthIdx = signal<number | null>(null);
+
+  /** Workout count per month, last 6 months — from `journal.sessions()` (already fully loaded, no new fetch). */
+  private readonly monthlyWorkoutValues = computed(() =>
+    buildMonthlySeries(this.journal.sessions(), (s) => s.date, () => 1, this.monthKeys),
+  );
+
+  /** Calorie total per month, last 6 months — from a scoped `diet_logs` fetch (see `nutrition.refreshMonthlyHistory`). */
+  private readonly monthlyCalorieValues = computed(() =>
+    buildMonthlySeries(this.nutrition.monthlyCalorieRows(), (r) => r.date, (r) => r.calories, this.monthKeys),
+  );
+
+  protected readonly monthlyWorkoutBars = computed((): MonthlyBarVm[] =>
+    this.toBars(this.monthlyWorkoutValues(), this.selectedWorkoutMonthIdx()),
+  );
+
+  protected readonly monthlyCalorieBars = computed((): MonthlyBarVm[] =>
+    this.toBars(this.monthlyCalorieValues(), this.selectedCalorieMonthIdx()),
+  );
+
+  /** Card header: 6-month total by default, or the tapped month's count once a bar is selected. */
+  protected readonly workoutChartStat = computed((): MonthlyChartStatVm => {
+    const values = this.monthlyWorkoutValues();
+    const sel = this.selectedWorkoutMonthIdx();
+    if (sel == null) {
+      return { caption: 'Last 6 months', value: values.reduce((a, b) => a + b, 0), unit: 'WORKOUTS' };
+    }
+    const v = values[sel] ?? 0;
+    return { caption: monthLongLabel(this.monthKeys[sel]), value: v, unit: v === 1 ? 'WORKOUT' : 'WORKOUTS' };
+  });
+
+  /** Card header: avg daily calories by default, or the tapped month's total once a bar is selected. */
+  protected readonly calorieChartStat = computed((): MonthlyChartStatVm => {
+    const sel = this.selectedCalorieMonthIdx();
+    if (sel == null) {
+      return { caption: 'Last 6 months', value: this.avgDailyCalories6mo(), unit: 'AVG CAL/DAY' };
+    }
+    const v = Math.round(this.monthlyCalorieValues()[sel] ?? 0);
+    return { caption: monthLongLabel(this.monthKeys[sel]), value: v, unit: 'KCAL' };
+  });
+
+  private readonly avgDailyCalories6mo = computed(() => {
+    const rows = this.nutrition.monthlyCalorieRows();
+    if (rows.length === 0) return 0;
+    const total = rows.reduce((sum, r) => sum + r.calories, 0);
+    const first = this.monthKeys[0];
+    const start = new Date(first.year, first.month0, 1);
+    const days = Math.max(1, Math.round((Date.now() - start.getTime()) / 86_400_000) + 1);
+    return Math.round(total / days);
+  });
+
+  /** Tap a bar to inspect that month; tap the same bar again to go back to the aggregate view. */
+  protected toggleWorkoutMonth(i: number): void {
+    this.selectedWorkoutMonthIdx.update((cur) => (cur === i ? null : i));
+  }
+
+  protected toggleCalorieMonth(i: number): void {
+    this.selectedCalorieMonthIdx.update((cur) => (cur === i ? null : i));
+  }
+
+  private toBars(values: readonly number[], selectedIdx: number | null): MonthlyBarVm[] {
+    const max = Math.max(...values, 1);
+    const currentIdx = this.monthKeys.length - 1;
+    return values.map((v, i) => ({
+      heightPx: v <= 0 ? 4 : 8 + Math.round((v / max) * 44),
+      label: this.monthLabels[i] ?? '?',
+      isCurrent: i === currentIdx,
+      isSelected: i === selectedIdx,
+    }));
   }
 
   protected readonly goalRows = computed(() => {
@@ -170,6 +270,7 @@ export class ProfilePage implements ViewWillEnter {
   ionViewWillEnter(): void {
     void this.auth.refreshProfile();
     void this.journal.refresh();
+    void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
   }
 
   async signOut(): Promise<void> {

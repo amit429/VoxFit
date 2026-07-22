@@ -56,30 +56,43 @@
     <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
       <div class="flex items-baseline justify-between">
         <div>
-          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">Weekly volume</p>
+          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ weeklyVolumeStat().caption }}</p>
           <p class="m-0 mt-1 font-mono text-xl text-ink">
-            {{ weeklyVolumeTotal() }}<span class="ml-2 text-xs text-ink-subtle">KG</span>
+            {{ weeklyVolumeStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ weeklyVolumeStat().unit }}</span>
           </p>
         </div>
-        @if (weeklyVolumeChangePct(); as pct) {
-          <span
-            class="rounded px-2 py-1 font-mono vx-text-10 uppercase border"
-            [class]="pct >= 0 ? 'bg-success-dim text-success border-success-dim' : 'bg-danger-dim text-danger border-danger-dim'"
-          >
-            {{ pct >= 0 ? '+' : '' }}{{ pct }}%
-          </span>
+        @if (selectedDayIdx() === null) {
+          @if (weeklyVolumeChangePct(); as pct) {
+            <span
+              class="rounded px-2 py-1 font-mono vx-text-10 uppercase border"
+              [class]="pct >= 0 ? 'bg-success-dim text-success border-success-dim' : 'bg-danger-dim text-danger border-danger-dim'"
+            >
+              {{ pct >= 0 ? '+' : '' }}{{ pct }}%
+            </span>
+          }
+        } @else {
+          <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
         }
       </div>
       <div class="mt-4 flex h-24 items-end gap-2">
         @for (bar of weeklyBars(); track bar.label + $index) {
-          <div class="flex flex-1 flex-col items-center gap-2">
+          <div
+            (click)="toggleDay($index)"
+            class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
+          >
             <div
-              class="w-full rounded-sm"
-              [class.bg-primary]="bar.isToday"
-              [class.bg-surface-4]="!bar.isToday"
+              class="w-full rounded-sm transition-colors"
+              [class.bg-ink]="bar.isSelected"
+              [class.bg-primary]="bar.isToday && !bar.isSelected"
+              [class.bg-surface-4]="!bar.isToday && !bar.isSelected"
               [style.height.px]="bar.heightPx"
             ></div>
-            <span class="font-mono vx-text-9 text-ink-tertiary">{{ bar.label }}</span>
+            <span
+              class="font-mono vx-text-9"
+              [class.text-ink]="bar.isSelected"
+              [class.font-semibold]="bar.isSelected"
+              [class.text-ink-tertiary]="!bar.isSelected"
+            >{{ bar.label }}</span>
           </div>
         }
       </div>

@@ -1,6 +1,4 @@
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
-import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,7 +20,7 @@ addIcons({ warningOutline });
   standalone: true,
   templateUrl: './workout-detail.page.html',
   styleUrls: ['./workout-detail.page.scss'],
-  imports: [VoxPageHeaderComponent, VoxCardComponent, VoxIconComponent, IonContent, SessionExerciseReviewCardComponent],
+  imports: [VoxIconComponent, IonContent, SessionExerciseReviewCardComponent],
 })
 export class WorkoutDetailPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);

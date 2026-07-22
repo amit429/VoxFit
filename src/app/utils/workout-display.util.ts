@@ -150,7 +150,10 @@ function repsForLine(line: SetLineParsed): number {
   }
   if (line.reps_min != null && Number.isFinite(line.reps_min)) return line.reps_min;
   if (line.reps_max != null && Number.isFinite(line.reps_max)) return line.reps_max;
-  return 0;
+  // Reps genuinely weren't spoken (e.g. ramp sets called out by weight only). Credit the
+  // logged weight as 1 rep rather than zeroing the set out entirely — a conservative floor
+  // beats silently discarding real recorded work.
+  return 1;
 }
 
 /** Approximate tonnage (kg × reps) summed over sets for strength work; cardio contributes 0. */
@@ -300,4 +303,55 @@ export function getWeekBoundsForDate(dateKey: string): { monday: string; sunday:
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   return { monday: parseLocalDateKey(monday), sunday: parseLocalDateKey(sunday) };
+}
+
+export interface MonthKey {
+  readonly year: number;
+  readonly month0: number;
+}
+
+/** Last `n` calendar months, oldest→newest, including the current month. */
+export function getLastNMonthKeys(n: number, ref: Date = new Date()): MonthKey[] {
+  const out: MonthKey[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(ref.getFullYear(), ref.getMonth() - i, 1);
+    out.push({ year: d.getFullYear(), month0: d.getMonth() });
+  }
+  return out;
+}
+
+export function monthShortLabel(month: MonthKey): string {
+  return new Date(month.year, month.month0, 1).toLocaleDateString(undefined, { month: 'short' });
+}
+
+export function monthLongLabel(month: MonthKey): string {
+  return new Date(month.year, month.month0, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+/** Inclusive `YYYY-MM-DD` start of the earliest month in a last-N-months window — for range queries. */
+export function monthKeysRangeStart(months: readonly MonthKey[]): string {
+  const first = months[0];
+  return parseLocalDateKey(new Date(first.year, first.month0, 1));
+}
+
+/**
+ * Buckets rows into monthly totals aligned to `months` (oldest→newest, matches `getLastNMonthKeys`).
+ * Rows whose date falls outside the given months are ignored.
+ */
+export function buildMonthlySeries<T>(
+  rows: readonly T[],
+  dateOf: (row: T) => string | null,
+  valueOf: (row: T) => number,
+  months: readonly MonthKey[]
+): number[] {
+  const byMonth = new Map<string, number>();
+  for (const m of months) byMonth.set(`${m.year}-${m.month0}`, 0);
+  for (const row of rows) {
+    const dateStr = dateOf(row);
+    if (!dateStr) continue;
+    const d = parseIsoDateLocal(dateStr);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (byMonth.has(key)) byMonth.set(key, (byMonth.get(key) ?? 0) + valueOf(row));
+  }
+  return months.map((m) => byMonth.get(`${m.year}-${m.month0}`) ?? 0);
 }

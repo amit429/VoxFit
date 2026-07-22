@@ -32,7 +32,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="m-0 vx-text-10 uppercase tracking-[0.16em] text-ink-subtle">Activity</p>
-          <h3 class="m-0 mt-0.5 text-sm font-medium text-ink">Last 12 months</h3>
+          <h3 class="m-0 mt-0.5 text-sm font-medium text-ink">Last 6 months</h3>
         </div>
         <div class="flex items-center gap-1 text-ink-subtle" style="font-size: 9px">
           <span>less</span>
@@ -51,6 +51,80 @@
             class="h-2 w-2 rounded-[2px]"
             [style.background]="heatmapCellBackground(cell)"
           ></span>
+        }
+      </div>
+    </section>
+
+    <!-- Monthly workouts -->
+    <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+      <div class="flex items-baseline justify-between">
+        <div>
+          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ workoutChartStat().caption }}</p>
+          <p class="m-0 mt-1 font-mono text-xl text-ink">
+            {{ workoutChartStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ workoutChartStat().unit }}</span>
+          </p>
+        </div>
+        @if (selectedWorkoutMonthIdx() !== null) {
+          <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
+        }
+      </div>
+      <div class="mt-4 flex h-24 items-end gap-2">
+        @for (bar of monthlyWorkoutBars(); track bar.label + $index) {
+          <div
+            (click)="toggleWorkoutMonth($index)"
+            class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
+          >
+            <div
+              class="w-full rounded-sm transition-colors"
+              [class.bg-ink]="bar.isSelected"
+              [class.bg-primary]="bar.isCurrent && !bar.isSelected"
+              [class.bg-surface-4]="!bar.isCurrent && !bar.isSelected"
+              [style.height.px]="bar.heightPx"
+            ></div>
+            <span
+              class="font-mono vx-text-9"
+              [class.text-ink]="bar.isSelected"
+              [class.font-semibold]="bar.isSelected"
+              [class.text-ink-tertiary]="!bar.isSelected"
+            >{{ bar.label }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Monthly calorie intake -->
+    <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+      <div class="flex items-baseline justify-between">
+        <div>
+          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ calorieChartStat().caption }}</p>
+          <p class="m-0 mt-1 font-mono text-xl text-ink">
+            {{ calorieChartStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ calorieChartStat().unit }}</span>
+          </p>
+        </div>
+        @if (selectedCalorieMonthIdx() !== null) {
+          <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
+        }
+      </div>
+      <div class="mt-4 flex h-24 items-end gap-2">
+        @for (bar of monthlyCalorieBars(); track bar.label + $index) {
+          <div
+            (click)="toggleCalorieMonth($index)"
+            class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
+          >
+            <div
+              class="w-full rounded-sm transition-colors"
+              [class.bg-ink]="bar.isSelected"
+              [class.bg-primary]="bar.isCurrent && !bar.isSelected"
+              [class.bg-surface-4]="!bar.isCurrent && !bar.isSelected"
+              [style.height.px]="bar.heightPx"
+            ></div>
+            <span
+              class="font-mono vx-text-9"
+              [class.text-ink]="bar.isSelected"
+              [class.font-semibold]="bar.isSelected"
+              [class.text-ink-tertiary]="!bar.isSelected"
+            >{{ bar.label }}</span>
+          </div>
         }
       </div>
     </section>
