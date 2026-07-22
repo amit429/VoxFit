@@ -62,6 +62,8 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
   protected readonly recipeDetail = signal<DietMealSuggestion | null>(null);
 
   private pendingTranscript = '';
+  /** Gemini's de-duplicated/cleaned version — saved instead of the raw transcript once available. */
+  private pendingCleanedTranscript = '';
 
   protected readonly waveHeights = [8, 14, 22, 18, 30, 24, 16, 28, 20, 12, 26, 18, 10, 22, 16];
   private dotsInterval?: ReturnType<typeof setInterval>;
@@ -91,6 +93,7 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     if (this.dietFlow() !== 'idle') return;
     this.meals.set([]);
     this.pendingTranscript = '';
+    this.pendingCleanedTranscript = '';
     this.dietFlow.set('recording');
     let n = 0;
     this.clearDotsInterval();
@@ -129,12 +132,13 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
 
     try {
       const p = this.auth.profile();
-      const suggested = await this.geminiMeals.suggestFromTranscript(this.pendingTranscript, {
+      const result = await this.geminiMeals.suggestFromTranscript(this.pendingTranscript, {
         goal: p?.goal ?? undefined,
         targetCalories: p?.target_calories ?? undefined,
         targetProteinG: p?.target_protein_g ?? undefined,
       });
-      this.meals.set(suggested);
+      this.meals.set([...result.meals]);
+      this.pendingCleanedTranscript = result.cleanedTranscript;
       this.dietFlow.set('results');
     } catch (err) {
       console.error('[DietVoiceLog] meal suggestion failed', err);
@@ -163,7 +167,8 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
       return;
     }
     try {
-      await this.dietLog.logSuggestedMeal(uid, meal, this.pendingTranscript);
+      const transcriptToSave = this.pendingCleanedTranscript || this.pendingTranscript;
+      await this.dietLog.logSuggestedMeal(uid, meal, transcriptToSave);
       await this.nutrition.refresh();
       await this.presentToast('Meal logged — check the Diet tab for today’s list.', 'success');
       this.clearAfterLog();
@@ -178,6 +183,7 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     void this.voiceSession.cancel();
     this.meals.set([]);
     this.pendingTranscript = '';
+    this.pendingCleanedTranscript = '';
     this.recipeDetail.set(null);
     this.dietFlow.set('idle');
     this.dots.set('');
@@ -188,6 +194,7 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     void this.voiceSession.cancel();
     this.meals.set([]);
     this.pendingTranscript = '';
+    this.pendingCleanedTranscript = '';
     this.recipeDetail.set(null);
     this.dietFlow.set('idle');
     this.dots.set('');

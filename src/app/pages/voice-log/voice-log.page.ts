@@ -55,8 +55,6 @@ export class VoiceLogPage {
   protected readonly dots = signal('');
   protected readonly result = signal<VoiceDoneMock | null>(null);
   protected readonly cardExercises = signal<WorkoutExerciseExtract[]>([]);
-  /** Raw transcript for the done-state recap card. */
-  protected readonly transcriptText = signal('');
   /** Live recording duration for the recording-state timer. */
   protected readonly elapsedSeconds = signal(0);
 
@@ -109,7 +107,6 @@ export class VoiceLogPage {
     this.cleanupTimers();
     this.result.set(null);
     this.cardExercises.set([]);
-    this.transcriptText.set('');
     this.state.set('recording');
     let n = 0;
     this.dotsInterval = setInterval(() => {
@@ -163,12 +160,9 @@ export class VoiceLogPage {
     try {
       finalTranscript = await this.voiceSession.stop();
     } catch (err) {
-      console.error('[VoiceLog] Failed to stop listening:', err);
       finalTranscript = this.voiceSession.transcriptPreview().trim();
     }
-    console.log('[VoiceLog] Final transcript:', finalTranscript);
     this.pendingTranscript = finalTranscript;
-    this.transcriptText.set(finalTranscript);
 
     if (!finalTranscript.trim()) {
       await this.presentToast('No speech detected — try again.', 'warning');
@@ -179,7 +173,6 @@ export class VoiceLogPage {
     try {
       const parsed = await this.geminiExtract.extractFromTranscript(finalTranscript);
       this.pendingExtract = parsed;
-      console.log('[VoiceLog] Parsed workout:', parsed);
       this.cardExercises.set([...parsed.exercises]);
       this.result.set(workoutExtractToVoiceDoneMock(parsed));
       this.state.set('done');
@@ -194,7 +187,6 @@ export class VoiceLogPage {
   protected async reRecord(): Promise<void> {
     this.pendingExtract = null;
     this.pendingTranscript = '';
-    this.transcriptText.set('');
     this.result.set(null);
     this.cardExercises.set([]);
     this.cleanupTimers();
@@ -228,8 +220,12 @@ export class VoiceLogPage {
     }
     const parsed = { ...parsedBase, exercises: this.cardExercises() };
     this.pendingExtract = parsed;
+    // Save Gemini's de-duplicated/cleaned transcript, not the raw (often
+    // triplicated) browser transcript — falls back to raw only if Gemini
+    // somehow didn't return one.
+    const transcriptToSave = parsed.cleaned_transcript || this.pendingTranscript;
     try {
-      await this.workoutLog.saveSession(uid, this.pendingTranscript, parsed);
+      await this.workoutLog.saveSession(uid, transcriptToSave, parsed);
       await this.workoutJournal.refresh();
       await this.presentToast('Workout saved!', 'success');
       void this.navCtrl.navigateRoot('/tabs/workout', { animated: true, animationDirection: 'forward' });

@@ -9,3 +9,12 @@ export interface DietMealSuggestion {
   readonly rationale: string;
   readonly recipeSteps: readonly string[];
 }
+
+export interface DietMealSuggestResult {
+  readonly meals: readonly DietMealSuggestion[];
+  /**
+   * De-duplicated/cleaned transcript from Gemini — saved as `diet_logs.raw_transcript`
+   * instead of the raw (often triplicated) mobile browser transcript.
+   */
+  readonly cleanedTranscript: string;
+}

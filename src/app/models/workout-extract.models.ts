@@ -38,4 +38,11 @@ export interface WorkoutExtractResult {
   readonly energy_level: EnergyDb;
   readonly physical_flags: readonly string[];
   readonly exercises: readonly WorkoutExerciseExtract[];
+  /**
+   * The user's own words, de-duplicated of repeated phrases and cleaned of
+   * mobile speech-to-text garbage by Gemini — not a paraphrase/summary. This
+   * is what gets shown in the review screen and saved as `raw_transcript`,
+   * instead of the raw (often triplicated) browser transcript.
+   */
+  readonly cleaned_transcript: string;
 }

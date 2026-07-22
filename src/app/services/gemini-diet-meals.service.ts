@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { buildDietMealsPrompt, type DietMealsPromptContext } from '@/app/prompts/diet-meals.prompt';
-import type { DietMealSuggestion } from '@/app/models/diet-meals.models';
+import type { DietMealSuggestion, DietMealSuggestResult } from '@/app/models/diet-meals.models';
 import { SupabaseService } from '@/app/services/supabase.service';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -11,7 +11,7 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 export class GeminiDietMealsService {
   private readonly supabase = inject(SupabaseService);
 
-  async suggestFromTranscript(transcript: string, ctx?: DietMealsPromptContext): Promise<DietMealSuggestion[]> {
+  async suggestFromTranscript(transcript: string, ctx?: DietMealsPromptContext): Promise<DietMealSuggestResult> {
     const text = transcript.trim();
     if (!text) {
       throw new Error('Nothing heard — try speaking again.');
@@ -88,7 +88,7 @@ function stripJsonFence(text: string): string {
   return t.trim();
 }
 
-function parseDietMealsJson(text: string): DietMealSuggestion[] {
+function parseDietMealsJson(text: string): DietMealSuggestResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -98,7 +98,8 @@ function parseDietMealsJson(text: string): DietMealSuggestion[] {
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('Invalid meal response');
   }
-  const mealsRaw = (parsed as Record<string, unknown>)['meals'];
+  const o = parsed as Record<string, unknown>;
+  const mealsRaw = o['meals'];
   if (!Array.isArray(mealsRaw)) {
     throw new Error('Missing meals array');
   }
@@ -106,7 +107,8 @@ function parseDietMealsJson(text: string): DietMealSuggestion[] {
   if (meals.length < 5) {
     throw new Error('Too few meal suggestions — try adding more ingredients or cravings.');
   }
-  return meals.slice(0, 6);
+  const cleanedTranscript = String(o['cleaned_transcript'] ?? '').trim();
+  return { meals: meals.slice(0, 6), cleanedTranscript };
 }
 
 function parseMeal(raw: unknown, index: number): DietMealSuggestion | null {

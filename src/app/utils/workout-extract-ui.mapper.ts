@@ -38,6 +38,7 @@ export function workoutExtractToVoiceDoneMock(parsed: WorkoutExtractResult): Voi
   return {
     sessionTitle: parsed.session_title,
     coachSummary: parsed.coach_summary.trim(),
+    cleanedTranscript: parsed.cleaned_transcript.trim(),
     exercises: exerciseList,
     moodEmoji: mood.emoji,
     moodLabel: mood.label,

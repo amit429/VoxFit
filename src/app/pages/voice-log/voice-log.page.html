@@ -66,12 +66,8 @@
             }
           </div>
           <p class="m-0 font-mono text-4xl tracking-tight text-ink">{{ formatTime(elapsedSeconds()) }}</p>
-          <p class="mx-auto max-w-xs text-sm italic leading-relaxed text-ink-muted">
-            @if (voiceSession.transcriptPreview(); as line) {
-              "{{ line }}"
-            } @else {
-              <span class="not-italic opacity-70">Speak now…</span>
-            }
+          <p class="mx-auto max-w-xs text-sm italic leading-relaxed text-ink-subtle opacity-70">
+            Say the exercise, sets, reps, and weights — tap Stop when you're done.
           </p>
         </div>
 
@@ -118,13 +114,12 @@
     @if (state() === 'done') {
       @if (result(); as res) {
         <div class="flex flex-1 flex-col gap-5 pb-6">
-          <div class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-            <div class="flex items-center justify-between">
+          @if (res.cleanedTranscript) {
+            <div class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
               <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-16 text-primary">Transcript</p>
-              <span class="font-mono vx-text-11 text-ink-subtle">{{ formatTime(elapsedSeconds()) }}</span>
+              <p class="m-0 mt-2 text-sm leading-relaxed text-ink-muted">{{ res.cleanedTranscript }}</p>
             </div>
-            <p class="m-0 mt-2 text-sm leading-relaxed text-ink-muted">{{ transcriptText() }}</p>
-          </div>
+          }
 
           <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
             <div class="grid grid-cols-3 gap-3 text-center">

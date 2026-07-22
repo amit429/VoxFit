@@ -7,6 +7,7 @@ export const DUMMY_VOICE_RESULT: VoiceDoneMock = {
   sessionTitle: 'Chest Day · Parsed',
   coachSummary:
     'Solid push session — progressive overload on bench shows you’re building strength. Keep shoulders packed on the press and consider a light band pull-apart between sets.',
+  cleanedTranscript: DUMMY_VOICE_TRANSCRIPT,
   exercises: [
     {
       name: 'Bench Press',

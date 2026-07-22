@@ -1,8 +1,8 @@
 <ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <header class="flex shrink-0 items-center justify-between px-6 pb-4 pt-2">
+  <header class="flex shrink-0 items-center justify-between px-4 pb-4 pt-2 mb-4">
     <div class="min-w-0">
-      <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-18 text-ink-subtle">Nutrition</p>
-      <h1 class="m-0 mt-1 truncate text-xl font-semibold tracking-tight text-ink">Diet</h1>
+      <p class="mb-2 font-mono uppercase vx-tracking-18 text-ink-subtle">Nutrition</p>
+      <span class="m-0 mt-1 truncate text-2xl font-semibold tracking-tight text-ink">Diet</span>
     </div>
   </header>
 
@@ -213,16 +213,16 @@
     @if (rangeMode() === 'week' && !logsLoading() && rawLogs().length > 0) {
       <section class="space-y-4">
         @for (day of weekDayGroups(); track day.dateKey) {
-          <div class="border-b border-hairline pb-1">
+          <div class="border-b border-hairline pb-3">
             <span class="text-base font-semibold tracking-tight text-ink">{{ day.dateHeading }}</span>
           </div>
           @for (section of day.sections; track section.trackId) {
-            <div class="m-0 mb-2 px-1 vx-text-10 font-bold vx-tracking-8 text-ink-tertiary">{{ section.label }}</div>
+            <div class="m-0 mb-2 px-1 text-sm font-bold vx-tracking-8 text-ink-tertiary">{{ section.label }}</div>
             @for (log of section.items; track log.id) {
               <div
                 type="button"
                 (click)="openRecipe(log)"
-                class="mb-2 block w-full space-y-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline"
+                class="mb-5 block w-full space-y-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">

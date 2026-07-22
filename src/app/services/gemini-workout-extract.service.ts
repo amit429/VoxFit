@@ -101,6 +101,7 @@ function parseWorkoutExtractJson(text: string): WorkoutExtractResult {
   const o = parsed as Record<string, unknown>;
   const session_title = String(o['session_title'] ?? 'Workout').trim();
   const coach_summary = String(o['coach_summary'] ?? '').trim();
+  const cleaned_transcript = String(o['cleaned_transcript'] ?? '').trim();
   const mood = normalizeMood(o['mood']);
   const energy_level = normalizeEnergy(o['energy_level']);
   const physical_flags = normalizeStringArray(o['physical_flags']);
@@ -115,6 +116,7 @@ function parseWorkoutExtractJson(text: string): WorkoutExtractResult {
   return {
     session_title,
     coach_summary,
+    cleaned_transcript,
     mood,
     energy_level,
     physical_flags,
