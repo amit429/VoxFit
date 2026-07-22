@@ -38,7 +38,7 @@ function recipeStepsToText(steps: readonly string[]): string {
 export class DietLogService {
   private readonly supabase = inject(SupabaseService);
 
-  async logSuggestedMeal(userId: string, meal: DietMealSuggestion, rawTranscript: string): Promise<void> {
+  async logSuggestedMeal(userId: string, meal: DietMealSuggestion): Promise<void> {
     const dateStr = parseLocalDateKey(new Date());
     const row = {
       user_id: userId,
@@ -52,7 +52,6 @@ export class DietLogService {
       prep_minutes: meal.prepMinutes,
       rationale: meal.rationale,
       recipe_text: recipeStepsToText(meal.recipeSteps),
-      raw_transcript: rawTranscript.trim() || null,
       source: 'ai_suggested' as const,
     };
 

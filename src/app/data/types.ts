@@ -99,7 +99,7 @@ export interface VoiceDoneMock {
   readonly sessionTitle: string;
   /** Short coach note from AI (maps to ai_summary in DB). */
   readonly coachSummary: string;
-  /** De-duplicated/cleaned transcript from Gemini — shown in the review screen and saved as raw_transcript. */
+  /** De-duplicated/cleaned transcript from Gemini — shown in the review screen only, not persisted. */
   readonly cleanedTranscript: string;
   readonly exercises: readonly VoiceExtractedExerciseMock[];
   readonly moodEmoji: string;

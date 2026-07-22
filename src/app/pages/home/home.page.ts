@@ -9,7 +9,6 @@ import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
-import { exerciseListDetailLine } from '@/app/utils/workout-display.util';
 
 addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline });
 
@@ -39,23 +38,6 @@ export class HomePage implements ViewWillEnter {
         .map((r) => ({ label: r.label, value: r.current, unit: 'g', accent: false })),
       { label: 'Rem', value: remaining, unit: '', accent: true },
     ];
-  });
-
-  /** Latest saved session's transcript + a short parsed-exercise recap, for the "Recent parsed" card. */
-  protected readonly recentParsed = computed(() => {
-    const s = this.journal.latestSession();
-    const transcript = s?.raw_transcript?.trim();
-    if (!s || !transcript) return null;
-    const ex = s.exercises_logged ?? [];
-    return {
-      transcript,
-      timeLabel: new Date(s.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
-      exercises: ex.slice(0, 4).map((e) => ({
-        name: e.exercise_name,
-        detail: exerciseListDetailLine(e),
-        pr: !!e.is_pr,
-      })),
-    };
   });
 
   protected readonly todayLabel = signal(

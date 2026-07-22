@@ -1,10 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import type { Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from '@/app/services/supabase.service';
 import type { UserProfile } from '@/app/models/user.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly supabase = inject(SupabaseService);
+
   readonly session = signal<Session | null>(null);
   readonly user = signal<User | null>(null);
   readonly profile = signal<UserProfile | null>(null);
@@ -14,8 +16,6 @@ export class AuthService {
   readonly whenReady: Promise<void> = new Promise((resolve) => {
     this.readyResolve = resolve;
   });
-
-  constructor(private readonly supabase: SupabaseService) {}
 
   async init(): Promise<void> {
     const {
@@ -127,8 +127,20 @@ export class AuthService {
 
   async sendPasswordReset(email: string): Promise<void> {
     const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/login` : undefined,
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/reset-password` : undefined,
     });
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Sets a new password on the current session. Works both for a user who clicked a recovery
+   * link (Supabase auto-establishes a temporary recovery session via `detectSessionInUrl`) and
+   * for an already signed-in user changing their password directly.
+   */
+  async updatePassword(newPassword: string): Promise<void> {
+    const { error } = await this.supabase.client.auth.updateUser({ password: newPassword });
     if (error) {
       throw error;
     }

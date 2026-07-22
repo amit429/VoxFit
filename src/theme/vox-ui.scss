@@ -1,9 +1,4 @@
 /**
- * Shared layout helpers for VoxFit feature screens (dummy + future live data).
- * Macro rows tuned for thumb-friendly mobile readability (≈13px labels, 8px bar).
- */
-
-/**
  * Micro-typography + one-off precise values with no equivalent in Tailwind's default scale.
  * The installed tailwindcss/@tailwindcss-postcss (4.2.4) has a content-scanning bug: any class
  * containing `.`, `[`, `]`, or `/` silently fails to generate (reproduced with a minimal
@@ -41,10 +36,6 @@
   letter-spacing: 0.2em;
 }
 
-.vx-rounded-2 {
-  border-radius: 2px;
-}
-
 .vx-wave-dot {
   width: 3px;
 }
@@ -56,37 +47,6 @@
 .vx-grid-cta {
   display: grid;
   grid-template-columns: 1fr 2fr;
-}
-
-.vox-macro-row {
-  margin-bottom: 0.75rem;
-}
-
-.vox-macro-row:last-child {
-  margin-bottom: 0;
-}
-
-.vox-macro-row__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.35rem;
-  font-size: 0.8125rem;
-  line-height: 1.25;
-}
-
-.vox-macro-row__bar {
-  height: 0.5rem;
-  border-radius: 0.25rem;
-  overflow: hidden;
-  background: var(--vox-border-medium);
-}
-
-.vox-macro-row__fill {
-  height: 100%;
-  border-radius: 0.15rem;
-  max-width: 100%;
 }
 
 @keyframes vox-wave {
@@ -113,15 +73,5 @@ ion-modal.vox-bottom-sheet {
 }
 
 ion-modal.vox-bottom-sheet::part(content) {
-  border-top: 1px solid var(--vox-border-hairline-strong);
-}
-
-/* Legacy class */
-ion-modal.eed-sheet {
-  --border-radius: var(--vox-radius-xl) var(--vox-radius-xl) 0 0;
-  --box-shadow: none;
-}
-
-ion-modal.eed-sheet::part(content) {
   border-top: 1px solid var(--vox-border-hairline-strong);
 }

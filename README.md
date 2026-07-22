@@ -1,6 +1,6 @@
 # VoxFit — Voice-First Fitness Logging for the Modern Gym
 
-![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.0%20Flash-gold)
+![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold)
 
 **Speak your workout. Track your progress. Effortlessly.**
 
@@ -10,8 +10,7 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 
 🎙️ **Voice-First Workout Logging**
 - Hold-to-talk mic interface for capturing workout sessions
-- Live transcription feedback as you speak
-- AI-powered parsing (Gemini 2.0 Flash) converts natural speech into sets, reps, weights, cardio segments
+- AI-powered parsing (Gemini 2.5 Flash) converts natural speech into sets, reps, weights, cardio segments — even messy, repeated, or garbled mobile speech-to-text output
 - Review & edit AI-extracted data before saving — your data, your control
 
 🍽️ **Voice-Driven Meal Logging**
@@ -46,7 +45,7 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 | **Frontend** | Angular 20 (standalone components, signals), Ionic Angular 8, Tailwind CSS v4 |
 | **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), Progressive Web App |
 | **Backend** | Supabase (PostgreSQL, Auth, Edge Functions) |
-| **AI** | Google Gemini 2.0 Flash (workout parsing, meal suggestions) |
+| **AI** | Google Gemini 2.5 Flash (workout parsing, meal suggestions) |
 | **Fonts** | Inter 500/600/700, JetBrains Mono 400/500 (self-hosted via @fontsource) |
 | **Icons** | Ionicons 7 |
 | **State** | Angular signals (lightweight, reactive) |
@@ -197,7 +196,7 @@ voxfit/
 │   │   ├── guards/         # Route guards (auth, onboarding)
 │   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing)
 │   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester)
-│   │   └── data/           # Mock data, types
+│   │   └── data/           # View-model types, small fallback display defaults
 │   ├── theme/              # Design tokens (variables.scss), shared styles
 │   ├── global.scss         # Tailwind config, Ionic imports, fonts
 │   └── index.html          # PWA manifest, viewport, meta tags
@@ -237,10 +236,11 @@ npm run android:prepare:prod
 ### Supabase Tables
 
 - `user_profiles` — User info, goals, macro targets, onboarding status
-- `workout_sessions` — Logged workouts (date, mood, energy, volume, notes)
-- `exercises_logged` — Exercise rows per session (name, type, PR flag)
-- `exercise_sets` — Set-level data (reps, weight, duration, distance)
+- `workout_sessions` — Logged workouts (date, mood, energy, raw/cleaned transcript, coach summary)
+- `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance)
 - `diet_logs` — Meal entries (date, meal type, macros, notes)
+
+All four tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for the first three, via a `workout_sessions` ownership join for `exercises_logged`).
 
 ### Gemini Edge Functions
 

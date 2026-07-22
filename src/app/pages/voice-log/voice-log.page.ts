@@ -58,7 +58,6 @@ export class VoiceLogPage {
   /** Live recording duration for the recording-state timer. */
   protected readonly elapsedSeconds = signal(0);
 
-  private pendingTranscript = '';
   private pendingExtract: WorkoutExtractResult | null = null;
 
   /** Mirrors Lovable's `Waveform` component formula (bars=28) for pixel parity. */
@@ -162,8 +161,6 @@ export class VoiceLogPage {
     } catch (err) {
       finalTranscript = this.voiceSession.transcriptPreview().trim();
     }
-    this.pendingTranscript = finalTranscript;
-
     if (!finalTranscript.trim()) {
       await this.presentToast('No speech detected — try again.', 'warning');
       this.state.set('idle');
@@ -186,7 +183,6 @@ export class VoiceLogPage {
 
   protected async reRecord(): Promise<void> {
     this.pendingExtract = null;
-    this.pendingTranscript = '';
     this.result.set(null);
     this.cardExercises.set([]);
     this.cleanupTimers();
@@ -220,12 +216,8 @@ export class VoiceLogPage {
     }
     const parsed = { ...parsedBase, exercises: this.cardExercises() };
     this.pendingExtract = parsed;
-    // Save Gemini's de-duplicated/cleaned transcript, not the raw (often
-    // triplicated) browser transcript — falls back to raw only if Gemini
-    // somehow didn't return one.
-    const transcriptToSave = parsed.cleaned_transcript || this.pendingTranscript;
     try {
-      await this.workoutLog.saveSession(uid, transcriptToSave, parsed);
+      await this.workoutLog.saveSession(uid, parsed);
       await this.workoutJournal.refresh();
       await this.presentToast('Workout saved!', 'success');
       void this.navCtrl.navigateRoot('/tabs/workout', { animated: true, animationDirection: 'forward' });

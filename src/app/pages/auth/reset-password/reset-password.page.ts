@@ -2,35 +2,31 @@ import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-pag
 import { PasswordStrengthChecklistComponent } from '@/app/components/password-strength-checklist/password-strength-checklist.component';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { IonContent, IonInput, IonInputPasswordToggle, IonBackButton } from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
+import { IonContent, IonInput, IonInputPasswordToggle } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
 import { PASSWORD_MIN_LENGTH, passwordStrengthValidator } from '@/app/utils/password-strength.util';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-reset-password',
   standalone: true,
-  templateUrl: './register.page.html',
-  styleUrls: ['./register.page.scss'],
+  templateUrl: './reset-password.page.html',
+  styleUrls: ['./reset-password.page.scss'],
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     VoxPageHeaderComponent,
     PasswordStrengthChecklistComponent,
     IonContent,
     IonInput,
     IonInputPasswordToggle,
-    IonBackButton,
   ],
 })
-export class RegisterPage {
+export class ResetPasswordPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly form = this.fb.nonNullable.group({
-    displayName: [''],
-    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, passwordStrengthValidator()]],
   });
 
@@ -45,26 +41,21 @@ export class RegisterPage {
 
   loading = false;
   errorMessage = '';
-  infoMessage = '';
 
   async submit(): Promise<void> {
     this.errorMessage = '';
-    this.infoMessage = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     this.loading = true;
     try {
-      const { email, password, displayName } = this.form.getRawValue();
-      const { needsEmailConfirmation } = await this.auth.signUpWithEmail(email, password, displayName);
-      if (needsEmailConfirmation) {
-        this.infoMessage = 'Check your email to confirm, then sign in.';
-        return;
-      }
-      await this.router.navigateByUrl('/auth/onboarding');
+      const { password } = this.form.getRawValue();
+      await this.auth.updatePassword(password);
+      await this.router.navigateByUrl('/tabs/home');
     } catch (err: unknown) {
-      this.errorMessage = err instanceof Error ? err.message : 'Could not create account';
+      this.errorMessage =
+        err instanceof Error ? err.message : 'Could not update password — the reset link may have expired.';
     } finally {
       this.loading = false;
     }

@@ -13,8 +13,8 @@ export interface DietMealSuggestion {
 export interface DietMealSuggestResult {
   readonly meals: readonly DietMealSuggestion[];
   /**
-   * De-duplicated/cleaned transcript from Gemini — saved as `diet_logs.raw_transcript`
-   * instead of the raw (often triplicated) mobile browser transcript.
+   * De-duplicated/cleaned transcript from Gemini. Not persisted or displayed anywhere
+   * today — kept on the response shape in case a future screen wants it.
    */
   readonly cleanedTranscript: string;
 }

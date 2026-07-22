@@ -27,6 +27,16 @@
           autocomplete="email"
           inputmode="email"
         />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="auth-hint auth-hint--error">
+            @if (form.controls.email.hasError('required')) {
+              Email is required.
+            } @else {
+              Enter a valid email address.
+            }
+          </p>
+        }
+
         <ion-input
           formControlName="password"
           type="password"
@@ -34,8 +44,18 @@
           labelPlacement="floating"
           fill="outline"
           autocomplete="new-password"
-        />
-        <p class="auth-hint">At least 8 characters.</p>
+          (ionInput)="onPasswordInput($any($event.target).value ?? '')"
+        >
+          <ion-input-password-toggle slot="end" />
+        </ion-input>
+
+        @if (passwordValue()) {
+          <app-password-strength-checklist [password]="passwordValue()" />
+        } @else if (form.controls.password.touched) {
+          <p class="auth-hint auth-hint--error">Password is required.</p>
+        } @else {
+          <p class="auth-hint">At least {{ minPasswordLength }} characters, mixing upper/lowercase, a number, and a symbol.</p>
+        }
       </div>
 
       @if (errorMessage) {

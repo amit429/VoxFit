@@ -6,14 +6,13 @@ import { SupabaseService } from '@/app/services/supabase.service';
 export class WorkoutSessionLogService {
   private readonly supabase = inject(SupabaseService);
 
-  async saveSession(userId: string, transcript: string, parsed: WorkoutExtractResult): Promise<string> {
+  async saveSession(userId: string, parsed: WorkoutExtractResult): Promise<string> {
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const sessionInsert = {
       user_id: userId,
       date: dateStr,
       session_label: parsed.session_title,
-      raw_transcript: transcript,
       ai_summary: parsed.coach_summary || null,
       mood: parsed.mood,
       energy_level: parsed.energy_level,

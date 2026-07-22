@@ -19,6 +19,16 @@
           autocomplete="email"
           inputmode="email"
         />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="auth-hint auth-hint--error">
+            @if (form.controls.email.hasError('required')) {
+              Email is required.
+            } @else {
+              Enter a valid email address.
+            }
+          </p>
+        }
+
         <ion-input
           formControlName="password"
           type="password"
@@ -26,8 +36,23 @@
           labelPlacement="floating"
           fill="outline"
           autocomplete="current-password"
-        />
+        >
+          <ion-input-password-toggle slot="end" />
+        </ion-input>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="auth-hint auth-hint--error">
+            @if (form.controls.password.hasError('required')) {
+              Password is required.
+            } @else {
+              Password must be at least 6 characters.
+            }
+          </p>
+        }
       </div>
+
+      <a routerLink="/auth/forgot-password" class="auth-hint mt-3 self-end text-primary no-underline">
+        Forgot password?
+      </a>
 
       @if (errorMessage) {
         <div class="auth-banner auth-banner--error mt-4" role="alert">{{ errorMessage }}</div>

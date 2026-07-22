@@ -2,7 +2,7 @@ import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-pag
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { IonContent, IonInput, IonBackButton } from '@ionic/angular/standalone';
+import { IonContent, IonInput, IonInputPasswordToggle, IonBackButton } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
 
 @Component({
@@ -16,6 +16,7 @@ import { AuthService } from '@/app/services/auth.service';
     VoxPageHeaderComponent,
     IonContent,
     IonInput,
+    IonInputPasswordToggle,
     IonBackButton,
   ],
 })

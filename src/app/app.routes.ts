@@ -27,6 +27,21 @@ export const routes: Routes = [
         loadComponent: () => import('@/app/pages/auth/register/register.page').then((m) => m.RegisterPage),
       },
       {
+        path: 'forgot-password',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('@/app/pages/auth/forgot-password/forgot-password.page').then((m) => m.ForgotPasswordPage),
+      },
+      {
+        path: 'reset-password',
+        // Not guestGuard: a user landing here via the emailed recovery link already has a
+        // (recovery) session, which guestGuard would treat as "already logged in" and bounce
+        // away. authGuard just requires *some* session, which the recovery link provides.
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@/app/pages/auth/reset-password/reset-password.page').then((m) => m.ResetPasswordPage),
+      },
+      {
         path: 'onboarding',
         canActivate: [onboardingPageGuard],
         loadComponent: () =>
