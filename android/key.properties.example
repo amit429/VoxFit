@@ -1,0 +1,9 @@
+# Copy this file to android/key.properties (git-ignored) and fill in your real values.
+# Never commit key.properties or your .jks file — losing control of the signing key means
+# you can never publish an update to the same Play Store listing again.
+
+# Absolute path to your release keystore, kept OUTSIDE this repo (e.g. ~/keystores/voxfit-release.jks)
+storeFile=/absolute/path/to/voxfit-release.jks
+storePassword=REPLACE_ME
+keyAlias=voxfit
+keyPassword=REPLACE_ME

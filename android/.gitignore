@@ -23,6 +23,12 @@ out/
 .gradle/
 build/
 
+# Android Studio's "Build APK(s)" also drops a copy straight into app/<variant>/
+# (outside build/outputs/), so these need their own rule.
+app/debug/
+app/release/
+output-metadata.json
+
 # Local configuration file (sdk path, etc)
 local.properties
 

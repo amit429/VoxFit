@@ -216,10 +216,21 @@ npm run build:prod
 ```
 
 ### Android (Play Store)
+
+One-time setup: copy `android/key.properties.example` to `android/key.properties` (git-ignored)
+and fill in the path to your release keystore plus its passwords. Keep the `.jks` file itself
+outside this repo entirely, and back it up somewhere durable — if you lose it, Play Store has
+no recovery path and you'd have to publish as a brand-new app.
+
 ```bash
 npm run android:prepare:prod
-# In Android Studio: Build → Generate Signed Bundle/APK
-# Follow Play Store submission flow
+
+# Either build from the command line once key.properties is set up:
+cd android && ./gradlew bundleRelease
+# → android/app/build/outputs/bundle/release/app-release.aab
+
+# ...or from Android Studio: Build → Generate Signed Bundle/APK
+# Then follow the Play Store submission flow.
 ```
 
 ## Development Workflow
