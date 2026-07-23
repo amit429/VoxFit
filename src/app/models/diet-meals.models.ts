@@ -18,3 +18,20 @@ export interface DietMealSuggestResult {
    */
   readonly cleanedTranscript: string;
 }
+
+/** A single already-eaten meal, nutrition-estimated by Gemini from a spoken description. */
+export interface EatenMealAnalysis {
+  readonly name: string;
+  readonly calories: number;
+  readonly proteinG: number;
+  readonly carbsG: number;
+  readonly fatG: number;
+  /** One-line note on estimate/portion assumptions (not a craving rationale). */
+  readonly rationale: string;
+}
+
+export interface EatenMealAnalyzeResult {
+  readonly meal: EatenMealAnalysis;
+  /** Not persisted or displayed — used only to help the model settle on a clean name. */
+  readonly cleanedTranscript: string;
+}

@@ -4,7 +4,12 @@
       <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Profile</p>
       <div class="m-0 mt-3 truncate text-2xl font-semibold tracking-tight text-ink">{{ displayName() }}</div>
     </div>
-    <button type="button" class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-surface-2 transition-colors">
+    <button
+      type="button"
+      (click)="goToSettings()"
+      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-surface-2 transition-colors"
+      aria-label="Settings"
+    >
       <vox-icon name="settings-outline" tone="ink-muted" size="md" />
     </button>
   </header>
@@ -142,14 +147,5 @@
         </div>
       }
     </section>
-
-    <div
-      type="button"
-      (click)="signOut()"
-      class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
-    >
-      <vox-icon name="log-out-outline" tone="danger" size="sm" />
-      Sign out
-    </div>
   </main>
 </ion-content>

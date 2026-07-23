@@ -13,8 +13,16 @@ import {
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { mic, sparklesOutline, checkmarkCircle, timeOutline, chevronBackOutline } from 'ionicons/icons';
-import type { DietMealSuggestion } from '@/app/models/diet-meals.models';
+import {
+  mic,
+  sparklesOutline,
+  checkmarkCircle,
+  checkmarkOutline,
+  timeOutline,
+  chevronBackOutline,
+  restaurantOutline,
+} from 'ionicons/icons';
+import type { DietMealSuggestion, EatenMealAnalysis } from '@/app/models/diet-meals.models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
 import { GeminiDietMealsService } from '@/app/services/gemini-diet-meals.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
@@ -24,9 +32,18 @@ import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
-addIcons({ mic, sparklesOutline, checkmarkCircle, timeOutline, chevronBackOutline });
+addIcons({
+  mic,
+  sparklesOutline,
+  checkmarkCircle,
+  checkmarkOutline,
+  timeOutline,
+  chevronBackOutline,
+  restaurantOutline,
+});
 
 type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
+type DietVoiceMode = 'suggest' | 'log_eaten';
 
 @Component({
   selector: 'app-diet-voice-log',
@@ -57,8 +74,10 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
   private readonly toastCtrl = inject(ToastController);
 
   protected readonly dietFlow = signal<DietVoiceUiState>('idle');
+  protected readonly mode = signal<DietVoiceMode | null>(null);
   protected readonly dots = signal('');
   protected readonly meals = signal<DietMealSuggestion[]>([]);
+  protected readonly eatenMeal = signal<EatenMealAnalysis | null>(null);
   protected readonly recipeDetail = signal<DietMealSuggestion | null>(null);
 
   /** Raw browser transcript — only ever needed as Gemini's suggestion input, never persisted. */
@@ -88,9 +107,20 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     this.resetSession();
   }
 
-  protected async startListening(): Promise<void> {
+  protected chooseMode(m: DietVoiceMode): void {
     if (this.dietFlow() !== 'idle') return;
+    this.mode.set(m);
+  }
+
+  protected backToPicker(): void {
+    if (this.dietFlow() !== 'idle') return;
+    this.mode.set(null);
+  }
+
+  protected async startListening(): Promise<void> {
+    if (this.dietFlow() !== 'idle' || this.mode() === null) return;
     this.meals.set([]);
+    this.eatenMeal.set(null);
     this.pendingTranscript = '';
     this.dietFlow.set('recording');
     let n = 0;
@@ -129,17 +159,25 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     }
 
     try {
-      const p = this.auth.profile();
-      const result = await this.geminiMeals.suggestFromTranscript(this.pendingTranscript, {
-        goal: p?.goal ?? undefined,
-        targetCalories: p?.target_calories ?? undefined,
-        targetProteinG: p?.target_protein_g ?? undefined,
-      });
-      this.meals.set([...result.meals]);
+      if (this.mode() === 'log_eaten') {
+        const result = await this.geminiMeals.analyzeEatenMeal(this.pendingTranscript);
+        this.eatenMeal.set(result.meal);
+      } else {
+        const p = this.auth.profile();
+        const result = await this.geminiMeals.suggestFromTranscript(this.pendingTranscript, {
+          goal: p?.goal ?? undefined,
+          targetCalories: p?.target_calories ?? undefined,
+          targetProteinG: p?.target_protein_g ?? undefined,
+        });
+        this.meals.set([...result.meals]);
+      }
       this.dietFlow.set('results');
     } catch (err) {
-      console.error('[DietVoiceLog] meal suggestion failed', err);
-      const msg = err instanceof Error ? err.message : 'Could not plan meals';
+      console.error('[DietVoiceLog] meal analysis failed', err);
+      const msg =
+        err instanceof Error ? err.message
+        : this.mode() === 'log_eaten' ? 'Could not analyze meal'
+        : 'Could not plan meals';
       await this.presentToast(msg, 'danger');
       this.dietFlow.set('idle');
     }
@@ -175,9 +213,30 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     }
   }
 
+  /** Mirrors `logMeal` for the log-eaten flow — no recipe/prep fields, `source: 'manual'`. */
+  protected async logEatenMeal(meal: EatenMealAnalysis): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) {
+      await this.presentToast('Sign in to log meals.', 'warning');
+      return;
+    }
+    try {
+      await this.dietLog.logEatenMeal(uid, meal);
+      await this.nutrition.refresh();
+      await this.presentToast('Meal logged — check the Diet tab for today’s list.', 'success');
+      this.clearAfterLog();
+    } catch (err) {
+      console.error('[DietVoiceLog] log eaten meal', err);
+      const msg = err instanceof Error ? err.message : 'Could not save meal';
+      await this.presentToast(msg, 'danger');
+    }
+  }
+
   private clearAfterLog(): void {
     void this.voiceSession.cancel();
     this.meals.set([]);
+    this.eatenMeal.set(null);
+    this.mode.set(null);
     this.pendingTranscript = '';
     this.recipeDetail.set(null);
     this.dietFlow.set('idle');
@@ -188,6 +247,8 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     this.clearDotsInterval();
     void this.voiceSession.cancel();
     this.meals.set([]);
+    this.eatenMeal.set(null);
+    this.mode.set(null);
     this.pendingTranscript = '';
     this.recipeDetail.set(null);
     this.dietFlow.set('idle');

@@ -1,7 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { buildDietMealsPrompt, type DietMealsPromptContext } from '@/app/prompts/diet-meals.prompt';
-import type { DietMealSuggestion, DietMealSuggestResult } from '@/app/models/diet-meals.models';
+import { buildFoodLogPrompt } from '@/app/prompts/food-log.prompt';
+import type {
+  DietMealSuggestion,
+  DietMealSuggestResult,
+  EatenMealAnalysis,
+  EatenMealAnalyzeResult,
+} from '@/app/models/diet-meals.models';
 import { SupabaseService } from '@/app/services/supabase.service';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -78,6 +84,71 @@ export class GeminiDietMealsService {
     }
     return typeof data === 'string' ? stripJsonFence(data) : JSON.stringify(data);
   }
+
+  async analyzeEatenMeal(transcript: string): Promise<EatenMealAnalyzeResult> {
+    const text = transcript.trim();
+    if (!text) {
+      throw new Error('Nothing heard — try speaking again.');
+    }
+    const rawJson =
+      environment.useGeminiEdgeFunction ?
+        await this.viaEdgeFunctionEatenMeal(text)
+      : await this.directGeminiEatenMeal(text);
+    return parseEatenMealJson(rawJson);
+  }
+
+  private async directGeminiEatenMeal(transcript: string): Promise<string> {
+    const key = environment.geminiApiKey?.trim();
+    if (!key) {
+      throw new Error(
+        'Missing geminiApiKey — add it in environment.dev.ts or enable useGeminiEdgeFunction with log-food.',
+      );
+    }
+    const { system, user } = buildFoodLogPrompt(transcript);
+    const url = `${GEMINI_URL}?key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: user }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.25,
+        },
+      }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error('[GeminiDietMeals] API error', res.status, errBody);
+      throw new Error(`Gemini request failed (${res.status})`);
+    }
+    const data = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const part = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!part) {
+      throw new Error('Empty Gemini response');
+    }
+    return stripJsonFence(part);
+  }
+
+  private async viaEdgeFunctionEatenMeal(transcript: string): Promise<string> {
+    const { data, error } = await this.supabase.client.functions.invoke('log-food', {
+      body: { transcript },
+    });
+    if (error) {
+      console.error('[GeminiDietMeals] Edge function error', error);
+      throw new Error(error.message || 'Edge function failed');
+    }
+    if (data == null) {
+      throw new Error('Empty response from log-food');
+    }
+    if (typeof data === 'object' && data !== null && 'error' in data) {
+      throw new Error(String((data as { error: unknown }).error));
+    }
+    return typeof data === 'string' ? stripJsonFence(data) : JSON.stringify(data);
+  }
 }
 
 function stripJsonFence(text: string): string {
@@ -143,4 +214,36 @@ function num(v: unknown): number | null {
   if (v == null || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+function parseEatenMealJson(text: string): EatenMealAnalyzeResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error('Meal analyzer did not return valid JSON');
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Invalid meal response');
+  }
+  const o = parsed as Record<string, unknown>;
+  const meal = parseEatenMeal(o['meal']);
+  if (!meal) {
+    throw new Error('Missing meal in response');
+  }
+  const cleanedTranscript = String(o['cleaned_transcript'] ?? '').trim();
+  return { meal, cleanedTranscript };
+}
+
+function parseEatenMeal(raw: unknown): EatenMealAnalysis | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const name = String(o['name'] ?? 'Meal').trim() || 'Meal';
+  const calories = Math.max(0, Math.round(num(o['calories']) ?? 0));
+  const proteinG = Math.max(0, num(o['protein_g']) ?? 0);
+  const carbsG = Math.max(0, num(o['carbs_g']) ?? 0);
+  const fatG = Math.max(0, num(o['fat_g']) ?? 0);
+  const rationale = String(o['rationale'] ?? '').trim() || 'Estimated from what you described.';
+
+  return { name, calories, proteinG, carbsG, fatG, rationale };
 }

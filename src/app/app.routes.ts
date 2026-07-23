@@ -66,6 +66,11 @@ export const routes: Routes = [
     loadComponent: () => import('@/app/pages/voice-log/voice-log.page').then((m) => m.VoiceLogPage),
   },
   {
+    path: 'settings',
+    canActivate: [authGuard, onboardingCompleteGuard],
+    loadComponent: () => import('@/app/pages/settings/settings.page').then((m) => m.SettingsPage),
+  },
+  {
     path: 'tabs',
     loadComponent: () => import('@/app/pages/tabs/tabs.page').then((m) => m.TabsPage),
     canActivate: [authGuard, onboardingCompleteGuard],

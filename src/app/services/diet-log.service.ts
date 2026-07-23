@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { DietMealSuggestion } from '@/app/models/diet-meals.models';
+import type { DietMealSuggestion, EatenMealAnalysis } from '@/app/models/diet-meals.models';
 import { SupabaseService } from '@/app/services/supabase.service';
 import { parseLocalDateKey } from '@/app/utils/workout-display.util';
 
@@ -53,6 +53,31 @@ export class DietLogService {
       rationale: meal.rationale,
       recipe_text: recipeStepsToText(meal.recipeSteps),
       source: 'ai_suggested' as const,
+    };
+
+    const { error } = await this.supabase.client.from('diet_logs').insert(row);
+    if (error) {
+      console.error('[DietLogService]', error);
+      throw new Error(error.message);
+    }
+  }
+
+  /** Logs a single already-eaten, nutrition-estimated meal (no recipe — nothing to cook). */
+  async logEatenMeal(userId: string, meal: EatenMealAnalysis): Promise<void> {
+    const dateStr = parseLocalDateKey(new Date());
+    const row = {
+      user_id: userId,
+      date: dateStr,
+      meal_name: meal.name,
+      meal_type: inferMealType(),
+      calories: Math.round(meal.calories),
+      protein_g: meal.proteinG,
+      carbs_g: meal.carbsG,
+      fat_g: meal.fatG,
+      prep_minutes: null,
+      rationale: meal.rationale,
+      recipe_text: null,
+      source: 'manual' as const,
     };
 
     const { error } = await this.supabase.client.from('diet_logs').insert(row);

@@ -1,0 +1,144 @@
+<ion-content [fullscreen]="true" [scrollY]="true" class="vox-standalone-page [--background:var(--vox-canvas)]">
+  <div class="flex h-full w-full flex-col">
+    <header class="flex shrink-0 items-center gap-3 px-1 pb-4 pt-4">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle hover:bg-surface-2 transition-colors"
+        aria-label="Back to profile"
+      >
+        <vox-icon name="chevron-back-outline" size="md" />
+      </button>
+      <span class="text-xl font-semibold tracking-tight text-ink">Settings</span>
+    </header>
+
+    <main class="flex-1 space-y-6 px-2 pb-6">
+      <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
+        <!-- Profile info -->
+        <section class="space-y-2">
+          <h3 class="m-0 px-1 font-medium text-ink-muted">Profile info</h3>
+          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline mt-5">
+            <ion-input
+              formControlName="displayName"
+              type="text"
+              label="Display name"
+              labelPlacement="floating"
+              fill="outline"
+              autocomplete="name"
+            />
+          </div>
+        </section>
+
+        <!-- Preferences -->
+        <section class="space-y-2">
+          <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">Preferences</h3>
+          <div class="space-y-5 rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+            <div>
+              <p class="m-0 mb-2 text-md text-ink-subtle">Focus</p>
+              <div class="flex flex-wrap gap-2">
+                @for (o of sportOptions; track o.value) {
+                  <div
+                    type="button"
+                    (click)="selectSport(o.value)"
+                    class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
+                    [class.bg-ink]="form.controls.sportType.value === o.value"
+                    [class.text-canvas]="form.controls.sportType.value === o.value"
+                    [class.bg-surface-2]="form.controls.sportType.value !== o.value"
+                    [class.text-ink-subtle]="form.controls.sportType.value !== o.value"
+                    [class.ring-1]="form.controls.sportType.value !== o.value"
+                    [class.ring-hairline]="form.controls.sportType.value !== o.value"
+                  >
+                    {{ o.label }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div>
+              <p class="m-0 mb-2 text-md text-ink-subtle">Goal</p>
+              <div class="flex flex-wrap gap-2">
+                @for (o of goalOptions; track o.value) {
+                  <div
+                    type="button"
+                    (click)="selectGoal(o.value)"
+                    class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
+                    [class.bg-ink]="form.controls.goal.value === o.value"
+                    [class.text-canvas]="form.controls.goal.value === o.value"
+                    [class.bg-surface-2]="form.controls.goal.value !== o.value"
+                    [class.text-ink-subtle]="form.controls.goal.value !== o.value"
+                    [class.ring-1]="form.controls.goal.value !== o.value"
+                    [class.ring-hairline]="form.controls.goal.value !== o.value"
+                  >
+                    {{ o.label }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <ion-input
+                formControlName="targetCalories"
+                type="number"
+                inputmode="numeric"
+                label="Daily calories"
+                labelPlacement="floating"
+                fill="outline"
+              />
+              <ion-input
+                formControlName="targetProtein"
+                type="number"
+                inputmode="numeric"
+                label="Protein (g)"
+                labelPlacement="floating"
+                fill="outline"
+              />
+              <ion-input
+                formControlName="targetCarbs"
+                type="number"
+                inputmode="numeric"
+                label="Carbs (g)"
+                labelPlacement="floating"
+                fill="outline"
+              />
+              <ion-input
+                formControlName="targetFat"
+                type="number"
+                inputmode="numeric"
+                label="Fat (g)"
+                labelPlacement="floating"
+                fill="outline"
+              />
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="form.invalid || form.pristine || saving()" class="vox-btn-primary w-full mt-5 mb-4">
+            @if (saving()) {
+              Saving…
+            } @else {
+              Save preferences
+            }
+          </button>
+        </section>
+      </form>
+
+      <!-- About -->
+      <section class="space-y-2">
+        <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">About</h3>
+        <div class="flex items-center justify-between rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline mt-6">
+          <span class="text-sm text-ink">Version</span>
+          <span class="font-mono text-xs text-ink-subtle">{{ appVersion }}</span>
+        </div>
+      </section>
+
+      <!-- Sign out -->
+      <div
+        type="button"
+        (click)="signOut()"
+        class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
+      >
+        <vox-icon name="log-out-outline" tone="danger" size="sm" />
+        Sign out
+      </div>
+    </main>
+  </div>
+</ion-content>

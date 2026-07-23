@@ -6,7 +6,6 @@ import { IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   flagOutline,
-  logOutOutline,
   flameOutline,
   nutritionOutline,
   leafOutline,
@@ -30,7 +29,6 @@ import {
 
 addIcons({
   flagOutline,
-  logOutOutline,
   flameOutline,
   nutritionOutline,
   leafOutline,
@@ -273,13 +271,8 @@ export class ProfilePage implements ViewWillEnter {
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
   }
 
-  async signOut(): Promise<void> {
-    try {
-      await this.auth.signOut();
-      await this.navCtrl.navigateRoot('/auth/welcome', { animated: true, animationDirection: 'forward' });
-    } catch (err) {
-      console.error('Sign out failed', err);
-    }
+  protected goToSettings(): void {
+    this.navCtrl.navigateForward('/settings');
   }
 }
 

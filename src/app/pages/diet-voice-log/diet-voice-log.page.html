@@ -22,24 +22,73 @@
     @if (dietFlow() !== 'results') {
       <div class="flex flex-1 w-full flex-col items-center justify-center gap-8 pb-16 pt-4 text-center">
         @if (dietFlow() === 'idle') {
-          <div class="flex flex-col items-center gap-8">
-            <div>
-              <h1 class="m-0 text-2xl font-semibold tracking-tight text-ink">Log a meal</h1>
-              <p class="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-subtle">
-                Say what you have at home and what you're craving — we'll suggest meals.
-              </p>
+          @if (mode() === null) {
+            <div class="flex w-full flex-col items-center gap-6 px-4">
+              <div>
+                <h1 class="m-0 text-2xl font-semibold tracking-tight text-ink">Log a meal</h1>
+                <p class="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-subtle">
+                  What do you want to do?
+                </p>
+              </div>
+              <div class="grid w-full grid-cols-1 gap-6">
+                <div
+                  type="button"
+                  (click)="chooseMode('suggest')"
+                  class="flex items-center gap-3 rounded-xl bg-primary px-4 py-4 text-left ring-1 ring-primary transition-all active:scale-95"
+                >
+                  <vox-icon name="sparkles-outline" tone="inherit" size="md" class="shrink-0 text-white" />
+                  <span class="flex-1">
+                    <span class="block text-sm font-semibold text-white">Suggest a meal</span>
+                    <span class="block text-xs text-white/80">Say what you have — we'll suggest meals to cook</span>
+                  </span>
+                </div>
+                <div
+                  type="button"
+                  (click)="chooseMode('log_eaten')"
+                  class="flex items-center gap-3 rounded-xl bg-surface-2 px-4 py-4 text-left ring-1 ring-hairline-strong transition-all active:scale-95"
+                >
+                  <vox-icon name="restaurant-outline" size="md" tone="ink-muted" class="shrink-0" />
+                  <span class="flex-1">
+                    <span class="block text-sm font-semibold text-ink-muted">Log what I ate</span>
+                    <span class="block text-xs text-ink-subtle">Say what you ate — we'll estimate calories &amp; macros</span>
+                  </span>
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              (click)="startListening()"
-              class="mic-pulse group relative grid h-32 w-32 place-items-center rounded-full bg-primary ring-1 ring-primary transition-transform active:scale-95"
-              aria-label="Tap to record"
-            >
-              <span class="absolute inset-0 rounded-full bg-primary-dim blur-2xl"></span>
-              <vox-icon name="mic" tone="inherit" size="xl" class="relative text-white" />
-            </button>
-            <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-20 text-ink-subtle">Tap to record</p>
-          </div>
+          } @else {
+            <div class="flex flex-col items-center gap-8">
+              <button
+                type="button"
+                (click)="backToPicker()"
+                class="flex items-center gap-1 font-mono vx-text-10 uppercase vx-tracking-16 text-primary"
+              >
+                <vox-icon name="chevron-back-outline" size="xs" />
+                Change
+              </button>
+              <div>
+                <h1 class="m-0 text-2xl font-semibold tracking-tight text-ink">
+                  {{ mode() === 'log_eaten' ? 'Log what you ate' : 'Log a meal' }}
+                </h1>
+                <p class="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-subtle">
+                  @if (mode() === 'log_eaten') {
+                    Tell us what you ate — we'll estimate calories and macros.
+                  } @else {
+                    Say what you have at home and what you're craving — we'll suggest meals.
+                  }
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="startListening()"
+                class="mic-pulse group relative grid h-32 w-32 place-items-center rounded-full bg-primary ring-1 ring-primary transition-transform active:scale-95"
+                aria-label="Tap to record"
+              >
+                <span class="absolute inset-0 rounded-full bg-primary-dim blur-2xl"></span>
+                <vox-icon name="mic" tone="inherit" size="xl" class="relative text-white" />
+              </button>
+              <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-20 text-ink-subtle">Tap to record</p>
+            </div>
+          }
         }
 
         @if (dietFlow() === 'recording') {
@@ -60,7 +109,11 @@
                 }
               </div>
               <p class="mx-auto max-w-xs text-sm italic leading-relaxed text-ink-subtle opacity-70">
-                Say what you have at home and what you're craving — tap Stop when you're done.
+                @if (mode() === 'log_eaten') {
+                  Say what you ate — tap Stop when you're done.
+                } @else {
+                  Say what you have at home and what you're craving — tap Stop when you're done.
+                }
               </p>
             </div>
 
@@ -88,15 +141,20 @@
               </span>
             </div>
             <div>
-              <p class="m-0 text-lg font-medium text-ink">Planning meals{{ dots() }}</p>
-              <p class="m-0 mt-1 text-sm text-ink-subtle">Hang tight — macros &amp; recipes incoming</p>
+              @if (mode() === 'log_eaten') {
+                <p class="m-0 text-lg font-medium text-ink">Analyzing your meal{{ dots() }}</p>
+                <p class="m-0 mt-1 text-sm text-ink-subtle">Estimating calories &amp; macros</p>
+              } @else {
+                <p class="m-0 text-lg font-medium text-ink">Planning meals{{ dots() }}</p>
+                <p class="m-0 mt-1 text-sm text-ink-subtle">Hang tight — macros &amp; recipes incoming</p>
+              }
             </div>
           </div>
         }
       </div>
     }
 
-    @if (dietFlow() === 'results' && meals().length > 0) {
+    @if (dietFlow() === 'results' && mode() === 'suggest' && meals().length > 0) {
       <div class="w-full mx-auto space-y-4 px-2 pb-6">
         <p class="mb-3 text-base font-bold text-ink">Meal suggestions</p>
         <p class="m-0 mb-4 text-xs text-ink-subtle">
@@ -146,6 +204,44 @@
             </div>
           </div>
         }
+      </div>
+    }
+
+    @if (dietFlow() === 'results' && mode() === 'log_eaten' && eatenMeal(); as meal) {
+      <div class="w-full mx-auto space-y-4 px-2 pb-6">
+        <p class="mb-3 text-base font-bold text-ink">Here's what we estimated</p>
+        <p class="m-0 mb-4 text-xs text-ink-subtle">
+          Review it below, then log it — it'll show up in today's Diet list.
+        </p>
+        <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+          <p class="m-0 mb-3 text-base font-semibold leading-snug text-ink">{{ meal.name }}</p>
+          <div class="mb-3 grid grid-cols-4 gap-2">
+            <div class="rounded-lg bg-surface-2 px-2 py-2 text-center">
+              <p class="m-0 font-mono text-sm font-semibold tabular-nums text-warning">{{ meal.calories }}</p>
+              <p class="m-0 mt-0.5 text-[11px] text-ink-tertiary">Cal</p>
+            </div>
+            <div class="rounded-lg bg-surface-2 px-2 py-2 text-center">
+              <p class="m-0 font-mono text-sm font-semibold tabular-nums text-success">{{ meal.proteinG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-ink-tertiary">P</p>
+            </div>
+            <div class="rounded-lg bg-surface-2 px-2 py-2 text-center">
+              <p class="m-0 font-mono text-sm font-semibold tabular-nums text-ink-muted">{{ meal.carbsG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-ink-tertiary">C</p>
+            </div>
+            <div class="rounded-lg bg-surface-2 px-2 py-2 text-center">
+              <p class="m-0 font-mono text-sm font-semibold tabular-nums text-ink-muted">{{ meal.fatG }}g</p>
+              <p class="m-0 mt-0.5 text-[11px] text-ink-tertiary">F</p>
+            </div>
+          </div>
+          <p class="m-0 mb-4 flex items-start gap-1.5 text-sm leading-relaxed text-ink-subtle">
+            <vox-icon name="checkmark-circle" tone="success" size="xs" class="mt-0.5 shrink-0" />
+            <span>{{ meal.rationale }}</span>
+          </p>
+          <div type="button" (click)="logEatenMeal(meal)" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors">
+            <vox-icon name="checkmark-outline" size="sm" />
+            Log this meal
+          </div>
+        </div>
       </div>
     }
   </div>

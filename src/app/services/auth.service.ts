@@ -103,26 +103,51 @@ export class AuthService {
     target_protein_g: number;
     target_calories: number;
   }): Promise<void> {
+    await this.writeProfilePatch({ ...patch, onboarding_completed: true });
+    await this.refreshProfile();
+  }
+
+  async updatePreferences(patch: {
+    display_name?: string;
+    sport_type: UserProfile['sport_type'];
+    goal: UserProfile['goal'];
+    target_calories: number;
+    target_protein_g: number;
+    target_carbs_g: number;
+    target_fat_g: number;
+  }): Promise<void> {
+    await this.writeProfilePatch(patch);
+    await this.refreshProfile();
+  }
+
+  private async writeProfilePatch(patch: {
+    display_name?: string;
+    sport_type?: UserProfile['sport_type'];
+    goal?: UserProfile['goal'];
+    target_calories?: number;
+    target_protein_g?: number;
+    target_carbs_g?: number;
+    target_fat_g?: number;
+    onboarding_completed?: boolean;
+  }): Promise<void> {
     const uid = this.user()?.id;
     if (!uid) {
       throw new Error('Not signed in');
     }
-    const { error } = await this.supabase.client
-      .from('user_profiles')
-      .update({
-        display_name: patch.display_name?.trim() || null,
-        sport_type: patch.sport_type,
-        goal: patch.goal,
-        target_protein_g: patch.target_protein_g,
-        target_calories: patch.target_calories,
-        onboarding_completed: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', uid);
+    const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (patch.display_name !== undefined) row['display_name'] = patch.display_name?.trim() || null;
+    if (patch.sport_type !== undefined) row['sport_type'] = patch.sport_type;
+    if (patch.goal !== undefined) row['goal'] = patch.goal;
+    if (patch.target_calories !== undefined) row['target_calories'] = patch.target_calories;
+    if (patch.target_protein_g !== undefined) row['target_protein_g'] = patch.target_protein_g;
+    if (patch.target_carbs_g !== undefined) row['target_carbs_g'] = patch.target_carbs_g;
+    if (patch.target_fat_g !== undefined) row['target_fat_g'] = patch.target_fat_g;
+    if (patch.onboarding_completed !== undefined) row['onboarding_completed'] = patch.onboarding_completed;
+
+    const { error } = await this.supabase.client.from('user_profiles').update(row).eq('id', uid);
     if (error) {
       throw error;
     }
-    await this.refreshProfile();
   }
 
   async sendPasswordReset(email: string): Promise<void> {
