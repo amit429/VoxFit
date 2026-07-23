@@ -151,7 +151,7 @@ ion-select {
   --padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   --padding-start: max(1rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1rem, env(safe-area-inset-right, 0px));
-  --padding-top: 0.5rem;
+  --padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
 }
 
 /* Standalone routes (e.g. /voice) — no tab bar; still need safe inset + scroll breathing room */
@@ -159,5 +159,5 @@ ion-select {
   --padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
   --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
-  --padding-top: 0.5rem;
+  --padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
 }

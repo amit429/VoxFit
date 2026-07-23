@@ -32,7 +32,7 @@ Return **one JSON object only**—no markdown, no code fences, no text before or
 
 ## JSON shape (all top-level keys required)
 {
-  "session_title": "short title, e.g. Chest & Legs · Thu",
+  "session_title": "short title naming the muscle groups/activity only, e.g. Chest & Legs — no day, date, or time reference; the app shows the date separately",
   "coach_summary": "2–4 short sentences: friendly coach tone, acknowledge effort, one recovery or technique tip when helpful. Do not quote the user.",
   "cleaned_transcript": "the user's own words, de-duplicated and cleaned per the Transcript quality section above—not a summary",
   "mood": "positive" | "neutral" | "negative",
