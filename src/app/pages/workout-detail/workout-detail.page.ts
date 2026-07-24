@@ -8,6 +8,7 @@ import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { warningOutline } from 'ionicons/icons';
 import type { WorkoutDetailMock, WorkoutExerciseExtract } from '@/app/models';
+import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
 import { exerciseLoggedLikesToExtracts } from '@/app/utils/exercise-logged.mapper';
@@ -27,6 +28,7 @@ export class WorkoutDetailPage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly journal = inject(WorkoutJournalService);
   private readonly workoutLog = inject(WorkoutSessionLogService);
+  private readonly auth = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
 
   protected readonly detail = signal<WorkoutDetailMock | null>(null);
@@ -39,40 +41,42 @@ export class WorkoutDetailPage implements ViewWillEnter {
   async ionViewWillEnter(): Promise<void> {
     this.loadingDetail.set(true);
     const sessionId = this.route.snapshot.paramMap.get('sessionId');
-    if (!sessionId) {
+    const uid = this.auth.user()?.id;
+    if (!sessionId || !uid) {
       this.notFound.set(true);
       this.loadingDetail.set(false);
       return;
     }
     this.notFound.set(false);
     this.detailSessionId.set(sessionId);
-
-    if (this.journal.sessions().length === 0) {
-      await this.journal.refresh();
-    }
-    this.loadSession(sessionId);
+    await this.loadSession(uid, sessionId);
   }
 
-  private loadSession(sessionId: string): void {
-    const row = this.journal.sessions().find((s) => s.id === sessionId);
-    if (!row) {
+  private async loadSession(uid: string, sessionId: string): Promise<void> {
+    try {
+      const row = await this.journal.getSessionById(uid, sessionId);
+      if (!row) {
+        this.notFound.set(true);
+        return;
+      }
+      this.detailExercises.set(exerciseLoggedLikesToExtracts(row.exercises_logged ?? []));
+      this.detail.set(this.journal.sessionToDetail(row));
+    } catch (err) {
+      console.error('[WorkoutDetailPage] load session', err);
       this.notFound.set(true);
+    } finally {
       this.loadingDetail.set(false);
-      return;
     }
-    this.detailExercises.set(exerciseLoggedLikesToExtracts(row.exercises_logged ?? []));
-    this.detail.set(this.journal.sessionToDetail(row));
-    this.loadingDetail.set(false);
   }
 
   protected async onJournalExercisesChange(next: WorkoutExerciseExtract[]): Promise<void> {
     const sid = this.detailSessionId();
-    if (!sid || this.savingExercises()) return;
+    const uid = this.auth.user()?.id;
+    if (!sid || !uid || this.savingExercises()) return;
     this.savingExercises.set(true);
     try {
       await this.workoutLog.replaceSessionExercises(sid, next);
-      await this.journal.refresh();
-      this.loadSession(sid);
+      await this.loadSession(uid, sid);
     } catch (err) {
       console.error('[WorkoutDetailPage] Exercise update failed:', err);
       const t = await this.toastCtrl.create({

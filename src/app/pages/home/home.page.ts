@@ -25,7 +25,9 @@ export class HomePage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly nutrition = inject(NutritionDashboardService);
 
-  protected readonly showSkeleton = computed(() => !this.journal.hasLoadedOnce() || !this.nutrition.hasLoadedOnce());
+  protected readonly showSkeleton = computed(
+    () => !this.journal.activityLoaded() || !this.journal.weekSessionsLoaded() || !this.nutrition.hasLoadedOnce(),
+  );
 
   protected readonly macros = computed(() => this.nutrition.macros());
 
@@ -62,7 +64,8 @@ export class HomePage implements ViewWillEnter {
   });
 
   ionViewWillEnter(): void {
-    void this.journal.refresh();
+    void this.journal.refreshActivitySummary();
+    void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
   }

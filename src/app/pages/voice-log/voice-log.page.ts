@@ -221,7 +221,7 @@ export class VoiceLogPage {
     this.saving.set(true);
     try {
       await this.workoutLog.saveSession(uid, parsed);
-      await this.workoutJournal.refresh();
+      await Promise.all([this.workoutJournal.refreshCurrentWeekSessions(), this.workoutJournal.refreshActivitySummary()]);
       await this.presentToast('Workout saved!', 'success');
       void this.navCtrl.navigateRoot('/tabs/workout', { animated: true, animationDirection: 'forward' });
     } catch (err) {

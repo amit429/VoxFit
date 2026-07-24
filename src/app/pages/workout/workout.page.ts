@@ -2,10 +2,21 @@ import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonModal, IonButton } from '@ionic/angular/standalone';
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
+  IonModal,
+  IonButton,
+  IonSpinner,
+} from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
+import type { WorkoutSessionListMock, WorkoutSessionListRow, WorkoutSessionRow } from '@/app/models';
+import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import {
   formatSessionDateLabel,
@@ -32,13 +43,15 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
     IonButtons,
     IonModal,
     IonButton,
+    IonSpinner,
   ],
 })
 export class WorkoutPage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly activeFilter = signal<'all' | 'week' | 'prs' | 'month' | 'dates'>('all');
+  protected readonly activeFilter = signal<'all' | 'week' | 'prs' | 'month' | 'dates'>('week');
   protected readonly monthPickerOpen = signal(false);
   /** Year shown in the month-picker modal (browse). */
   protected readonly monthPickYear = signal<number>(new Date().getFullYear());
@@ -57,6 +70,20 @@ export class WorkoutPage implements ViewWillEnter {
   protected readonly rangeFromKey = signal<string>(parseLocalDateKey(new Date()));
   protected readonly rangeToKey = signal<string>(parseLocalDateKey(new Date()));
 
+  /** `month`/`dates` filter results — own scoped fetch, independent of the shared week cache. */
+  protected readonly rangeSessions = signal<WorkoutSessionRow[]>([]);
+  protected readonly rangeLoading = signal(false);
+  protected readonly rangeError = signal<string | null>(null);
+
+  /** `all`/`prs` filter results — paginated, never loads full history at once. */
+  protected readonly journalPageItems = signal<WorkoutSessionListRow[]>([]);
+  protected readonly journalHasMore = signal(true);
+  protected readonly journalPageLoading = signal(false);
+  protected readonly journalPageError = signal<string | null>(null);
+
+  /** Previous calendar week's strength tonnage — for the week-over-week % stat. Null until fetched or if no prior volume. */
+  protected readonly prevWeekVolumeKg = signal<number | null>(null);
+
   /** 3-letter labels for the month grid (12 months). */
   protected readonly monthGridLabels = [
     'Jan',
@@ -74,8 +101,8 @@ export class WorkoutPage implements ViewWillEnter {
   ] as const;
 
   protected readonly filters = [
-    { id: 'all' as const, label: 'All' },
     { id: 'week' as const, label: 'This week' },
+    { id: 'all' as const, label: 'All' },
     { id: 'prs' as const, label: 'PRs' },
     { id: 'month' as const, label: 'Month' },
     { id: 'dates' as const, label: 'Dates' },
@@ -91,41 +118,31 @@ export class WorkoutPage implements ViewWillEnter {
     return new Date(year, month0, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   });
 
-  protected readonly sessionList = computed(() => {
-    const rows = this.journal.sessions();
-    const items = rows.map((r) => this.journal.sessionToListItem(r));
+  /** The list currently shown below the chart — source depends on the active filter. */
+  protected readonly sessionList = computed((): WorkoutSessionListMock[] => {
     const f = this.activeFilter();
     if (f === 'week') {
-      const week = new Set(getCurrentWeekDayKeys());
-      return items.filter((i) => week.has(i.dateKey));
+      return this.journal.weekSessions().map((r) => this.journal.sessionToListItem(r));
     }
-    if (f === 'prs') {
-      return items.filter((i) => i.hasPr);
+    if (f === 'month' || f === 'dates') {
+      return this.rangeSessions().map((r) => this.journal.sessionToListItem(r));
     }
-    if (f === 'month') {
-      const { year, month0 } = this.journalMonth();
-      const wantM = month0 + 1;
-      return items.filter((i) => {
-        if (!i.dateKey) return false;
-        const p = i.dateKey.split('-').map((x) => Number(x));
-        const yy = p[0];
-        const mm = p[1];
-        return yy === year && mm === wantM;
-      });
-    }
-    if (f === 'dates') {
-      if (this.dateFilterSubMode() === 'single') {
-        const k = this.singleDateKey();
-        return items.filter((i) => i.dateKey === k);
-      }
-      let a = this.rangeFromKey();
-      let b = this.rangeToKey();
-      if (a > b) {
-        [a, b] = [b, a];
-      }
-      return items.filter((i) => !!i.dateKey && i.dateKey >= a && i.dateKey <= b);
-    }
-    return items;
+    return this.journalPageItems().map((r) => this.journal.sessionToListItem(r));
+  });
+
+  /** True while the active filter's list data is (re)loading — gates the list skeleton. */
+  protected readonly listLoading = computed(() => {
+    const f = this.activeFilter();
+    if (f === 'week') return !this.journal.weekSessionsLoaded();
+    if (f === 'month' || f === 'dates') return this.rangeLoading();
+    return this.journalPageLoading() && this.journalPageItems().length === 0;
+  });
+
+  protected readonly listError = computed(() => {
+    const f = this.activeFilter();
+    if (f === 'week') return this.journal.weekSessionsLoadState() === 'error' ? this.journal.lastError() : null;
+    if (f === 'month' || f === 'dates') return this.rangeError();
+    return this.journalPageError();
   });
 
   protected readonly datesFilterChipLabel = computed(() => {
@@ -171,27 +188,11 @@ export class WorkoutPage implements ViewWillEnter {
     this.selectedDayIdx.update((cur) => (cur === i ? null : i));
   }
 
-  /** Week-over-week % change in strength tonnage, computed client-side from already-loaded sessions. Null if no prior-week volume to compare against. */
+  /** Week-over-week % change in strength tonnage. Null if no prior-week volume to compare against, or not yet fetched. */
   protected readonly weeklyVolumeChangePct = computed(() => {
     const thisWeekTotal = this.journal.weeklyVolume().values.reduce((a, b) => a + b, 0);
-
-    const thisMonday = parseIsoDateLocal(getCurrentWeekDayKeys()[0]);
-    const prevMonday = new Date(thisMonday);
-    prevMonday.setDate(thisMonday.getDate() - 7);
-    const prevWeekKeys = new Set(
-      Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(prevMonday);
-        d.setDate(prevMonday.getDate() + i);
-        return parseLocalDateKey(d);
-      }),
-    );
-
-    const prevWeekTotal = this.journal
-      .sessions()
-      .filter((r) => r.date && prevWeekKeys.has(r.date))
-      .reduce((sum, r) => sum + sessionTotalVolumeKg(r.exercises_logged ?? []), 0);
-
-    if (prevWeekTotal <= 0) return null;
+    const prevWeekTotal = this.prevWeekVolumeKg();
+    if (prevWeekTotal == null || prevWeekTotal <= 0) return null;
     return Math.round(((thisWeekTotal - prevWeekTotal) / prevWeekTotal) * 100);
   });
 
@@ -212,7 +213,10 @@ export class WorkoutPage implements ViewWillEnter {
   });
 
   ionViewWillEnter(): void {
-    void this.journal.refresh();
+    // The weekly volume chart is always current-week data, independent of the list filter below it.
+    void this.journal.refreshCurrentWeekSessions();
+    void this.loadPrevWeekVolume();
+    void this.loadListForActiveFilter();
   }
 
   private static formatDayChip(iso: string): string {
@@ -233,6 +237,7 @@ export class WorkoutPage implements ViewWillEnter {
   protected pickGridMonth(month0: number): void {
     this.journalMonth.set({ year: this.monthPickYear(), month0 });
     this.monthPickerOpen.set(false);
+    void this.loadListForActiveFilter();
   }
 
   protected isJournalMonthCell(year: number, month0: number): boolean {
@@ -271,6 +276,7 @@ export class WorkoutPage implements ViewWillEnter {
 
   protected applyDateFilterAndClose(): void {
     this.dateFilterOpen.set(false);
+    void this.loadListForActiveFilter();
   }
 
   protected onFilterClick(id: 'all' | 'week' | 'prs' | 'month' | 'dates'): void {
@@ -279,6 +285,7 @@ export class WorkoutPage implements ViewWillEnter {
         this.openMonthPicker();
       } else {
         this.activeFilter.set('month');
+        void this.loadListForActiveFilter();
       }
       return;
     }
@@ -287,14 +294,119 @@ export class WorkoutPage implements ViewWillEnter {
         this.openDateFilterModal();
       } else {
         this.activeFilter.set('dates');
+        void this.loadListForActiveFilter();
         this.openDateFilterModal();
       }
       return;
     }
     this.activeFilter.set(id);
+    void this.loadListForActiveFilter();
   }
 
   protected openDetail(sessionId: string): void {
     void this.router.navigate(['/tabs/workout', sessionId]);
+  }
+
+  /** Fetch whatever the currently active filter's list needs — `week` is covered by the always-on chart fetch. */
+  private async loadListForActiveFilter(): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    const f = this.activeFilter();
+
+    if (f === 'week') return;
+
+    if (f === 'month') {
+      const { year, month0 } = this.journalMonth();
+      const from = parseLocalDateKey(new Date(year, month0, 1));
+      const to = parseLocalDateKey(new Date(year, month0 + 1, 0));
+      await this.loadRange(uid, from, to);
+      return;
+    }
+
+    if (f === 'dates') {
+      if (this.dateFilterSubMode() === 'single') {
+        const k = this.singleDateKey();
+        await this.loadRange(uid, k, k);
+      } else {
+        let a = this.rangeFromKey();
+        let b = this.rangeToKey();
+        if (a > b) [a, b] = [b, a];
+        await this.loadRange(uid, a, b);
+      }
+      return;
+    }
+
+    await this.loadFirstPage(uid, f === 'prs');
+  }
+
+  private async loadRange(uid: string, from: string, to: string): Promise<void> {
+    this.rangeLoading.set(true);
+    this.rangeError.set(null);
+    try {
+      this.rangeSessions.set(await this.journal.listSessionsInRange(uid, from, to));
+    } catch (err) {
+      console.error('[WorkoutPage] range fetch', err);
+      this.rangeError.set(err instanceof Error ? err.message : 'Could not load sessions');
+      this.rangeSessions.set([]);
+    } finally {
+      this.rangeLoading.set(false);
+    }
+  }
+
+  private async loadPrevWeekVolume(): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    const thisMonday = parseIsoDateLocal(getCurrentWeekDayKeys()[0] ?? parseLocalDateKey(new Date()));
+    const prevMonday = new Date(thisMonday);
+    prevMonday.setDate(thisMonday.getDate() - 7);
+    const prevSunday = new Date(prevMonday);
+    prevSunday.setDate(prevMonday.getDate() + 6);
+    try {
+      const rows = await this.journal.listSessionsInRange(
+        uid,
+        parseLocalDateKey(prevMonday),
+        parseLocalDateKey(prevSunday),
+      );
+      this.prevWeekVolumeKg.set(rows.reduce((sum, r) => sum + sessionTotalVolumeKg(r.exercises_logged ?? []), 0));
+    } catch (err) {
+      console.error('[WorkoutPage] prev week volume', err);
+      this.prevWeekVolumeKg.set(null);
+    }
+  }
+
+  private async loadFirstPage(uid: string, prOnly: boolean): Promise<void> {
+    this.journalPageItems.set([]);
+    this.journalHasMore.set(true);
+    this.journalPageLoading.set(true);
+    this.journalPageError.set(null);
+    try {
+      const { items, hasMore } = await this.journal.listSessionsPage(uid, { prOnly, offset: 0 });
+      this.journalPageItems.set(items);
+      this.journalHasMore.set(hasMore);
+    } catch (err) {
+      console.error('[WorkoutPage] page fetch', err);
+      this.journalPageError.set(err instanceof Error ? err.message : 'Could not load sessions');
+    } finally {
+      this.journalPageLoading.set(false);
+    }
+  }
+
+  protected async loadMore(): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid || this.journalPageLoading() || !this.journalHasMore()) return;
+    this.journalPageLoading.set(true);
+    try {
+      const { items, hasMore } = await this.journal.listSessionsPage(uid, {
+        prOnly: this.activeFilter() === 'prs',
+        offset: this.journalPageItems().length,
+      });
+      this.journalPageItems.update((cur) => [...cur, ...items]);
+      this.journalHasMore.set(hasMore);
+    } catch (err) {
+      console.error('[WorkoutPage] load more', err);
+      this.journalPageError.set(err instanceof Error ? err.message : 'Could not load more sessions');
+    } finally {
+      this.journalPageLoading.set(false);
+    }
   }
 }

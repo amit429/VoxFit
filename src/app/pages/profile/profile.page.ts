@@ -66,8 +66,11 @@ export class ProfilePage implements ViewWillEnter {
   protected readonly profile = this.auth.profile;
 
   protected readonly showSkeleton = computed(
-    () => !this.journal.hasLoadedOnce() || !this.nutrition.monthlyHistoryLoaded(),
+    () => !this.journal.activityLoaded() || !this.nutrition.monthlyHistoryLoaded(),
   );
+
+  /** All-time exact counts (Workouts, PRs) — fetched once per page load via count-only queries. */
+  protected readonly allTimeCounts = signal({ workouts: 0, prs: 0 });
 
   protected readonly heatmapSkeletonCells = Array.from({ length: HEATMAP_WEEKS * 7 }, (_, i) => i);
   protected readonly profileChartSkeletonBars = Array.from({ length: MONTHLY_CHART_MONTHS }, (_, i) => i);
@@ -76,21 +79,20 @@ export class ProfilePage implements ViewWillEnter {
   private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);
   private readonly monthLabels = this.monthKeys.map(monthShortLabel);
 
-  /** Workouts / Streak / PRs hero stats — derived client-side from data already loaded via `journal.refresh()`. */
+  /** Workouts / Streak / PRs hero stats — Workouts/PRs from all-time count queries, Streak from the bounded activity window. */
   protected readonly heroStats = computed(() => {
-    const sessions = this.journal.sessions();
-    const prs = sessions.filter((s) => (s.exercises_logged ?? []).some((e) => e.is_pr)).length;
+    const counts = this.allTimeCounts();
     return [
-      { label: 'Workouts', value: sessions.length },
+      { label: 'Workouts', value: counts.workouts },
       { label: 'Streak', value: this.journal.streak().days },
-      { label: 'PRs', value: prs },
+      { label: 'PRs', value: counts.prs },
     ];
   });
 
   /** 52 weeks × 7 days, oldest-first, flattened column-major so `grid-flow-col` renders it directly. */
   protected readonly heatmapCells = computed((): HeatmapCellVm[] => {
     const counts = new Map<string, number>();
-    for (const s of this.journal.sessions()) {
+    for (const s of this.journal.activityRows()) {
       if (!s.date) continue;
       counts.set(s.date, (counts.get(s.date) ?? 0) + 1);
     }
@@ -124,9 +126,9 @@ export class ProfilePage implements ViewWillEnter {
   protected readonly selectedWorkoutMonthIdx = signal<number | null>(null);
   protected readonly selectedCalorieMonthIdx = signal<number | null>(null);
 
-  /** Workout count per month, last 6 months — from `journal.sessions()` (already fully loaded, no new fetch). */
+  /** Workout count per month, last 6 months — from the bounded `activityRows` window (no new fetch). */
   private readonly monthlyWorkoutValues = computed(() =>
-    buildMonthlySeries(this.journal.sessions(), (s) => s.date, () => 1, this.monthKeys),
+    buildMonthlySeries(this.journal.activityRows(), (s) => s.date, () => 1, this.monthKeys),
   );
 
   /** Calorie total per month, last 6 months — from a scoped `diet_logs` fetch (see `nutrition.refreshMonthlyHistory`). */
@@ -196,7 +198,7 @@ export class ProfilePage implements ViewWillEnter {
   protected readonly goalRows = computed(() => {
     const p = this.profile();
     const weekKeys = new Set(getCurrentWeekDayKeys());
-    const sessionsThisWeek = this.journal.sessions().filter((s) => s.date && weekKeys.has(s.date)).length;
+    const sessionsThisWeek = this.journal.activityRows().filter((s) => s.date && weekKeys.has(s.date)).length;
 
     const cals =
       p?.target_calories != null && p.target_calories > 0
@@ -256,8 +258,22 @@ export class ProfilePage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     void this.auth.refreshProfile();
-    void this.journal.refresh();
+    void this.journal.refreshActivitySummary();
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
+    void this.loadAllTimeCounts();
+  }
+
+  private async loadAllTimeCounts(): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) {
+      this.allTimeCounts.set({ workouts: 0, prs: 0 });
+      return;
+    }
+    try {
+      this.allTimeCounts.set(await this.journal.getAllTimeCounts(uid));
+    } catch (err) {
+      console.error('[ProfilePage] all-time counts', err);
+    }
   }
 
   protected goToSettings(): void {

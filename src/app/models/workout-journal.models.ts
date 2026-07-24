@@ -72,8 +72,31 @@ export interface WorkoutSessionRow {
   energy_level: string | null;
   physical_flags: string[] | null;
   created_at: string;
-  raw_transcript: string | null;
   exercises_logged: ExerciseLoggedRow[] | null;
+}
+
+/** Minimal row for streak/heatmap/monthly-count aggregation — no join, no heavy columns. */
+export interface WorkoutActivityRow {
+  id: string;
+  date: string | null;
+}
+
+/** Lean exercise shape for the paginated journal list — only what `sessionToListItem` touches. */
+export interface ExerciseLoggedListRow {
+  id: string;
+  is_pr: boolean | null;
+}
+
+/** Lean session shape for "All"/"PRs" pagination — omits set_lines, ai_summary. */
+export interface WorkoutSessionListRow {
+  id: string;
+  date: string | null;
+  session_label: string | null;
+  mood: string | null;
+  energy_level: string | null;
+  physical_flags: string[] | null;
+  created_at: string;
+  exercises_logged: ExerciseLoggedListRow[] | null;
 }
 
 /** Structural subset of `ExerciseLoggedRow` accepted by the legacy-row → extract mapper. */
