@@ -9,8 +9,3 @@ export interface SetLineParsed {
   distance_km: number | null;
   segment_label: string | null;
 }
-
-export interface MonthKey {
-  readonly year: number;
-  readonly month0: number;
-}

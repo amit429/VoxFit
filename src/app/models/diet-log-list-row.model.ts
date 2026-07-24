@@ -1,4 +1,4 @@
-export type DietMealTypeDb = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+import type { DietMealTypeDb } from '@/app/models/diet-meal-type-db.model';
 
 /** Row from `diet_logs` for list UI. */
 export interface DietLogListRow {
@@ -15,18 +15,4 @@ export interface DietLogListRow {
   readonly rationale: string | null;
   readonly recipe_text: string | null;
   readonly created_at: string;
-}
-
-export interface MealSectionVm {
-  readonly key: string;
-  readonly label: string;
-  readonly items: readonly DietLogListRow[];
-  /** Unique per day+section for `@for` track in week view (outer `day` not allowed in `track`). */
-  readonly trackId?: string;
-}
-
-export interface DayGroupVm {
-  readonly dateKey: string;
-  readonly dateHeading: string;
-  readonly sections: readonly MealSectionVm[];
 }

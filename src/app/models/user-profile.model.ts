@@ -1,5 +1,5 @@
-export type SportType = 'gym' | 'runner' | 'cyclist' | 'sport';
-export type GoalType = 'bulk' | 'cut' | 'maintain';
+import type { GoalType } from '@/app/models/goal-type.model';
+import type { SportType } from '@/app/models/sport-type.model';
 
 export interface UserProfile {
   id: string;

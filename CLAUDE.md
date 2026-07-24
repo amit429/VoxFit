@@ -34,7 +34,7 @@ There's effectively one spec file in the repo today (`app.component.spec.ts`) �
 
 ### Path aliases and imports
 
-`@/*` maps to `src/*` (tsconfig `paths`). All type declarations live under `src/app/models/`, one file per domain (`workout-extract`, `workout-journal`, `diet-log`, `diet-meals`, `nutrition`, `profile`, `user`, `password`, `workout-display`, `workout-exercise-draft`), re-exported through `src/app/models/index.ts`. Import from `@/app/models`, not individual model files — the barrel is the contract.
+`@/*` maps to `src/*` (tsconfig `paths`). All type declarations live under `src/app/models/`, one file per exported interface/type (`user-profile.model.ts`, `workout-session-row.model.ts`, etc. — a type that references another imports it directly from that sibling file, e.g. `workout-exercise-extract.model.ts` imports `ExerciseTypeDb` from `exercise-type-db.model.ts`), all re-exported through `src/app/models/index.ts`. Import from `@/app/models`, not individual model files — the barrel is the contract.
 
 ### Routing & auth guards (`src/app/app.routes.ts`, `src/app/guards/auth.guards.ts`)
 

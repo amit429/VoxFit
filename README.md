@@ -174,7 +174,7 @@ voxfit/
 │   │   ├── pages/          # Route components (home, voice-log, diet, diet-voice-log, workout, workout-detail, auth, profile, settings)
 │   │   ├── components/     # Shared UI (vox-card, vox-badge, vox-icon, vox-page-header) + feature components (exercise editor/review, password checklist)
 │   │   ├── services/       # Auth, voice, Gemini (workout + diet), Supabase, journal, diet log, nutrition dashboard
-│   │   ├── models/         # TypeScript types, one domain per file, all re-exported from models/index.ts
+│   │   ├── models/         # TypeScript types, one file per exported interface/type, all re-exported from models/index.ts
 │   │   ├── guards/         # Route guards (auth, onboarding)
 │   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing/drafts)
 │   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal logger)
@@ -189,7 +189,7 @@ voxfit/
 └── angular.json            # Angular CLI workspace config
 ```
 
-All type declarations live under `src/app/models/`, grouped by domain (`user`, `workout-extract`, `workout-journal`, `diet-meals`, `diet-log`, `nutrition`, `profile`, `password`, etc.) and re-exported through a single `models/index.ts` barrel — every consumer imports from `@/app/models` rather than reaching into individual files.
+All type declarations live under `src/app/models/`, one file per exported interface/type (e.g. `user-profile.model.ts`, `workout-session-row.model.ts`), and re-exported through a single `models/index.ts` barrel — every consumer imports from `@/app/models` rather than reaching into individual files.
 
 ## Deployment
 
