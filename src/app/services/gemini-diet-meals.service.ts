@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@/environments/environment';
-import { buildDietMealsPrompt, type DietMealsPromptContext } from '@/app/prompts/diet-meals.prompt';
+import { buildDietMealsPrompt } from '@/app/prompts/diet-meals.prompt';
 import { buildFoodLogPrompt } from '@/app/prompts/food-log.prompt';
 import type {
+  DietMealsPromptContext,
   DietMealSuggestion,
   DietMealSuggestResult,
   EatenMealAnalysis,
   EatenMealAnalyzeResult,
-} from '@/app/models/diet-meals.models';
+} from '@/app/models';
 import { SupabaseService } from '@/app/services/supabase.service';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';

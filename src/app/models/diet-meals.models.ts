@@ -35,3 +35,10 @@ export interface EatenMealAnalyzeResult {
   /** Not persisted or displayed — used only to help the model settle on a clean name. */
   readonly cleanedTranscript: string;
 }
+
+/** Soft hints passed to the diet-meals suggestion prompt. */
+export interface DietMealsPromptContext {
+  readonly goal?: string | null;
+  readonly targetCalories?: number | null;
+  readonly targetProteinG?: number | null;
+}

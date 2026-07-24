@@ -13,8 +13,7 @@ import {
   checkmarkOutline,
   chevronBackOutline,
 } from 'ionicons/icons';
-import type { VoiceDoneMock } from '@/app/data/types';
-import type { WorkoutExerciseExtract, WorkoutExtractResult } from '@/app/models/workout-extract.models';
+import type { VoiceDoneMock, WorkoutExerciseExtract, WorkoutExtractResult } from '@/app/models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
 import { GeminiWorkoutExtractService } from '@/app/services/gemini-workout-extract.service';
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';

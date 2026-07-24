@@ -1,13 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { HomeMacrosMock, MacroRowMock } from '@/app/data/types';
+import type { DailyCalorieRow, HomeMacrosMock, MacroRowMock } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { SupabaseService } from '@/app/services/supabase.service';
 import { getLastNMonthKeys, monthKeysRangeStart, parseLocalDateKey } from '@/app/utils/workout-display.util';
-
-export interface DailyCalorieRow {
-  readonly date: string;
-  readonly calories: number;
-}
 
 @Injectable({ providedIn: 'root' })
 export class NutritionDashboardService {

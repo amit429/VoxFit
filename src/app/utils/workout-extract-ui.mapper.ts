@@ -1,12 +1,14 @@
-import type { VoiceDoneMock, VoiceExtractedExerciseMock, VoiceSetRowMock } from '@/app/data/types';
 import type {
   EnergyDb,
-  MoodDb,
   ExerciseTypeDb,
+  MoodDb,
+  VoiceDoneMock,
+  VoiceExtractedExerciseMock,
+  VoiceSetRowMock,
   WorkoutExerciseExtract,
   WorkoutExtractResult,
   WorkoutSetLineExtract,
-} from '@/app/models/workout-extract.models';
+} from '@/app/models';
 
 const MOOD_UI: Record<MoodDb, { emoji: string; label: string }> = {
   positive: { emoji: '😊', label: 'Positive' },

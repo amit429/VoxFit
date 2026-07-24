@@ -9,7 +9,7 @@ import {
   IonSelectOption,
 } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
-import type { GoalType, SportType } from '@/app/models/user.models';
+import type { GoalType, SportType } from '@/app/models';
 
 @Component({
   selector: 'app-onboarding',

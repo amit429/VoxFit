@@ -1,7 +1,7 @@
 import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline, chevronUpOutline, createOutline, sparklesOutline, trophyOutline } from 'ionicons/icons';
-import type { WorkoutExerciseExtract } from '@/app/models/workout-extract.models';
+import type { WorkoutExerciseExtract } from '@/app/models';
 import { ExerciseSetsPreviewTableComponent } from '@/app/components/exercise-sets-preview-table/exercise-sets-preview-table.component';
 import { ExerciseEditorModalComponent } from '@/app/components/exercise-editor-modal/exercise-editor-modal.component';
 import { workoutExercisesToVoiceMocks } from '@/app/utils/workout-extract-ui.mapper';

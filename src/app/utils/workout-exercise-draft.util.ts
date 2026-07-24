@@ -1,24 +1,11 @@
-import type { ExerciseTypeDb, WorkoutExerciseExtract, WorkoutSetLineExtract } from '@/app/models/workout-extract.models';
+import type {
+  ExerciseEditorFormModel,
+  ExerciseSetLineDraft,
+  ExerciseTypeDb,
+  WorkoutExerciseExtract,
+  WorkoutSetLineExtract,
+} from '@/app/models';
 import { computeExerciseSummaryLine } from '@/app/utils/workout-extract-ui.mapper';
-
-/** Mutable row for the exercise editor form. */
-export interface ExerciseSetLineDraft {
-  sets: string;
-  weight_kg: string;
-  /** Strength: single rep count or range "10-12" / "10–12". */
-  reps: string;
-  /** Cardio: minutes (decimal ok). */
-  duration_mins: string;
-  distance_km: string;
-  segment_label: string;
-}
-
-export interface ExerciseEditorFormModel {
-  name: string;
-  exercise_type: ExerciseTypeDb;
-  is_pr: boolean;
-  setLines: ExerciseSetLineDraft[];
-}
 
 export function exerciseToFormModel(ex: WorkoutExerciseExtract): ExerciseEditorFormModel {
   return {

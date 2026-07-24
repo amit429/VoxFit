@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import type { WorkoutExtractResult, WorkoutExerciseExtract } from '@/app/models/workout-extract.models';
+import type { WorkoutExtractResult, WorkoutExerciseExtract } from '@/app/models';
 import { SupabaseService } from '@/app/services/supabase.service';
 
 @Injectable({ providedIn: 'root' })

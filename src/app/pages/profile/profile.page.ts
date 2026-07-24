@@ -14,7 +14,7 @@ import {
   settingsOutline,
 } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
-import type { GoalType } from '@/app/models/user.models';
+import type { GoalType, HeatmapCellVm, MonthlyBarVm, MonthlyChartStatVm } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
@@ -37,27 +37,8 @@ addIcons({
   settingsOutline,
 });
 
-export interface HeatmapCellVm {
-  readonly key: string;
-  readonly intensity: 0 | 1 | 2 | 3 | 4;
-  readonly isToday: boolean;
-}
-
 const HEATMAP_WEEKS = 26;
 const MONTHLY_CHART_MONTHS = 6;
-
-export interface MonthlyBarVm {
-  readonly label: string;
-  readonly heightPx: number;
-  readonly isCurrent: boolean;
-  readonly isSelected: boolean;
-}
-
-export interface MonthlyChartStatVm {
-  readonly caption: string;
-  readonly value: number;
-  readonly unit: string;
-}
 
 /** Success-based ramp, never the accent — matches this design system's own heatmap convention. */
 const HEATMAP_BACKGROUNDS = [

@@ -1,5 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { HomeStreakMock, HomeWorkoutCardMock, WeeklyVolumeMock, WorkoutDetailMock, WorkoutSessionListMock } from '@/app/data/types';
+import type {
+  ExerciseLoggedRow,
+  HomeStreakMock,
+  HomeWorkoutCardMock,
+  WeeklyVolumeMock,
+  WorkoutDetailMock,
+  WorkoutSessionListMock,
+  WorkoutSessionRow,
+} from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { SupabaseService } from '@/app/services/supabase.service';
 import {
@@ -20,35 +28,6 @@ import {
   parseLocalDateKey,
   sessionTotalVolumeKg,
 } from '@/app/utils/workout-display.util';
-
-export interface ExerciseLoggedRow {
-  id: string;
-  session_id: string;
-  exercise_name: string;
-  exercise_type: 'strength' | 'cardio' | null;
-  sets: number | null;
-  reps: number | null;
-  weight_kg: number | string | null;
-  duration_secs: number | null;
-  distance_km: number | string | null;
-  is_pr: boolean | null;
-  summary_line: string | null;
-  set_lines: unknown;
-}
-
-export interface WorkoutSessionRow {
-  id: string;
-  user_id: string;
-  date: string | null;
-  session_label: string | null;
-  ai_summary: string | null;
-  mood: string | null;
-  energy_level: string | null;
-  physical_flags: string[] | null;
-  created_at: string;
-  raw_transcript: string | null;
-  exercises_logged: ExerciseLoggedRow[] | null;
-}
 
 @Injectable({ providedIn: 'root' })
 export class WorkoutJournalService {

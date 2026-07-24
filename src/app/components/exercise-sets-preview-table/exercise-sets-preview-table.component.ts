@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import type { ExerciseTypeDb } from '@/app/models/workout-extract.models';
-import type { VoiceSetRowMock } from '@/app/data/types';
+import type { ExerciseTypeDb, VoiceSetRowMock } from '@/app/models';
 
 @Component({
   selector: 'app-exercise-sets-preview-table',

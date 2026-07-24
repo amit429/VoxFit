@@ -1,26 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import type { DietMealSuggestion, EatenMealAnalysis } from '@/app/models/diet-meals.models';
+import type { DietLogListRow, DietMealSuggestion, DietMealTypeDb, EatenMealAnalysis } from '@/app/models';
 import { SupabaseService } from '@/app/services/supabase.service';
 import { parseLocalDateKey } from '@/app/utils/workout-display.util';
-
-export type DietMealTypeDb = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-
-/** Row from `diet_logs` for list UI. */
-export interface DietLogListRow {
-  readonly id: string;
-  /** Local calendar date `YYYY-MM-DD`. */
-  readonly date: string;
-  readonly meal_name: string;
-  readonly meal_type: DietMealTypeDb | null;
-  readonly calories: number;
-  readonly protein_g: number;
-  readonly carbs_g: number;
-  readonly fat_g: number;
-  readonly prep_minutes: number | null;
-  readonly rationale: string | null;
-  readonly recipe_text: string | null;
-  readonly created_at: string;
-}
 
 function inferMealType(date = new Date()): DietMealTypeDb {
   const h = date.getHours();

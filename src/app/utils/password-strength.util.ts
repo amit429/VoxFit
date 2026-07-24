@@ -1,10 +1,5 @@
 import type { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-
-export interface PasswordRuleResult {
-  readonly key: string;
-  readonly label: string;
-  readonly passed: boolean;
-}
+import type { PasswordRuleResult } from '@/app/models';
 
 /** Must match the Supabase Auth project's "Minimum password length" setting exactly. */
 export const PASSWORD_MIN_LENGTH = 15;

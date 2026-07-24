@@ -4,7 +4,7 @@ import { IonContent, IonInput, NavController, ToastController } from '@ionic/ang
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, logOutOutline } from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
-import type { GoalType, SportType } from '@/app/models/user.models';
+import type { GoalType, SportType } from '@/app/models';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
 addIcons({ chevronBackOutline, logOutOutline });

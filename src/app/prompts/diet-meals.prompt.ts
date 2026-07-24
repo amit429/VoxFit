@@ -1,10 +1,6 @@
 /** Keep in sync with `supabase/functions/suggest-diet-meals/index.ts` SYSTEM block. */
 
-export interface DietMealsPromptContext {
-  readonly goal?: string | null;
-  readonly targetCalories?: number | null;
-  readonly targetProteinG?: number | null;
-}
+import type { DietMealsPromptContext } from '@/app/models';
 
 export function buildDietMealsPrompt(transcript: string, ctx?: DietMealsPromptContext): { system: string; user: string } {
   const lines: string[] = [

@@ -22,7 +22,7 @@ import {
   chevronBackOutline,
   restaurantOutline,
 } from 'ionicons/icons';
-import type { DietMealSuggestion, EatenMealAnalysis } from '@/app/models/diet-meals.models';
+import type { DietMealSuggestion, EatenMealAnalysis } from '@/app/models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
 import { GeminiDietMealsService } from '@/app/services/gemini-diet-meals.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';

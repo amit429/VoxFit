@@ -1,4 +1,4 @@
-import type { ProfileGoalRowMock } from './types';
+import type { ProfileGoalRowMock } from '@/app/models';
 
 /** 1..31 — days with a workout logged (for heatmap) */
 export const DUMMY_PROFILE_WORKOUT_DAYS = new Set([

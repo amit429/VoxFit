@@ -23,7 +23,7 @@ import {
   chevronForwardOutline,
   restaurantOutline,
 } from 'ionicons/icons';
-import type { DietLogListRow, DietMealTypeDb } from '@/app/services/diet-log.service';
+import type { DayGroupVm, DietLogListRow, DietMealTypeDb, MealSectionVm } from '@/app/models';
 import { DietLogService } from '@/app/services/diet-log.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { AuthService } from '@/app/services/auth.service';
@@ -38,20 +38,6 @@ addIcons({
   chevronForwardOutline,
   restaurantOutline,
 });
-
-export interface MealSectionVm {
-  readonly key: string;
-  readonly label: string;
-  readonly items: readonly DietLogListRow[];
-  /** Unique per day+section for `@for` track in week view (outer `day` not allowed in `track`). */
-  readonly trackId?: string;
-}
-
-export interface DayGroupVm {
-  readonly dateKey: string;
-  readonly dateHeading: string;
-  readonly sections: readonly MealSectionVm[];
-}
 
 const MEAL_LABELS: Record<DietMealTypeDb, string> = {
   breakfast: 'Breakfast',

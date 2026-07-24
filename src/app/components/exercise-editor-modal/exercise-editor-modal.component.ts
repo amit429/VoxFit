@@ -25,14 +25,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, closeOutline, trashOutline } from 'ionicons/icons';
-import type { ExerciseTypeDb, WorkoutExerciseExtract } from '@/app/models/workout-extract.models';
-import {
-  emptySetLineDraft,
-  exerciseToFormModel,
-  formModelToExercise,
-  type ExerciseEditorFormModel,
-  type ExerciseSetLineDraft,
-} from '@/app/utils/workout-exercise-draft.util';
+import type { ExerciseEditorFormModel, ExerciseSetLineDraft, ExerciseTypeDb, WorkoutExerciseExtract } from '@/app/models';
+import { emptySetLineDraft, exerciseToFormModel, formModelToExercise } from '@/app/utils/workout-exercise-draft.util';
 
 addIcons({ addOutline, closeOutline, trashOutline });
 

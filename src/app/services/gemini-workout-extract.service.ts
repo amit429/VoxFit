@@ -8,7 +8,7 @@ import type {
   WorkoutExerciseExtract,
   WorkoutExtractResult,
   WorkoutSetLineExtract,
-} from '@/app/models/workout-extract.models';
+} from '@/app/models';
 import { SupabaseService } from '@/app/services/supabase.service';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
