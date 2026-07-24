@@ -262,13 +262,6 @@ Contributions welcome! Follow these guidelines:
 - AI agents for designing your workout plans for future based on your current goals and weekly / daily sessions recorded by you
 - Fitness coach / health care expert analysing the user's healthy progress , checking for any heatlh flags from user sessions and providing feedback based on that
 
-## Upcoming Features — Integrations (under discussion)
-
-Open space for ideas on connecting VoxFit to outside services and apps, expanding beyond logging into actually *doing* things on the user's behalf. Nothing here is scoped or committed yet — to be fleshed out.
-
-- Ordering suggested meals directly from a food-delivery service (e.g. exploring the open-source **Swiggy MCP** to search for and place an order matching an AI-suggested meal)
-- Other third-party integrations TBD
-
 ## License
 
 MIT — see LICENSE file
