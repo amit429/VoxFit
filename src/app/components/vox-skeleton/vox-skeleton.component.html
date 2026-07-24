@@ -1,0 +1,8 @@
+<span
+  class="vox-skeleton"
+  [ngClass]="['vox-skeleton--' + shape(), 'vox-skeleton--' + surface()]"
+  [style.width]="width()"
+  [style.height]="height()"
+  [style.borderRadius]="shape() === 'block' ? 'var(--vox-radius-' + radius() + ')' : null"
+  aria-hidden="true"
+></span>

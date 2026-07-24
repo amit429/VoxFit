@@ -9,6 +9,7 @@ import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 
 addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline });
 
@@ -17,12 +18,14 @@ addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flash
   standalone: true,
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  imports: [IonContent, RouterLink, IonRouterLinkWithHref, VoxIconComponent],
+  imports: [IonContent, RouterLink, IonRouterLinkWithHref, VoxIconComponent, VoxSkeletonComponent],
 })
 export class HomePage implements ViewWillEnter {
   protected readonly auth = inject(AuthService);
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly nutrition = inject(NutritionDashboardService);
+
+  protected readonly showSkeleton = computed(() => !this.journal.hasLoadedOnce() || !this.nutrition.hasLoadedOnce());
 
   protected readonly macros = computed(() => this.nutrition.macros());
 

@@ -1,4 +1,5 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonModal, IonButton } from '@ionic/angular/standalone';
@@ -23,6 +24,7 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
   styleUrls: ['./workout.page.scss'],
   imports: [
     VoxIconComponent,
+    VoxSkeletonComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -192,6 +194,8 @@ export class WorkoutPage implements ViewWillEnter {
     if (prevWeekTotal <= 0) return null;
     return Math.round(((thisWeekTotal - prevWeekTotal) / prevWeekTotal) * 100);
   });
+
+  protected readonly skeletonBarHeights = [18, 34, 24, 44, 30, 40, 20];
 
   protected readonly weeklyBars = computed(() => {
     const w = this.journal.weeklyVolume();

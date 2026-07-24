@@ -1,4 +1,5 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -55,6 +56,7 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
   styleUrls: ['./diet.page.scss'],
   imports: [
     VoxIconComponent,
+    VoxSkeletonComponent,
     IonHeader,
     IonToolbar,
     IonTitle,

@@ -7,9 +7,6 @@
   </header>
 
   <main class="flex-1 space-y-6 px-2 pb-6">
-    @if (journal.loadState() === 'loading' && journal.sessions().length === 0) {
-      <p class="m-0 text-center text-sm text-ink-subtle">Loading your sessions…</p>
-    }
     @if (journal.loadState() === 'error' && journal.lastError()) {
       <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">
         Could not load workouts: {{ journal.lastError() }}
@@ -52,102 +49,141 @@
       }
     </div>
 
-    <!-- Volume chart -->
-    <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-      <div class="flex items-baseline justify-between">
-        <div>
-          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ weeklyVolumeStat().caption }}</p>
-          <p class="m-0 mt-1 font-mono text-xl text-ink">
-            {{ weeklyVolumeStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ weeklyVolumeStat().unit }}</span>
-          </p>
+    @if (!journal.hasLoadedOnce()) {
+      <!-- Volume chart skeleton -->
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="flex items-baseline justify-between">
+          <div>
+            <vox-skeleton shape="text" width="90px" height="10px" />
+            <vox-skeleton shape="text" width="70px" height="20px" class="mt-2" />
+          </div>
+          <vox-skeleton shape="pill" width="52px" height="22px" />
         </div>
-        @if (selectedDayIdx() === null) {
-          @if (weeklyVolumeChangePct(); as pct) {
-            <span
-              class="rounded px-2 py-1 font-mono vx-text-10 uppercase border"
-              [class]="pct >= 0 ? 'bg-success-dim text-success border-success-dim' : 'bg-danger-dim text-danger border-danger-dim'"
-            >
-              {{ pct >= 0 ? '+' : '' }}{{ pct }}%
-            </span>
+        <div class="mt-4 flex h-24 items-end gap-2">
+          @for (h of skeletonBarHeights; track $index) {
+            <div class="flex flex-1 flex-col items-center justify-end gap-2">
+              <vox-skeleton [height]="(8 + h) + 'px'" width="100%" radius="xs" surface="surface-4" />
+              <vox-skeleton shape="text" width="18px" height="8px" />
+            </div>
           }
-        } @else {
-          <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
-        }
-      </div>
-      <div class="mt-4 flex h-24 items-end gap-2">
-        @for (bar of weeklyBars(); track bar.label + $index) {
-          <div
-            (click)="toggleDay($index)"
-            class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
-          >
+        </div>
+      </section>
+
+      <!-- Session list skeleton -->
+      <section class="space-y-2">
+        <h5 class="px-1 py-2 text-sm font-medium text-ink-muted">Recent sessions</h5>
+        <ul class="m-0 list-none space-y-6 p-0">
+          @for (i of [0, 1, 2]; track i) {
+            <li>
+              <div class="flex w-full items-center gap-3 rounded-xl bg-surface-1 p-4 ring-1 ring-hairline">
+                <div class="min-w-0 flex-1">
+                  <vox-skeleton shape="text" width="55%" height="14px" />
+                  <vox-skeleton shape="text" width="40%" height="10px" class="mt-2" />
+                </div>
+                <vox-skeleton shape="circle" width="16px" height="16px" />
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else {
+      <!-- Volume chart -->
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="flex items-baseline justify-between">
+          <div>
+            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ weeklyVolumeStat().caption }}</p>
+            <p class="m-0 mt-1 font-mono text-xl text-ink">
+              {{ weeklyVolumeStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ weeklyVolumeStat().unit }}</span>
+            </p>
+          </div>
+          @if (selectedDayIdx() === null) {
+            @if (weeklyVolumeChangePct(); as pct) {
+              <span
+                class="rounded px-2 py-1 font-mono vx-text-10 uppercase border"
+                [class]="pct >= 0 ? 'bg-success-dim text-success border-success-dim' : 'bg-danger-dim text-danger border-danger-dim'"
+              >
+                {{ pct >= 0 ? '+' : '' }}{{ pct }}%
+              </span>
+            }
+          } @else {
+            <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
+          }
+        </div>
+        <div class="mt-4 flex h-24 items-end gap-2">
+          @for (bar of weeklyBars(); track bar.label + $index) {
             <div
-              class="w-full rounded-sm transition-colors"
-              [class.bg-ink]="bar.isSelected"
-              [class.bg-primary]="bar.isToday && !bar.isSelected"
-              [class.bg-surface-4]="!bar.isToday && !bar.isSelected"
-              [style.height.px]="bar.heightPx"
-            ></div>
-            <span
-              class="font-mono vx-text-9"
-              [class.text-ink]="bar.isSelected"
-              [class.font-semibold]="bar.isSelected"
-              [class.text-ink-tertiary]="!bar.isSelected"
-            >{{ bar.label }}</span>
+              (click)="toggleDay($index)"
+              class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
+            >
+              <div
+                class="w-full rounded-sm transition-colors"
+                [class.bg-ink]="bar.isSelected"
+                [class.bg-primary]="bar.isToday && !bar.isSelected"
+                [class.bg-surface-4]="!bar.isToday && !bar.isSelected"
+                [style.height.px]="bar.heightPx"
+              ></div>
+              <span
+                class="font-mono vx-text-9"
+                [class.text-ink]="bar.isSelected"
+                [class.font-semibold]="bar.isSelected"
+                [class.text-ink-tertiary]="!bar.isSelected"
+              >{{ bar.label }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Session list -->
+      <section class="space-y-2">
+        <h5 class="px-1 py-2 text-sm font-medium text-ink-muted">Recent sessions</h5>
+
+        @if (sessionList().length === 0) {
+          <div class="rounded-xl bg-surface-1 p-4 text-center ring-1 ring-hairline">
+            <p class="m-0 text-base font-semibold text-ink">No sessions yet</p>
+            <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
+              @if (activeFilter() !== 'all') {
+                No workouts match this filter. Try another month, date, or switch back to All.
+              } @else {
+                Log your first workout from the home tab to see it here — your volume chart updates automatically.
+              }
+            </p>
           </div>
         }
-      </div>
-    </section>
 
-    <!-- Session list -->
-    <section class="space-y-2">
-      <h5 class="px-1 py-2 text-sm font-medium text-ink-muted">Recent sessions</h5>
-
-      @if (sessionList().length === 0 && journal.loadState() !== 'loading') {
-        <div class="rounded-xl bg-surface-1 p-4 text-center ring-1 ring-hairline">
-          <p class="m-0 text-base font-semibold text-ink">No sessions yet</p>
-          <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
-            @if (activeFilter() !== 'all') {
-              No workouts match this filter. Try another month, date, or switch back to All.
-            } @else {
-              Log your first workout from the home tab to see it here — your volume chart updates automatically.
-            }
-          </p>
-        </div>
-      }
-
-      <ul class="m-0 list-none space-y-6 p-0">
-        @for (s of sessionList(); track s.id) {
-          <li>
-            <div
-              type="button"
-              (click)="openDetail(s.id)"
-              class="flex w-full items-center gap-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline transition-colors"
-            >
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="truncate text-sm font-medium text-ink">{{ s.label }}</span>
-                  @if (s.hasPr) {
-                    <vox-icon name="trophy-outline" size="xs" tone="warning" class="shrink-0" />
-                  }
-                  @if (s.hasFlag) {
-                    <vox-icon name="warning-outline" size="xs" tone="danger" class="shrink-0" />
-                  }
+        <ul class="m-0 list-none space-y-6 p-0">
+          @for (s of sessionList(); track s.id) {
+            <li>
+              <div
+                type="button"
+                (click)="openDetail(s.id)"
+                class="flex w-full items-center gap-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline transition-colors"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="truncate text-sm font-medium text-ink">{{ s.label }}</span>
+                    @if (s.hasPr) {
+                      <vox-icon name="trophy-outline" size="xs" tone="warning" class="shrink-0" />
+                    }
+                    @if (s.hasFlag) {
+                      <vox-icon name="warning-outline" size="xs" tone="danger" class="shrink-0" />
+                    }
+                  </div>
+                  <p class="m-0 mt-1 flex items-center gap-2 font-mono vx-text-11 text-ink-subtle">
+                    <span>{{ s.dateLabel }}</span>
+                    <span class="text-ink-tertiary">·</span>
+                    <span>{{ s.exercises }} ex</span>
+                    <span class="text-ink-tertiary">·</span>
+                    <span>{{ s.energyLabel }}</span>
+                  </p>
                 </div>
-                <p class="m-0 mt-1 flex items-center gap-2 font-mono vx-text-11 text-ink-subtle">
-                  <span>{{ s.dateLabel }}</span>
-                  <span class="text-ink-tertiary">·</span>
-                  <span>{{ s.exercises }} ex</span>
-                  <span class="text-ink-tertiary">·</span>
-                  <span>{{ s.energyLabel }}</span>
-                </p>
+                <span class="shrink-0 text-xs text-ink-subtle">{{ s.moodEmoji }}</span>
+                <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" class="shrink-0" />
               </div>
-              <span class="shrink-0 text-xs text-ink-subtle">{{ s.moodEmoji }}</span>
-              <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" class="shrink-0" />
-            </div>
-          </li>
-        }
-      </ul>
-    </section>
+            </li>
+          }
+        </ul>
+      </section>
+    }
   </main>
 
   <ion-modal [isOpen]="monthPickerOpen()" (didDismiss)="monthPickerOpen.set(false)" class="vox-picker-modal">

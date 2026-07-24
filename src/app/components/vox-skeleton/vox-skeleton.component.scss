@@ -1,0 +1,48 @@
+:host {
+  display: inline-block;
+  line-height: 0;
+}
+
+.vox-skeleton {
+  display: block;
+  animation: vox-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.vox-skeleton--surface-2 {
+  background: var(--vox-surface-2);
+}
+
+.vox-skeleton--surface-3 {
+  background: var(--vox-surface-3);
+}
+
+.vox-skeleton--surface-4 {
+  background: var(--vox-surface-4);
+}
+
+.vox-skeleton--circle,
+.vox-skeleton--pill {
+  border-radius: var(--vox-radius-pill);
+}
+
+.vox-skeleton--text {
+  border-radius: var(--vox-radius-xs);
+}
+
+@keyframes vox-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vox-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+}

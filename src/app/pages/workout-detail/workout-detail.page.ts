@@ -1,5 +1,6 @@
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, ToastController } from '@ionic/angular/standalone';
@@ -19,7 +20,7 @@ addIcons({ warningOutline });
   standalone: true,
   templateUrl: './workout-detail.page.html',
   styleUrls: ['./workout-detail.page.scss'],
-  imports: [VoxIconComponent, IonContent, SessionExerciseReviewCardComponent],
+  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent, SessionExerciseReviewCardComponent],
 })
 export class WorkoutDetailPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
@@ -32,11 +33,15 @@ export class WorkoutDetailPage implements ViewWillEnter {
   protected readonly detailSessionId = signal<string | null>(null);
   protected readonly detailExercises = signal<WorkoutExerciseExtract[]>([]);
   protected readonly notFound = signal(false);
+  protected readonly loadingDetail = signal(true);
+  protected readonly savingExercises = signal(false);
 
   async ionViewWillEnter(): Promise<void> {
+    this.loadingDetail.set(true);
     const sessionId = this.route.snapshot.paramMap.get('sessionId');
     if (!sessionId) {
       this.notFound.set(true);
+      this.loadingDetail.set(false);
       return;
     }
     this.notFound.set(false);
@@ -52,15 +57,18 @@ export class WorkoutDetailPage implements ViewWillEnter {
     const row = this.journal.sessions().find((s) => s.id === sessionId);
     if (!row) {
       this.notFound.set(true);
+      this.loadingDetail.set(false);
       return;
     }
     this.detailExercises.set(exerciseLoggedLikesToExtracts(row.exercises_logged ?? []));
     this.detail.set(this.journal.sessionToDetail(row));
+    this.loadingDetail.set(false);
   }
 
   protected async onJournalExercisesChange(next: WorkoutExerciseExtract[]): Promise<void> {
     const sid = this.detailSessionId();
-    if (!sid) return;
+    if (!sid || this.savingExercises()) return;
+    this.savingExercises.set(true);
     try {
       await this.workoutLog.replaceSessionExercises(sid, next);
       await this.journal.refresh();
@@ -74,6 +82,8 @@ export class WorkoutDetailPage implements ViewWillEnter {
         position: 'bottom',
       });
       await t.present();
+    } finally {
+      this.savingExercises.set(false);
     }
   }
 

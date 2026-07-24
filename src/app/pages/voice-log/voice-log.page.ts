@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { IonContent, NavController, ToastController } from '@ionic/angular/standalone';
+import { IonContent, IonSpinner, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   mic,
@@ -35,6 +35,7 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
   imports: [
     RouterLink,
     IonContent,
+    IonSpinner,
     NgClass,
     SessionExerciseReviewCardComponent,
     VoxIconComponent,
@@ -54,6 +55,7 @@ export class VoiceLogPage {
   protected readonly dots = signal('');
   protected readonly result = signal<VoiceDoneMock | null>(null);
   protected readonly cardExercises = signal<WorkoutExerciseExtract[]>([]);
+  protected readonly saving = signal(false);
   /** Live recording duration for the recording-state timer. */
   protected readonly elapsedSeconds = signal(0);
 
@@ -203,6 +205,7 @@ export class VoiceLogPage {
   }
 
   protected async save(): Promise<void> {
+    if (this.saving()) return;
     const uid = this.auth.user()?.id;
     if (!uid) {
       await this.presentToast('Sign in to save your workout.', 'warning');
@@ -215,6 +218,7 @@ export class VoiceLogPage {
     }
     const parsed = { ...parsedBase, exercises: this.cardExercises() };
     this.pendingExtract = parsed;
+    this.saving.set(true);
     try {
       await this.workoutLog.saveSession(uid, parsed);
       await this.workoutJournal.refresh();
@@ -224,6 +228,8 @@ export class VoiceLogPage {
       console.error('[VoiceLog] Save failed:', err);
       const msg = err instanceof Error ? err.message : 'Save failed';
       await this.presentToast(msg, 'danger');
+    } finally {
+      this.saving.set(false);
     }
   }
 

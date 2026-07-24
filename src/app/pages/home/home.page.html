@@ -13,90 +13,132 @@
   </header>
 
   <main class="flex-1 space-y-6 px-2 pb-6">
-    <!-- Streak -->
-    <section class="flex items-center justify-between rounded-xl bg-surface-1 p-4 ring-1 ring-hairline">
-      <div>
-        <p class="m-0 vx-text-10 uppercase vx-tracking-18 text-ink-subtle">Current Streak</p>
-        <p class="m-0 mt-1 font-mono text-2xl text-ink">
-          {{ journal.streak().days }}<span class="ml-2 text-sm text-ink-subtle">DAYS</span>
-        </p>
-      </div>
-      <div class="grid h-12 w-12 place-items-center rounded-full bg-primary-dim border border-primary-dim">
-        <vox-icon name="flame-outline" tone="accent" size="lg" />
-      </div>
-    </section>
+    @if (showSkeleton()) {
+      <!-- Streak skeleton -->
+      <section class="flex items-center justify-between rounded-xl bg-surface-1 p-4 ring-1 ring-hairline">
+        <div>
+          <vox-skeleton shape="text" width="90px" height="10px" />
+          <vox-skeleton shape="text" width="70px" height="24px" radius="sm" class="mt-2" />
+        </div>
+        <vox-skeleton shape="circle" width="48px" height="48px" surface="surface-4" />
+      </section>
 
-    <!-- Nutrition -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="m-0 text-sm font-medium text-ink-muted">Daily Nutrition</h2>
-        @if (caloriesRow(); as cal) {
-          <span class="font-mono text-xs text-ink-subtle">{{ cal.current }} / {{ cal.target }} CAL</span>
-        }
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        @for (tile of macroTiles(); track tile.label) {
-          <div class="rounded-lg bg-surface-2 p-4 ring-1 ring-hairline">
-            <p class="m-0 vx-text-6 uppercase tracking-wide text-ink-subtle">{{ tile.label }}</p>
-            <p class="m-0 mt-2 font-mono text-sm" [class.text-primary]="tile.accent" [class.text-ink]="!tile.accent">
-              {{ tile.value }}
-              @if (tile.unit) {
-                <span class="ml-1 vx-text-10 text-ink-subtle">{{ tile.unit }}</span>
-              }
-            </p>
-          </div>
-        }
-      </div>
-      @if (macros().hint; as hintText) {
-        <p class="m-0 flex items-center gap-2 rounded-md bg-surface-3 px-3 py-3 text-xs leading-snug text-ink-subtle">
-          @if (hintText.includes('No meals logged')) {
-            <vox-icon name="stats-chart-outline" tone="ink-subtle" size="xs" />
-          } @else {
-            <vox-icon name="flash-outline" tone="warning" size="xs" />
-          }
-          {{ hintText }}
-        </p>
-      }
-    </section>
-
-    <!-- Today's Session -->
-    <section class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="m-0 text-sm font-medium text-ink-muted">Today's Session</h2>
-        <a routerLink="/tabs/workout" class="flex items-center gap-1 text-xs font-medium text-primary no-underline">
-          Journal
-          <vox-icon name="chevron-forward-outline" size="xs" />
-        </a>
-      </div>
-      <div class="space-y-4 rounded-xl bg-surface-1 p-5 ring-1 ring-hairline">
-        @if (journal.hasLoggedToday() && journal.todayWorkout(); as workoutCard) {
-          <div>
-            <div class="flex items-center gap-2">
-              <h3 class="m-0 text-lg font-medium text-ink">{{ workoutCard.subtitle }}</h3>
+      <!-- Nutrition skeleton -->
+      <section class="space-y-4">
+        <vox-skeleton shape="text" width="120px" height="12px" />
+        <div class="grid grid-cols-2 gap-3">
+          @for (i of [0, 1, 2, 3]; track i) {
+            <div class="rounded-lg bg-surface-2 p-4 ring-1 ring-hairline">
+              <vox-skeleton shape="text" width="40px" height="8px" surface="surface-4" />
+              <vox-skeleton shape="text" width="56px" height="14px" class="mt-2" surface="surface-4" />
             </div>
-            <p class="m-0 mt-1 text-xs text-ink-subtle">{{ workoutCard.statusLabel }}</p>
+          }
+        </div>
+        <vox-skeleton height="40px" radius="md" />
+      </section>
+
+      <!-- Today's session skeleton -->
+      <section class="space-y-3">
+        <vox-skeleton shape="text" width="130px" height="12px" />
+        <div class="space-y-4 rounded-xl bg-surface-1 p-5 ring-1 ring-hairline">
+          <div>
+            <vox-skeleton shape="text" width="55%" height="18px" />
+            <vox-skeleton shape="text" width="30%" height="10px" class="mt-2" />
           </div>
           <div class="flex flex-wrap gap-2">
-            @for (ex of workoutCard.exerciseChips; track ex) {
-              <span class="rounded bg-surface-3 px-3 py-1 vx-text-11 text-ink-muted ring-1 ring-hairline-strong">{{ ex }}</span>
+            @for (i of [0, 1, 2]; track i) {
+              <vox-skeleton shape="pill" width="72px" height="24px" surface="surface-4" />
             }
           </div>
-          <div class="rounded-md border-l-2 border-success bg-surface-3 px-3 py-3">
-            <p class="m-0 mb-1 text-xs font-semibold text-success">{{ workoutCard.coachTitle }}</p>
-            <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ workoutCard.coachNote }}</p>
-          </div>
-        } @else {
-          <div>
-            <h3 class="m-0 text-lg font-medium text-ink">Today's Workout</h3>
-            <p class="m-0 mt-1 text-xs text-ink-subtle">Not logged yet</p>
-          </div>
-          <p class="m-0 text-sm leading-relaxed text-ink-subtle">
-            You have not logged a workout today. Hit the button below and tell VoxFit what you did — we will turn it
-            into a structured session.
+          <vox-skeleton height="52px" radius="md" />
+        </div>
+      </section>
+    } @else {
+      <!-- Streak -->
+      <section class="flex items-center justify-between rounded-xl bg-surface-1 p-4 ring-1 ring-hairline">
+        <div>
+          <p class="m-0 vx-text-10 uppercase vx-tracking-18 text-ink-subtle">Current Streak</p>
+          <p class="m-0 mt-1 font-mono text-2xl text-ink">
+            {{ journal.streak().days }}<span class="ml-2 text-sm text-ink-subtle">DAYS</span>
+          </p>
+        </div>
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-primary-dim border border-primary-dim">
+          <vox-icon name="flame-outline" tone="accent" size="lg" />
+        </div>
+      </section>
+
+      <!-- Nutrition -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="m-0 text-sm font-medium text-ink-muted">Daily Nutrition</h2>
+          @if (caloriesRow(); as cal) {
+            <span class="font-mono text-xs text-ink-subtle">{{ cal.current }} / {{ cal.target }} CAL</span>
+          }
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          @for (tile of macroTiles(); track tile.label) {
+            <div class="rounded-lg bg-surface-2 p-4 ring-1 ring-hairline">
+              <p class="m-0 vx-text-6 uppercase tracking-wide text-ink-subtle">{{ tile.label }}</p>
+              <p class="m-0 mt-2 font-mono text-sm" [class.text-primary]="tile.accent" [class.text-ink]="!tile.accent">
+                {{ tile.value }}
+                @if (tile.unit) {
+                  <span class="ml-1 vx-text-10 text-ink-subtle">{{ tile.unit }}</span>
+                }
+              </p>
+            </div>
+          }
+        </div>
+        @if (macros().hint; as hintText) {
+          <p class="m-0 flex items-center gap-2 rounded-md bg-surface-3 px-3 py-3 text-xs leading-snug text-ink-subtle">
+            @if (hintText.includes('No meals logged')) {
+              <vox-icon name="stats-chart-outline" tone="ink-subtle" size="xs" />
+            } @else {
+              <vox-icon name="flash-outline" tone="warning" size="xs" />
+            }
+            {{ hintText }}
           </p>
         }
-      </div>
-    </section>
+      </section>
+
+      <!-- Today's Session -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="m-0 text-sm font-medium text-ink-muted">Today's Session</h2>
+          <a routerLink="/tabs/workout" class="flex items-center gap-1 text-xs font-medium text-primary no-underline">
+            Journal
+            <vox-icon name="chevron-forward-outline" size="xs" />
+          </a>
+        </div>
+        <div class="space-y-4 rounded-xl bg-surface-1 p-5 ring-1 ring-hairline">
+          @if (journal.hasLoggedToday() && journal.todayWorkout(); as workoutCard) {
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="m-0 text-lg font-medium text-ink">{{ workoutCard.subtitle }}</h3>
+              </div>
+              <p class="m-0 mt-1 text-xs text-ink-subtle">{{ workoutCard.statusLabel }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              @for (ex of workoutCard.exerciseChips; track ex) {
+                <span class="rounded bg-surface-3 px-3 py-1 vx-text-11 text-ink-muted ring-1 ring-hairline-strong">{{ ex }}</span>
+              }
+            </div>
+            <div class="rounded-md border-l-2 border-success bg-surface-3 px-3 py-3">
+              <p class="m-0 mb-1 text-xs font-semibold text-success">{{ workoutCard.coachTitle }}</p>
+              <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ workoutCard.coachNote }}</p>
+            </div>
+          } @else {
+            <div>
+              <h3 class="m-0 text-lg font-medium text-ink">Today's Workout</h3>
+              <p class="m-0 mt-1 text-xs text-ink-subtle">Not logged yet</p>
+            </div>
+            <p class="m-0 text-sm leading-relaxed text-ink-subtle">
+              You have not logged a workout today. Hit the button below and tell VoxFit what you did — we will turn it
+              into a structured session.
+            </p>
+          }
+        </div>
+      </section>
+    }
 
     <!-- Log CTAs -->
     <section class="grid grid-cols-2 gap-3 pt-2">

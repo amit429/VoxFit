@@ -11,6 +11,10 @@ export class NutritionDashboardService {
 
   readonly loadState = signal<'idle' | 'loading' | 'error'>('idle');
   readonly lastError = signal<string | null>(null);
+  /** True once `refresh()` has settled at least once — gates skeleton UI without re-flashing on every tab revisit. */
+  readonly hasLoadedOnce = signal(false);
+  /** True once `refreshMonthlyHistory()` has settled at least once — separate loader, only Profile calls it. */
+  readonly monthlyHistoryLoaded = signal(false);
 
   /** Aggregates for local calendar day. */
   private readonly totals = signal({ calories: 0, protein: 0, carbs: 0, fat: 0 });
@@ -61,71 +65,79 @@ export class NutritionDashboardService {
   });
 
   async refresh(): Promise<void> {
-    const uid = this.auth.user()?.id;
-    if (!uid) {
-      this.totals.set({ calories: 0, protein: 0, carbs: 0, fat: 0 });
-      this.loadState.set('idle');
+    try {
+      const uid = this.auth.user()?.id;
+      if (!uid) {
+        this.totals.set({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+        this.loadState.set('idle');
+        this.lastError.set(null);
+        return;
+      }
+
+      const today = parseLocalDateKey(new Date());
+      this.loadState.set('loading');
       this.lastError.set(null);
-      return;
+
+      const { data, error } = await this.supabase.client
+        .from('diet_logs')
+        .select('calories, protein_g, carbs_g, fat_g')
+        .eq('user_id', uid)
+        .eq('date', today);
+
+      if (error) {
+        console.error('[NutritionDashboard]', error);
+        this.lastError.set(error.message);
+        this.loadState.set('error');
+        return;
+      }
+
+      let calories = 0;
+      let protein = 0;
+      let carbs = 0;
+      let fat = 0;
+      for (const row of data ?? []) {
+        calories += Number(row['calories'] ?? 0);
+        protein += Number(row['protein_g'] ?? 0);
+        carbs += Number(row['carbs_g'] ?? 0);
+        fat += Number(row['fat_g'] ?? 0);
+      }
+
+      this.totals.set({ calories, protein, carbs, fat });
+      this.loadState.set('idle');
+    } finally {
+      this.hasLoadedOnce.set(true);
     }
-
-    const today = parseLocalDateKey(new Date());
-    this.loadState.set('loading');
-    this.lastError.set(null);
-
-    const { data, error } = await this.supabase.client
-      .from('diet_logs')
-      .select('calories, protein_g, carbs_g, fat_g')
-      .eq('user_id', uid)
-      .eq('date', today);
-
-    if (error) {
-      console.error('[NutritionDashboard]', error);
-      this.lastError.set(error.message);
-      this.loadState.set('error');
-      return;
-    }
-
-    let calories = 0;
-    let protein = 0;
-    let carbs = 0;
-    let fat = 0;
-    for (const row of data ?? []) {
-      calories += Number(row['calories'] ?? 0);
-      protein += Number(row['protein_g'] ?? 0);
-      carbs += Number(row['carbs_g'] ?? 0);
-      fat += Number(row['fat_g'] ?? 0);
-    }
-
-    this.totals.set({ calories, protein, carbs, fat });
-    this.loadState.set('idle');
   }
 
   /** Scoped fetch for the Profile "calorie intake per month" chart — last `months` calendar months only. */
   async refreshMonthlyHistory(months = 6): Promise<void> {
-    const uid = this.auth.user()?.id;
-    if (!uid) {
-      this.monthlyCalorieRows.set([]);
-      return;
+    try {
+      const uid = this.auth.user()?.id;
+      if (!uid) {
+        this.monthlyCalorieRows.set([]);
+        return;
+      }
+
+      const fromDate = monthKeysRangeStart(getLastNMonthKeys(months));
+      const toDate = parseLocalDateKey(new Date());
+
+      const { data, error } = await this.supabase.client
+        .from('diet_logs')
+        .select('date, calories')
+        .eq('user_id', uid)
+        .gte('date', fromDate)
+        .lte('date', toDate);
+
+      if (error) {
+        console.error('[NutritionDashboard] monthly history', error);
+        return;
+      }
+
+      this.monthlyCalorieRows.set(
+        (data ?? []).map((r) => ({ date: String(r['date'] ?? ''), calories: Number(r['calories'] ?? 0) })),
+      );
+    } finally {
+      this.monthlyHistoryLoaded.set(true);
     }
-
-    const fromDate = monthKeysRangeStart(getLastNMonthKeys(months));
-    const toDate = parseLocalDateKey(new Date());
-
-    const { data, error } = await this.supabase.client
-      .from('diet_logs')
-      .select('date, calories')
-      .eq('user_id', uid)
-      .gte('date', fromDate)
-      .lte('date', toDate);
-
-    if (error) {
-      console.error('[NutritionDashboard] monthly history', error);
-      return;
-    }
-
-    this.monthlyCalorieRows.set(
-      (data ?? []).map((r) => ({ date: String(r['date'] ?? ''), calories: Number(r['calories'] ?? 0) })),
-    );
   }
 }

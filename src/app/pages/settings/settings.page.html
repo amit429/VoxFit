@@ -134,10 +134,17 @@
       <div
         type="button"
         (click)="signOut()"
+        [class.opacity-50]="signingOut()"
+        [class.pointer-events-none]="signingOut()"
+        [attr.aria-busy]="signingOut()"
         class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
       >
-        <vox-icon name="log-out-outline" tone="danger" size="sm" />
-        Sign out
+        @if (signingOut()) {
+          Signing out…
+        } @else {
+          <vox-icon name="log-out-outline" tone="danger" size="sm" />
+          Sign out
+        }
       </div>
     </main>
   </div>

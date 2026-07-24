@@ -35,6 +35,8 @@ export class WorkoutJournalService {
   private readonly auth = inject(AuthService);
 
   readonly loadState = signal<'idle' | 'loading' | 'error'>('idle');
+  /** True once `refresh()` has settled at least once — gates skeleton UI without re-flashing on every tab revisit. */
+  readonly hasLoadedOnce = signal(false);
 
   /** Full history for journal + aggregates (newest first). */
   readonly sessions = signal<WorkoutSessionRow[]>([]);
@@ -97,49 +99,53 @@ export class WorkoutJournalService {
   }
 
   async refresh(): Promise<void> {
-    const uid = this.auth.user()?.id;
-    if (!uid) {
-      this.sessions.set([]);
-      this.applyEmptyAggregates();
-      this.loadState.set('idle');
-      return;
-    }
+    try {
+      const uid = this.auth.user()?.id;
+      if (!uid) {
+        this.sessions.set([]);
+        this.applyEmptyAggregates();
+        this.loadState.set('idle');
+        return;
+      }
 
-    this.loadState.set('loading');
-    this.lastError.set(null);
+      this.loadState.set('loading');
+      this.lastError.set(null);
 
-    const { data, error } = await this.supabase.client
-      .from('workout_sessions')
-      .select(
+      const { data, error } = await this.supabase.client
+        .from('workout_sessions')
+        .select(
+          `
+          id, user_id, date, session_label, ai_summary, mood, energy_level, physical_flags, created_at, raw_transcript,
+          exercises_logged (
+            id, session_id, exercise_name, exercise_type, sets, reps, weight_kg,
+            duration_secs, distance_km, is_pr, summary_line, set_lines
+          )
         `
-        id, user_id, date, session_label, ai_summary, mood, energy_level, physical_flags, created_at, raw_transcript,
-        exercises_logged (
-          id, session_id, exercise_name, exercise_type, sets, reps, weight_kg,
-          duration_secs, distance_km, is_pr, summary_line, set_lines
         )
-      `
-      )
-      .eq('user_id', uid)
-      .order('date', { ascending: false })
-      .order('created_at', { ascending: false });
+        .eq('user_id', uid)
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('[WorkoutJournal]', error);
-      this.loadState.set('error');
-      this.lastError.set(error.message);
-      return;
+      if (error) {
+        console.error('[WorkoutJournal]', error);
+        this.loadState.set('error');
+        this.lastError.set(error.message);
+        return;
+      }
+
+      const rows = (data ?? []) as WorkoutSessionRow[];
+      rows.sort((a, b) => {
+        const ad = a.date ?? '';
+        const bd = b.date ?? '';
+        if (ad !== bd) return bd.localeCompare(ad);
+        return (b.created_at ?? '').localeCompare(a.created_at ?? '');
+      });
+      this.sessions.set(rows);
+      this.applyAggregates(rows);
+      this.loadState.set('idle');
+    } finally {
+      this.hasLoadedOnce.set(true);
     }
-
-    const rows = (data ?? []) as WorkoutSessionRow[];
-    rows.sort((a, b) => {
-      const ad = a.date ?? '';
-      const bd = b.date ?? '';
-      if (ad !== bd) return bd.localeCompare(ad);
-      return (b.created_at ?? '').localeCompare(a.created_at ?? '');
-    });
-    this.sessions.set(rows);
-    this.applyAggregates(rows);
-    this.loadState.set('idle');
   }
 
   private applyEmptyAggregates(): void {

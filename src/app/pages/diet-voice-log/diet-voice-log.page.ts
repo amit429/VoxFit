@@ -10,6 +10,7 @@ import {
   IonButtons,
   IonModal,
   IonButton,
+  IonSpinner,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -59,6 +60,7 @@ type DietVoiceMode = 'suggest' | 'log_eaten';
     IonButtons,
     IonModal,
     IonButton,
+    IonSpinner,
     VoxCardComponent,
     VoxBadgeComponent,
     VoxIconComponent,
@@ -79,6 +81,9 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
   protected readonly meals = signal<DietMealSuggestion[]>([]);
   protected readonly eatenMeal = signal<EatenMealAnalysis | null>(null);
   protected readonly recipeDetail = signal<DietMealSuggestion | null>(null);
+  /** Key of the suggested-meal card currently being logged, or null when none is in flight — blocks double-logging across the list. */
+  protected readonly loggingMealKey = signal<string | null>(null);
+  protected readonly loggingEaten = signal(false);
 
   /** Raw browser transcript — only ever needed as Gemini's suggestion input, never persisted. */
   private pendingTranscript = '';
@@ -183,6 +188,10 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     }
   }
 
+  protected mealKey(meal: DietMealSuggestion, index: number): string {
+    return `${meal.name}::${index}`;
+  }
+
   protected openRecipe(meal: DietMealSuggestion): void {
     this.recipeDetail.set(meal);
   }
@@ -195,12 +204,14 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
    * After a successful log: remove every other suggestion and return to the start screen
    * so the user isn’t tempted to log duplicates from the same batch.
    */
-  protected async logMeal(meal: DietMealSuggestion): Promise<void> {
+  protected async logMeal(meal: DietMealSuggestion, index: number): Promise<void> {
+    if (this.loggingMealKey() !== null) return;
     const uid = this.auth.user()?.id;
     if (!uid) {
       await this.presentToast('Sign in to log meals.', 'warning');
       return;
     }
+    this.loggingMealKey.set(this.mealKey(meal, index));
     try {
       await this.dietLog.logSuggestedMeal(uid, meal);
       await this.nutrition.refresh();
@@ -210,16 +221,20 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
       console.error('[DietVoiceLog] log meal', err);
       const msg = err instanceof Error ? err.message : 'Could not save meal';
       await this.presentToast(msg, 'danger');
+    } finally {
+      this.loggingMealKey.set(null);
     }
   }
 
   /** Mirrors `logMeal` for the log-eaten flow — no recipe/prep fields, `source: 'manual'`. */
   protected async logEatenMeal(meal: EatenMealAnalysis): Promise<void> {
+    if (this.loggingEaten()) return;
     const uid = this.auth.user()?.id;
     if (!uid) {
       await this.presentToast('Sign in to log meals.', 'warning');
       return;
     }
+    this.loggingEaten.set(true);
     try {
       await this.dietLog.logEatenMeal(uid, meal);
       await this.nutrition.refresh();
@@ -229,6 +244,8 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
       console.error('[DietVoiceLog] log eaten meal', err);
       const msg = err instanceof Error ? err.message : 'Could not save meal';
       await this.presentToast(msg, 'danger');
+    } finally {
+      this.loggingEaten.set(false);
     }
   }
 

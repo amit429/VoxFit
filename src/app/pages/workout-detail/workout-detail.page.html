@@ -19,7 +19,42 @@
   </header>
 
   <main class="flex-1 space-y-6 px-2 pb-6">
-    @if (detail(); as d) {
+    @if (loadingDetail()) {
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="grid grid-cols-3 gap-3">
+          @for (i of [0, 1, 2]; track i) {
+            <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
+              <vox-skeleton shape="text" width="36px" height="10px" class="mx-auto" />
+              <vox-skeleton shape="text" width="48px" height="16px" class="mx-auto mt-2" surface="surface-4" />
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-2xl bg-surface-1 ring-1 ring-hairline">
+        <div class="flex items-center justify-between border-b border-hairline p-4">
+          <div class="min-w-0">
+            <vox-skeleton shape="text" width="60px" height="10px" />
+            <vox-skeleton shape="text" width="140px" height="16px" class="mt-2" />
+          </div>
+          <vox-skeleton shape="pill" width="64px" height="22px" />
+        </div>
+        <div class="space-y-3 p-4">
+          @for (i of [0, 1]; track i) {
+            <div class="flex items-center justify-between rounded-md bg-surface-2 px-3 py-3">
+              <vox-skeleton shape="text" width="55%" height="14px" />
+              <vox-skeleton shape="circle" width="16px" height="16px" />
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <vox-skeleton shape="text" width="120px" height="12px" />
+        <vox-skeleton shape="text" width="90%" height="12px" class="mt-3" />
+        <vox-skeleton shape="text" width="60%" height="12px" class="mt-2" />
+      </section>
+    } @else if (detail(); as d) {
       <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
         <div class="grid grid-cols-3 gap-3">
           <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
@@ -54,6 +89,7 @@
             [sessionTitle]="d.title"
             [coachSummary]="d.coachNote || null"
             [exercises]="detailExercises()"
+            [saving]="savingExercises()"
             (exercisesChange)="onJournalExercisesChange($event)"
           />
         </div>
@@ -74,8 +110,6 @@
         </p>
         <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4">Back to journal</button>
       </section>
-    } @else {
-      <p class="m-0 mt-6 text-center text-sm text-ink-subtle">Loading session…</p>
     }
   </main>
 </ion-content>

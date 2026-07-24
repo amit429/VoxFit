@@ -1,4 +1,5 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
@@ -54,7 +55,7 @@ const HEATMAP_BACKGROUNDS = [
   standalone: true,
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  imports: [VoxIconComponent, IonContent],
+  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent],
 })
 export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
@@ -63,6 +64,13 @@ export class ProfilePage implements ViewWillEnter {
   private readonly nutrition = inject(NutritionDashboardService);
 
   protected readonly profile = this.auth.profile;
+
+  protected readonly showSkeleton = computed(
+    () => !this.journal.hasLoadedOnce() || !this.nutrition.monthlyHistoryLoaded(),
+  );
+
+  protected readonly heatmapSkeletonCells = Array.from({ length: HEATMAP_WEEKS * 7 }, (_, i) => i);
+  protected readonly profileChartSkeletonBars = Array.from({ length: MONTHLY_CHART_MONTHS }, (_, i) => i);
 
   /** Oldest→newest window for both monthly charts below — captured once per page load. */
   private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);

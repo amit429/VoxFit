@@ -1,4 +1,5 @@
 import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
+import { IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline, chevronUpOutline, createOutline, sparklesOutline, trophyOutline } from 'ionicons/icons';
 import type { WorkoutExerciseExtract } from '@/app/models';
@@ -20,6 +21,7 @@ addIcons({ createOutline, chevronDownOutline, chevronUpOutline, sparklesOutline,
     VoxCardComponent,
     VoxBadgeComponent,
     VoxIconComponent,
+    IonSpinner,
   ],
   templateUrl: './session-exercise-review-card.component.html',
   styleUrl: './session-exercise-review-card.component.scss',
@@ -30,6 +32,8 @@ export class SessionExerciseReviewCardComponent {
   readonly exercises = input.required<readonly WorkoutExerciseExtract[]>();
   /** When this changes (e.g. journal session id), accordion expansion resets. */
   readonly sessionContextId = input<string | undefined>(undefined);
+  /** True while a parent-owned async save (e.g. persisting an edit) is in flight — dims the list and blocks re-opening the editor. */
+  readonly saving = input(false);
 
   readonly exercisesChange = output<WorkoutExerciseExtract[]>();
 
@@ -64,6 +68,7 @@ export class SessionExerciseReviewCardComponent {
   }
 
   protected openExerciseEditor(exerciseIndex: number, setRowIndex?: number, ev?: Event): void {
+    if (this.saving()) return;
     ev?.stopPropagation();
     this.editingExerciseIndex.set(exerciseIndex);
     this.editorFocusSetRowIndex.set(setRowIndex ?? null);

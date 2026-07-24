@@ -160,8 +160,8 @@
         <p class="m-0 mb-4 text-xs text-ink-subtle">
           Tap a meal name for the recipe. Logging one meal clears this list — use Diet to see everything you logged today.
         </p>
-        @for (meal of meals(); track meal.name + $index) {
-          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+        @for (meal of meals(); track meal.name + $index; let i = $index) {
+          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline" [class.opacity-50]="loggingMealKey() !== null && loggingMealKey() !== mealKey(meal, i)">
             <div
               type="button"
               class="mb-3 flex w-full items-start justify-between gap-3 border-0 bg-transparent p-0 text-left active:opacity-90"
@@ -198,9 +198,20 @@
               <vox-icon name="checkmark-circle" tone="success" size="xs" class="mt-0.5 shrink-0" />
               <span>{{ meal.rationale }}</span>
             </p>
-            <div type="button" (click)="logMeal(meal)" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors">
-              <vox-icon name="checkmark-outline" size="sm" />
-              Log this meal
+            <div
+              type="button"
+              (click)="logMeal(meal, i)"
+              [class.pointer-events-none]="loggingMealKey() !== null"
+              [attr.aria-busy]="loggingMealKey() === mealKey(meal, i)"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors"
+            >
+              @if (loggingMealKey() === mealKey(meal, i)) {
+                <ion-spinner name="crescent" style="--color: currentColor; width: 16px; height: 16px" />
+                Logging…
+              } @else {
+                <vox-icon name="checkmark-outline" size="sm" />
+                Log this meal
+              }
             </div>
           </div>
         }
@@ -237,9 +248,21 @@
             <vox-icon name="checkmark-circle" tone="success" size="xs" class="mt-0.5 shrink-0" />
             <span>{{ meal.rationale }}</span>
           </p>
-          <div type="button" (click)="logEatenMeal(meal)" class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors">
-            <vox-icon name="checkmark-outline" size="sm" />
-            Log this meal
+          <div
+            type="button"
+            (click)="logEatenMeal(meal)"
+            [class.opacity-50]="loggingEaten()"
+            [class.pointer-events-none]="loggingEaten()"
+            [attr.aria-busy]="loggingEaten()"
+            class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors"
+          >
+            @if (loggingEaten()) {
+              <ion-spinner name="crescent" style="--color: currentColor; width: 16px; height: 16px" />
+              Logging…
+            } @else {
+              <vox-icon name="checkmark-outline" size="sm" />
+              Log this meal
+            }
           </div>
         </div>
       </div>

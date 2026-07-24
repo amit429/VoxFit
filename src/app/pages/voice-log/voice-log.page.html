@@ -180,10 +180,18 @@
             <div
               type="button"
               (click)="save()"
+              [class.opacity-50]="saving()"
+              [class.pointer-events-none]="saving()"
+              [attr.aria-busy]="saving()"
               class="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white ring-1 ring-primary transition-colors"
             >
-              <vox-icon name="checkmark-outline" size="sm" />
-              Save session
+              @if (saving()) {
+                <ion-spinner name="crescent" style="--color: currentColor; width: 16px; height: 16px" />
+                Saving…
+              } @else {
+                <vox-icon name="checkmark-outline" size="sm" />
+                Save session
+              }
             </div>
           </div>
         </div>

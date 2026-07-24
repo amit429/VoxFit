@@ -15,50 +15,71 @@
     }
 
     <!-- Macro card -->
-    <section class="space-y-4 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-      <div class="flex items-end justify-between">
-        <div>
-          <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">Today</p>
-          @if (macroSummary().calories; as cal) {
-            <p class="m-0 mt-1 font-mono text-2xl tracking-tight text-ink">
-              {{ cal.current }}<span class="ml-2 text-xs font-sans text-ink-subtle">/ {{ cal.target }} kcal</span>
-            </p>
-          }
+    @if (!nutrition.hasLoadedOnce()) {
+      <section class="space-y-4 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="flex items-end justify-between">
+          <div>
+            <vox-skeleton shape="text" width="40px" height="10px" />
+            <vox-skeleton shape="text" width="100px" height="22px" class="mt-2" />
+          </div>
+          <vox-skeleton shape="text" width="30px" height="12px" />
         </div>
-        <span class="font-mono text-xs text-primary">{{ macroSummary().pct }}%</span>
-      </div>
-
-      <div class="flex h-2 w-full overflow-hidden rounded-full bg-surface-3">
-        <div class="h-full bg-primary" [style.width.%]="macroSummary().segments[0].widthPct"></div>
-        <div class="h-full vx-bg-primary-60" [style.width.%]="macroSummary().segments[1].widthPct"></div>
-        <div class="h-full vx-bg-primary-30" [style.width.%]="macroSummary().segments[2].widthPct"></div>
-      </div>
-
-      <div class="grid grid-cols-3 gap-3 pt-1">
-        @for (seg of macroSummary().segments; track seg.label) {
-          @if (seg.row; as row) {
+        <vox-skeleton shape="pill" height="8px" width="100%" surface="surface-3" />
+        <div class="grid grid-cols-3 gap-3 pt-1">
+          @for (i of [0, 1, 2]; track i) {
             <div>
-              <p class="m-0 vx-text-10 uppercase tracking-wide text-ink-subtle">{{ seg.label }}</p>
-              <p class="m-0 mt-1 font-mono text-sm text-ink">
-                {{ row.current }}<span class="vx-text-10 text-ink-subtle">g</span>
-                <span class="ml-1 vx-text-10 text-ink-tertiary">/ {{ row.target }}</span>
-              </p>
+              <vox-skeleton shape="text" width="45px" height="8px" />
+              <vox-skeleton shape="text" width="55px" height="14px" class="mt-2" />
             </div>
           }
-        }
-      </div>
+        </div>
+      </section>
+    } @else {
+      <section class="space-y-4 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+        <div class="flex items-end justify-between">
+          <div>
+            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">Today</p>
+            @if (macroSummary().calories; as cal) {
+              <p class="m-0 mt-1 font-mono text-2xl tracking-tight text-ink">
+                {{ cal.current }}<span class="ml-2 text-xs font-sans text-ink-subtle">/ {{ cal.target }} kcal</span>
+              </p>
+            }
+          </div>
+          <span class="font-mono text-xs text-primary">{{ macroSummary().pct }}%</span>
+        </div>
 
-      @if (macros().hint; as hintText) {
-        <p class="m-0 flex items-center gap-2 rounded-md bg-surface-3 px-3 py-3 text-xs leading-snug text-ink-subtle">
-          @if (hintText.includes('No meals logged')) {
-            <vox-icon name="stats-chart-outline" tone="ink-subtle" size="xs" />
-          } @else {
-            <vox-icon name="flash-outline" tone="warning" size="xs" />
+        <div class="flex h-2 w-full overflow-hidden rounded-full bg-surface-3">
+          <div class="h-full bg-primary" [style.width.%]="macroSummary().segments[0].widthPct"></div>
+          <div class="h-full vx-bg-primary-60" [style.width.%]="macroSummary().segments[1].widthPct"></div>
+          <div class="h-full vx-bg-primary-30" [style.width.%]="macroSummary().segments[2].widthPct"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 pt-1">
+          @for (seg of macroSummary().segments; track seg.label) {
+            @if (seg.row; as row) {
+              <div>
+                <p class="m-0 vx-text-10 uppercase tracking-wide text-ink-subtle">{{ seg.label }}</p>
+                <p class="m-0 mt-1 font-mono text-sm text-ink">
+                  {{ row.current }}<span class="vx-text-10 text-ink-subtle">g</span>
+                  <span class="ml-1 vx-text-10 text-ink-tertiary">/ {{ row.target }}</span>
+                </p>
+              </div>
+            }
           }
-          {{ hintText }}
-        </p>
-      }
-    </section>
+        </div>
+
+        @if (macros().hint; as hintText) {
+          <p class="m-0 flex items-center gap-2 rounded-md bg-surface-3 px-3 py-3 text-xs leading-snug text-ink-subtle">
+            @if (hintText.includes('No meals logged')) {
+              <vox-icon name="stats-chart-outline" tone="ink-subtle" size="xs" />
+            } @else {
+              <vox-icon name="flash-outline" tone="warning" size="xs" />
+            }
+            {{ hintText }}
+          </p>
+        }
+      </section>
+    }
 
     <a
       routerLink="/log-diet"
@@ -161,7 +182,24 @@
     }
 
     @if (logsLoading()) {
-      <p class="m-0 text-center text-sm text-ink-subtle">Loading meals…</p>
+      <section class="space-y-2">
+        @for (i of [0, 1, 2]; track i) {
+          <div class="mb-2 block w-full space-y-3 rounded-xl bg-surface-1 p-4 ring-1 ring-hairline">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <vox-skeleton shape="text" width="70px" height="9px" />
+                <vox-skeleton shape="text" width="120px" height="14px" class="mt-2" />
+              </div>
+              <div class="flex shrink-0 gap-2">
+                @for (j of [0, 1, 2]; track j) {
+                  <vox-skeleton shape="pill" width="34px" height="20px" surface="surface-3" />
+                }
+              </div>
+            </div>
+            <vox-skeleton shape="text" width="60px" height="9px" />
+          </div>
+        }
+      </section>
     }
 
     @if (!logsLoading() && !logsError() && rawLogs().length === 0) {

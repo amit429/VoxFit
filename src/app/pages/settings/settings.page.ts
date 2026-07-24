@@ -46,6 +46,7 @@ export class SettingsPage implements OnInit {
   protected readonly appVersion = APP_VERSION;
 
   protected readonly saving = signal(false);
+  protected readonly signingOut = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     displayName: [''],
@@ -111,11 +112,15 @@ export class SettingsPage implements OnInit {
   }
 
   protected async signOut(): Promise<void> {
+    if (this.signingOut()) return;
+    this.signingOut.set(true);
     try {
       await this.auth.signOut();
       await this.navCtrl.navigateRoot('/auth/welcome', { animated: true, animationDirection: 'forward' });
     } catch (err) {
       console.error('Sign out failed', err);
+    } finally {
+      this.signingOut.set(false);
     }
   }
 
