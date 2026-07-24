@@ -14,8 +14,8 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 - Review & edit AI-extracted data before saving — your data, your control
 
 🍽️ **Voice-Driven Meal Logging**
-- Tap-to-speak meal suggestions based on your cravings and pantry
-- AI generates meal suggestions with macro breakdowns
+- Tap-to-speak meal suggestions based on your cravings and pantry, complete with recipes
+- Tap-to-speak logging of meals you've already eaten — describe it once, AI estimates the nutrients and logs it
 - Track calories and macros (Protein, Carbs, Fats) against daily targets
 - Smart recommendations against your nutrition goals
 
@@ -45,7 +45,7 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 | **Frontend** | Angular 20 (standalone components, signals), Ionic Angular 8, Tailwind CSS v4 |
 | **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), Progressive Web App |
 | **Backend** | Supabase (PostgreSQL, Auth, Edge Functions) |
-| **AI** | Google Gemini 2.5 Flash (workout parsing, meal suggestions) |
+| **AI** | Google Gemini 2.5 Flash (workout parsing, meal suggestions, eaten-meal analysis) |
 | **Fonts** | Inter 500/600/700, JetBrains Mono 400/500 (self-hosted via @fontsource) |
 | **Icons** | Ionicons 7 |
 | **State** | Angular signals (lightweight, reactive) |
@@ -108,9 +108,10 @@ npm run android:run:dev
 - **Home**: Dashboard with streak, today's workout, nutrition macros
 - **Voice Log** (`/voice`): Hold-to-talk workout capture with AI review
 - **Workout** (`/tabs/workout`): Session history, list/detail views, weekly volume chart
-- **Diet Voice Log** (`/log-diet`): Tap-to-speak meal suggestions
+- **Diet Voice Log** (`/log-diet`): Tap-to-speak — suggest a meal from pantry/cravings, or log a meal you already ate
 - **Diet** (`/tabs/diet`): Meal log and macro tracking
-- **Profile** (`/tabs/profile`): Activity heatmap, goals, user settings
+- **Profile** (`/tabs/profile`): Activity heatmap, goals, stats
+- **Settings** (`/settings`): Edit profile & preferences (targets, sport, goal), about, sign out
 
 ### Data Flow
 
@@ -130,32 +131,9 @@ Save to Supabase (PostgreSQL)
 Analytics & History (charts, heatmap, stats)
 ```
 
-### Services
-
-- **AuthService**: Supabase auth session & profile management
-- **VoiceSessionService**: Native/Web speech recognition abstraction
-- **GeminiWorkoutExtractService**: Workout transcript parsing
-- **GeminiDietMealsService**: Meal suggestion generation
-- **WorkoutJournalService**: Session queries, streak computation, volume tracking
-- **DietLogService**: Meal logging & macro aggregation
-- **SupabaseService**: Supabase client initialization
-
-### Components
-
-**Shared UI (Design System)**
-- `vox-card`: Surface wrapper with variants (resting/raised/interactive)
-- `vox-badge`: Status pills, tags, semantic color coding
-- `vox-icon`: Ionicons wrapper with size/tone token binding
-- `vox-btn-*`: Button classes (primary, secondary, ghost)
-
-**Feature Components**
-- `session-exercise-review-card`: Accordion UI for reviewing parsed exercises
-- `exercise-editor-modal`: Bottom-sheet for editing extracted exercise data
-- `exercise-sets-preview-table`: Read-only table of parsed sets/reps/weights
-
 ## Design System
 
-VoxFit uses a **Linear-inspired dark design system** (2024 redesign):
+VoxFit uses a **Linear-inspired dark design system**, defined as CSS custom properties in `src/theme/variables.scss`:
 
 | Token | Value | Use |
 |-------|-------|-----|
@@ -174,7 +152,7 @@ VoxFit uses a **Linear-inspired dark design system** (2024 redesign):
 - Body: 400 weight, -0.05px tracking
 - Mono: Numeric displays (reps, weights, macros) for tabular alignment
 
-**Spacing**: 4px base unit (4/8/12/16/24/32/48/96px tokens)  
+**Spacing**: 4px base unit (4/8/12/16/24/32/48/96px tokens)
 **Radii**: xs(4px) → sm(6px) → md(8px) → lg(12px) → xl(16px) → pill(9999px)
 
 **Rules**
@@ -183,29 +161,35 @@ VoxFit uses a **Linear-inspired dark design system** (2024 redesign):
 - No box-shadows — hierarchy via surface ladder + hairlines
 - Emoji chrome → ionicons; AI-generated data emoji stays
 
+**Page shell convention**
+- `vox-page-header` / `vox-card` are reserved for the auth flow (welcome, login, register, onboarding)
+- Every other screen (tabs + standalone routes like `/voice`, `/log-diet`, `/settings`) uses a plain `<header>` with `vox-standalone-page` / `tab-page-content` classes and Tailwind utilities directly
+
 ## Project Structure
 
 ```
 voxfit/
 ├── src/
 │   ├── app/
-│   │   ├── pages/          # Route components (home, voice-log, diet, workout, auth, profile)
-│   │   ├── components/     # Shared UI (vox-card, vox-badge, exercise review, etc.)
-│   │   ├── services/       # Auth, voice, Gemini, Supabase, analytics
-│   │   ├── models/         # TypeScript interfaces (workout extract, diet meals, user)
+│   │   ├── pages/          # Route components (home, voice-log, diet, diet-voice-log, workout, workout-detail, auth, profile, settings)
+│   │   ├── components/     # Shared UI (vox-card, vox-badge, vox-icon, vox-page-header) + feature components (exercise editor/review, password checklist)
+│   │   ├── services/       # Auth, voice, Gemini (workout + diet), Supabase, journal, diet log, nutrition dashboard
+│   │   ├── models/         # TypeScript types, one domain per file, all re-exported from models/index.ts
 │   │   ├── guards/         # Route guards (auth, onboarding)
-│   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing)
-│   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester)
-│   │   └── data/           # View-model types, small fallback display defaults
-│   ├── theme/              # Design tokens (variables.scss), shared styles
+│   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing/drafts)
+│   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal logger)
+│   │   └── data/           # Small fallback/mock display constants (not types)
+│   ├── theme/              # Design tokens (variables.scss) + shared styles (buttons, headers, fonts)
 │   ├── global.scss         # Tailwind config, Ionic imports, fonts
 │   └── index.html          # PWA manifest, viewport, meta tags
 ├── android/                # Capacitor Android project
 ├── supabase/
-│   └── functions/          # Edge Functions (extract-workout, suggest-diet-meals)
+│   └── functions/          # Edge Functions (extract-workout, suggest-diet-meals, log-food)
 ├── capacitor.config.ts     # Capacitor config (appId: com.voxfit.app)
 └── angular.json            # Angular CLI workspace config
 ```
+
+All type declarations live under `src/app/models/`, grouped by domain (`user`, `workout-extract`, `workout-journal`, `diet-meals`, `diet-log`, `nutrition`, `profile`, `password`, etc.) and re-exported through a single `models/index.ts` barrel — every consumer imports from `@/app/models` rather than reaching into individual files.
 
 ## Deployment
 
@@ -249,14 +233,15 @@ cd android && ./gradlew bundleRelease
 - `user_profiles` — User info, goals, macro targets, onboarding status
 - `workout_sessions` — Logged workouts (date, mood, energy, raw/cleaned transcript, coach summary)
 - `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance)
-- `diet_logs` — Meal entries (date, meal type, macros, notes)
+- `diet_logs` — Meal entries (date, meal type, macros, source: AI-suggested or manually logged)
 
 All four tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for the first three, via a `workout_sessions` ownership join for `exercises_logged`).
 
 ### Gemini Edge Functions
 
 - **`extract-workout`** — Deno runtime, POST transcript → structured `WorkoutExtractResult`
-- **`suggest-diet-meals`** — Deno runtime, POST pantry/cravings → meal suggestions with macros
+- **`suggest-diet-meals`** — Deno runtime, POST pantry/cravings → meal suggestions with macros & recipe
+- **`log-food`** — Deno runtime, POST a description of a meal already eaten → single nutrient-estimated meal entry
 
 ## Contributing
 
@@ -268,19 +253,21 @@ Contributions welcome! Follow these guidelines:
 4. **Tests**: Add unit tests for new services (auth, gemini, journal)
 5. **Mobile testing**: Verify on real/emulated Android before landing
 
-## Known Limitations & Roadmap
+## Future Features
 
-### Current
-- Android platform only (iOS via Capacitor not tested)
-- Speech recognition depends on device/browser support
-- Gemini API costs scale with usage (consider rate-limiting or quotas)
-
-### Planned
 - iOS support (Capacitor bridge ready, just needs testing)
 - Offline-first workout logging (service worker + IndexedDB sync)
 - Social features (share sessions, friend leaderboards)
 - Wearable integration (Apple Watch, Wear OS)
-- Advanced analytics (ML-based exercise classification, form feedback via video)
+- AI agents for designing your workout plans for future based on your current goals and weekly / daily sessions recorded by you
+- Fitness coach / health care expert analysing the user's healthy progress , checking for any heatlh flags from user sessions and providing feedback based on that
+
+## Upcoming Features — Integrations (under discussion)
+
+Open space for ideas on connecting VoxFit to outside services and apps, expanding beyond logging into actually *doing* things on the user's behalf. Nothing here is scoped or committed yet — to be fleshed out.
+
+- Ordering suggested meals directly from a food-delivery service (e.g. exploring the open-source **Swiggy MCP** to search for and place an order matching an AI-suggested meal)
+- Other third-party integrations TBD
 
 ## License
 
