@@ -9,12 +9,12 @@
       <h1 class="auth-page-title">Sign in</h1>
       <p class="auth-page-lead">Enter the email and password you used for VoxFit.</p>
 
-      <div class="auth-form-stack">
+      <div class="auth-form-stack mb-4">
         <ion-input
           formControlName="email"
           type="email"
           label="Email"
-          labelPlacement="floating"
+          labelPlacement="stacked"
           fill="outline"
           autocomplete="email"
           inputmode="email"
@@ -33,7 +33,7 @@
           formControlName="password"
           type="password"
           label="Password"
-          labelPlacement="floating"
+          labelPlacement="stacked"
           fill="outline"
           autocomplete="current-password"
         >
@@ -50,7 +50,7 @@
         }
       </div>
 
-      <a routerLink="/auth/forgot-password" class="auth-hint mt-3 self-end text-primary no-underline">
+      <a routerLink="/auth/forgot-password" class="auth-hint self-end text-primary no-underline">
         Forgot password?
       </a>
 

@@ -26,7 +26,7 @@ const GOAL_OPTIONS: readonly ChipOption<GoalType>[] = [
 ];
 
 /** Keep in sync with `package.json`'s `version` — bumped manually at release, not read at runtime. */
-const APP_VERSION = '0.0.1';
+const APP_VERSION = '1.0.0';
 
 @Component({
   selector: 'app-settings',

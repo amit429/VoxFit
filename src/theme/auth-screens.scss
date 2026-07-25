@@ -13,7 +13,18 @@
   --padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 
+/* Center the form block in the available space below the toolbar instead of
+   top-anchoring it, so short forms (forgot-password, single-field screens)
+   don't leave a large dead gap at the bottom on tall viewports. */
+.auth-flow::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+}
+
 .auth-flow-inner {
+  width: 100%;
   max-width: 26rem;
   margin-inline: auto;
   padding-inline: 1.25rem;

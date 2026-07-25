@@ -1,6 +1,6 @@
 {
   "name": "voxfit",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "VoxFit — voice-first workout and diet logging for Android and mobile web.",
   "license": "MIT",
   "scripts": {

@@ -22,7 +22,7 @@
               formControlName="displayName"
               type="text"
               label="Display name"
-              labelPlacement="floating"
+              labelPlacement="stacked"
               fill="outline"
               autocomplete="name"
             />
@@ -40,9 +40,10 @@
                   <div
                     type="button"
                     (click)="selectSport(o.value)"
+                    [attr.aria-pressed]="form.controls.sportType.value === o.value"
                     class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
-                    [class.bg-ink]="form.controls.sportType.value === o.value"
-                    [class.text-canvas]="form.controls.sportType.value === o.value"
+                    [class.bg-primary]="form.controls.sportType.value === o.value"
+                    [class.text-white]="form.controls.sportType.value === o.value"
                     [class.bg-surface-2]="form.controls.sportType.value !== o.value"
                     [class.text-ink-subtle]="form.controls.sportType.value !== o.value"
                     [class.ring-1]="form.controls.sportType.value !== o.value"
@@ -61,9 +62,10 @@
                   <div
                     type="button"
                     (click)="selectGoal(o.value)"
+                    [attr.aria-pressed]="form.controls.goal.value === o.value"
                     class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
-                    [class.bg-ink]="form.controls.goal.value === o.value"
-                    [class.text-canvas]="form.controls.goal.value === o.value"
+                    [class.bg-primary]="form.controls.goal.value === o.value"
+                    [class.text-white]="form.controls.goal.value === o.value"
                     [class.bg-surface-2]="form.controls.goal.value !== o.value"
                     [class.text-ink-subtle]="form.controls.goal.value !== o.value"
                     [class.ring-1]="form.controls.goal.value !== o.value"
@@ -81,7 +83,7 @@
                 type="number"
                 inputmode="numeric"
                 label="Daily calories"
-                labelPlacement="floating"
+                labelPlacement="stacked"
                 fill="outline"
               />
               <ion-input
@@ -89,7 +91,7 @@
                 type="number"
                 inputmode="numeric"
                 label="Protein (g)"
-                labelPlacement="floating"
+                labelPlacement="stacked"
                 fill="outline"
               />
               <ion-input
@@ -97,7 +99,7 @@
                 type="number"
                 inputmode="numeric"
                 label="Carbs (g)"
-                labelPlacement="floating"
+                labelPlacement="stacked"
                 fill="outline"
               />
               <ion-input
@@ -105,7 +107,7 @@
                 type="number"
                 inputmode="numeric"
                 label="Fat (g)"
-                labelPlacement="floating"
+                labelPlacement="stacked"
                 fill="outline"
               />
             </div>
@@ -131,11 +133,11 @@
       </section>
 
       <!-- Sign out -->
-      <div
+      <button
         type="button"
         (click)="signOut()"
+        [disabled]="signingOut()"
         [class.opacity-50]="signingOut()"
-        [class.pointer-events-none]="signingOut()"
         [attr.aria-busy]="signingOut()"
         class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
       >
@@ -145,7 +147,7 @@
           <vox-icon name="log-out-outline" tone="danger" size="sm" />
           Sign out
         }
-      </div>
+      </button>
     </main>
   </div>
 </ion-content>

@@ -64,21 +64,32 @@
   --font-mono: var(--vox-font-mono);
 }
 
+/*
+ * Ionic's CSS ships unlayered. Tailwind utilities compile into `@layer utilities`,
+ * and per the CSS Cascade Layers spec unlayered rules always beat layered ones
+ * regardless of specificity or source order — so plain Ionic resets (e.g.
+ * normalize.css's `button { padding: 0; border-radius: 0; }`) were silently
+ * overriding Tailwind utility classes on native elements like <button>. Importing
+ * into Tailwind's own `base` layer puts these at the same priority as Tailwind's
+ * preflight, so `utilities` (declared later in Tailwind's layer order) wins as
+ * expected.
+ */
+
 /* Core CSS required for Ionic components to work properly */
-@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/core.css" layer(base);
 
 /* Basic CSS for apps built with Ionic */
-@import "@ionic/angular/css/normalize.css";
-@import "@ionic/angular/css/structure.css";
-@import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/normalize.css" layer(base);
+@import "@ionic/angular/css/structure.css" layer(base);
+@import "@ionic/angular/css/typography.css" layer(base);
+@import "@ionic/angular/css/display.css" layer(base);
 
 /* Optional CSS utils that can be commented out */
-@import "@ionic/angular/css/padding.css";
-@import "@ionic/angular/css/float-elements.css";
-@import "@ionic/angular/css/text-alignment.css";
-@import "@ionic/angular/css/text-transformation.css";
-@import "@ionic/angular/css/flex-utils.css";
+@import "@ionic/angular/css/padding.css" layer(base);
+@import "@ionic/angular/css/float-elements.css" layer(base);
+@import "@ionic/angular/css/text-alignment.css" layer(base);
+@import "@ionic/angular/css/text-transformation.css" layer(base);
+@import "@ionic/angular/css/flex-utils.css" layer(base);
 
 /**
  * Ionic Dark Mode
@@ -87,10 +98,10 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+/* @import "@ionic/angular/css/palettes/dark.always.css" layer(base); */
+/* @import "@ionic/angular/css/palettes/dark.class.css" layer(base); */
 /* Always dark — mobile app shell */
-@import '@ionic/angular/css/palettes/dark.always.css';
+@import '@ionic/angular/css/palettes/dark.always.css' layer(base);
 
 @import './theme/auth-screens.scss';
 @import './theme/vox-ui.scss';

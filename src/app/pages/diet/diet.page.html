@@ -96,8 +96,9 @@
         <div
           type="button"
           class="shrink-0 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-          [class.bg-ink]="rangeMode() === 'day'"
-          [class.text-canvas]="rangeMode() === 'day'"
+          [attr.aria-pressed]="rangeMode() === 'day'"
+          [class.bg-primary]="rangeMode() === 'day'"
+          [class.text-white]="rangeMode() === 'day'"
           [class.bg-surface-2]="rangeMode() !== 'day'"
           [class.text-ink-subtle]="rangeMode() !== 'day'"
           [class.ring-1]="rangeMode() !== 'day'"
@@ -109,8 +110,9 @@
         <div
           type="button"
           class="shrink-0 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-          [class.bg-ink]="rangeMode() === 'week'"
-          [class.text-canvas]="rangeMode() === 'week'"
+          [attr.aria-pressed]="rangeMode() === 'week'"
+          [class.bg-primary]="rangeMode() === 'week'"
+          [class.text-white]="rangeMode() === 'week'"
           [class.bg-surface-2]="rangeMode() !== 'week'"
           [class.text-ink-subtle]="rangeMode() !== 'week'"
           [class.ring-1]="rangeMode() !== 'week'"
@@ -156,13 +158,14 @@
     </div>
 
     <!-- Meal-type chips -->
-    <div class="flex gap-2 overflow-x-auto pb-1 pt-4">
+    <div class="vox-chip-row flex gap-2 overflow-x-auto pb-1 pt-4">
       @for (c of mealTypeChips; track c.id) {
         <div
           type="button"
           class="shrink-0 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-          [class.bg-ink]="mealTypeFilter() === c.id"
-          [class.text-canvas]="mealTypeFilter() === c.id"
+          [attr.aria-pressed]="mealTypeFilter() === c.id"
+          [class.bg-primary]="mealTypeFilter() === c.id"
+          [class.text-white]="mealTypeFilter() === c.id"
           [class.bg-surface-2]="mealTypeFilter() !== c.id"
           [class.text-ink-subtle]="mealTypeFilter() !== c.id"
           [class.ring-1]="mealTypeFilter() !== c.id"

@@ -75,3 +75,14 @@ ion-modal.vox-bottom-sheet {
 ion-modal.vox-bottom-sheet::part(content) {
   border-top: 1px solid var(--vox-border-hairline-strong);
 }
+
+/* Horizontally-scrolling chip rows (filters, meal-type tabs) — keep the
+   scroll, hide the browser's default scrollbar track underneath it. */
+.vox-chip-row {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
