@@ -9,6 +9,7 @@
     "start:open": "ng serve --open",
     "build": "ng build",
     "build:dev": "ng build --configuration=development",
+    "prebuild:prod": "node scripts/generate-prod-env.js",
     "build:prod": "ng build --configuration=production",
     "watch": "ng build --watch --configuration=development",
     "test": "ng test",

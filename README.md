@@ -199,6 +199,17 @@ npm run build:prod
 # Deploy www/ directory to Vercel, Netlify, or any static host
 ```
 
+`environment.prod.ts` is git-ignored (see [Environment setup](#environment-setup) below), so hosts that
+build from a fresh clone — like Cloudflare Pages — won't have it. `npm run build:prod` runs
+`scripts/generate-prod-env.js` first, which generates it from env vars if the file isn't already
+present. Set these in the host's project settings:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `GEMINI_API_KEY` (optional — unused when `useGeminiEdgeFunction` is true, which it always is for this generated file)
+
+Build command: `npm run build:prod`. Output directory: `www`.
+
 ### Android (Play Store)
 
 One-time setup: copy `android/key.properties.example` to `android/key.properties` (git-ignored)
