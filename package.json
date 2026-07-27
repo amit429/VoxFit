@@ -24,7 +24,9 @@
     "android:run:dev:steps": "npm run android:prepare:dev && cap run android --no-sync",
     "android:run:prod": "ionic capacitor run android --configuration=production",
     "android:run:prod:steps": "npm run android:prepare:prod && cap run android --no-sync",
-    "android:live:dev": "ionic capacitor run android -l --external --configuration=development"
+    "android:live:dev": "ionic capacitor run android -l --external --configuration=development",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "private": true,
   "dependencies": {
@@ -83,7 +85,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.14",
-    "typescript": "~5.9.0"
+    "typescript": "~5.9.0",
+    "wrangler": "^4.114.0"
   },
   "overrides": {
     "tmp": "^0.2.7",

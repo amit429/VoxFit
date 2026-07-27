@@ -77,3 +77,8 @@ testem.log
 Thumbs.db
 
 /.playwright-mcp
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
