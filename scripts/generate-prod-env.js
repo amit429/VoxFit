@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetPath = path.join(__dirname, '../src/environments/environment.prod.ts');
-const required = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
+const required = ['supabaseUrl', 'supabaseAnonKey'];
 const hasAllEnvVars = required.every((key) => process.env[key]);
 
 if (!hasAllEnvVars) {
@@ -26,10 +26,10 @@ if (!hasAllEnvVars) {
 
 const contents = `export const environment = {
   production: true,
-  supabaseUrl: '${process.env.SUPABASE_URL}',
-  supabaseAnonKey: '${process.env.SUPABASE_ANON_KEY}',
-  geminiApiKey: '${process.env.GEMINI_API_KEY || ''}',
-  useGeminiEdgeFunction: true,
+  supabaseUrl: '${process.env.supabaseUrl}',
+  supabaseAnonKey: '${process.env.supabaseAnonKey}',
+  geminiApiKey: '${process.env.geminiApiKey || ''}',
+  useGeminiEdgeFunction: ${process.env.useGeminiEdgeFunction !== 'false'},
 };
 `;
 

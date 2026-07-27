@@ -204,9 +204,10 @@ build from a fresh clone — like Cloudflare Pages — won't have it. `npm run b
 `scripts/generate-prod-env.js` first, which generates it from env vars if the file isn't already
 present. Set these in the host's project settings:
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `GEMINI_API_KEY` (optional — unused when `useGeminiEdgeFunction` is true, which it always is for this generated file)
+- `supabaseUrl`
+- `supabaseAnonKey`
+- `geminiApiKey` (optional — unused when `useGeminiEdgeFunction` is true)
+- `useGeminiEdgeFunction` (optional — anything other than the string `"false"` is treated as true)
 
 Build command: `npm run build:prod`. Output directory: `www`.
 
