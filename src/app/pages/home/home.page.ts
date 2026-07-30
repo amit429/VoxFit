@@ -10,8 +10,9 @@ import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
+import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 
-addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline });
+addIcons({ flameOutline, micOutline, restaurantOutline, statsChartOutline, flashOutline, sparklesOutline, voxfitMic });
 
 @Component({
   selector: 'app-home',
