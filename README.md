@@ -1,10 +1,10 @@
 # VoxFit — Voice-First Fitness Logging for the Modern Gym
 
-![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold)
+![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold) ![Automation](https://img.shields.io/badge/automation-pg__cron%20%2B%20pg__net-blueviolet)
 
-**Speak your workout. Track your progress. Effortlessly.**
+**Speak your workout. Track your progress. Let an AI coach watch your trends.**
 
-VoxFit is a voice-first fitness logging application designed for gym-goers and fitness communities who want to log their workouts and meals without typing. Just speak naturally — "did three sets of ten twenty thirty on bench" — and VoxFit's AI parses it into structured workout data in seconds.
+VoxFit is a voice-first fitness logging application designed for gym-goers and fitness communities who want to log their workouts and meals without typing. Just speak naturally — "did three sets of ten twenty thirty on bench" — and VoxFit's AI parses it into structured workout data in seconds. On top of that, an agentic AI coach generates personalized workout plans on demand, writes a weekly progress reflection automatically, and nudges you when your training has drifted from your plan.
 
 ## Features
 
@@ -18,6 +18,29 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 - Tap-to-speak logging of meals you've already eaten — describe it once, AI estimates the nutrients and logs it
 - Track calories and macros (Protein, Carbs, Fats) against daily targets
 - Smart recommendations against your nutrition goals
+
+🤖 **AI Workout Plan Generator** *(on-demand)*
+- A real Gemini **tool-calling agent** — not a single prompt — reads your training history, recurring physical notes, and goals through read-only tools (`get_training_stats`, `get_recurring_notes`, …) before writing anything
+- Generates a multi-day structured plan (`workout_plans` table) with a written rationale per session, grounded only in data the tools actually returned — no invented numbers
+- Review the generated plan, then **Save** (marks it active, supersedes the previous plan) or discard
+- Runs server-side in a Supabase Edge Function; the model never writes to the database directly — a deterministic orchestrator does, after parsing and validating the model's output
+
+🧭 **AI Progress Coach** *(weekly reflection, on-demand + automatic)*
+- The same agent engine, aimed at a different question: "how has this athlete actually been doing?"
+- Reads training stats, nutrition adherence, and recurring physical notes over the trailing window, then writes a calm, plain-language reflection — highlights, trends, gentle recurring-note callouts, and suggestions for the week ahead
+- **Safety-first prompt design**: purely observational, never diagnostic — no medical language, no "health flags," no assessment tone. A single non-alarmist "consider talking to a professional" line appears only for genuinely recurring notes, never repeated or dramatized
+- Trigger it yourself from Profile ("Check my progress"), or let it run automatically every week — see **Weekly Automation** below
+
+🔔 **Plan-vs-Actual Nudge** *(automatic, tied to your active plan)*
+- If you have an active plan, the weekly coach run also compares planned sessions against what you actually logged and computes an adherence score and drift signal (on track / mild / severe)
+- Plan age is accounted for, so a plan you started three days ago is never flagged as "severely behind" just because the full lookback window hasn't elapsed yet
+- On severe drift, a calm nudge card on the Train tab offers to **refresh your plan** — one tap regenerates a plan that matches how you're actually training, instead of nagging you to catch up to a stale one
+
+⏰ **Weekly Automation** *(`pg_cron` + `pg_net`, fully server-side)*
+- Every Sunday at 06:00 UTC, a Postgres-scheduled job selects every user with logged activity in the last 30 days and dispatches one async, authenticated request per user to the coach's edge function — no idle users, no wasted AI calls
+- Idempotent by design: each user gets **at most one** review and nudge per calendar week, safe to re-run or overlap without ever duplicating
+- The exact same edge function serves both the manual "Check my progress" button and the weekly cron — one engine, two triggers, so what you test on-demand is exactly what runs unattended
+- Passive **pointer cards** on Home ("New check-in ready," "New plan nudge") let you know something's waiting on Profile/Train without ever surfacing content on Home itself
 
 📊 **Workout Analytics & History**
 - Weekly workout volume tracking with bar charts
@@ -36,7 +59,7 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 - Linear-inspired design system (dark canvas, hairline borders, single lavender accent)
 - Self-hosted fonts (Inter for text, JetBrains Mono for stats)
 - Tailwind CSS v4 for rapid, consistent styling
-- Fully accessible component library (vox-card, vox-badge, vox-icon)
+- Fully accessible component library (vox-card, vox-badge, vox-icon) — the AI coach surfaces reuse the same calm, non-alarmist visual register even for "attention"-tone content (no red/danger styling, ever)
 
 ## Tech Stack
 
@@ -44,8 +67,9 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 |-------|-----------|
 | **Frontend** | Angular 20 (standalone components, signals), Ionic Angular 8, Tailwind CSS v4 |
 | **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), Progressive Web App |
-| **Backend** | Supabase (PostgreSQL, Auth, Edge Functions) |
-| **AI** | Google Gemini 2.5 Flash (workout parsing, meal suggestions, eaten-meal analysis) |
+| **Backend** | Supabase (PostgreSQL, Auth, Edge Functions, `pg_cron`, `pg_net`, Vault) |
+| **AI** | Google Gemini 2.5 Flash — both single-shot extraction (workout parsing, meal suggestions, eaten-meal analysis) and a **tool-calling agent loop** (workout plan generation, weekly progress coach) |
+| **Automation** | `pg_cron` (weekly schedule) + `pg_net` (async HTTP dispatch) + Supabase Vault (secret storage) — server-side only, no third-party job queue |
 | **Fonts** | Inter 500/600/700, JetBrains Mono 400/500 (self-hosted via @fontsource) |
 | **Icons** | Ionicons 7 |
 | **State** | Angular signals (lightweight, reactive) |
@@ -105,15 +129,16 @@ npm run android:run:dev
 ### Pages & Routes
 
 - **Auth**: Welcome, Login, Register, Onboarding (profile setup)
-- **Home**: Dashboard with streak, today's workout, nutrition macros
+- **Home**: Dashboard with streak, today's workout, nutrition macros, passive AI coach pointer cards
 - **Voice Log** (`/voice`): Hold-to-talk workout capture with AI review
-- **Workout** (`/tabs/workout`): Session history, list/detail views, weekly volume chart
+- **Workout** (`/tabs/workout`): Session history, list/detail views, weekly volume chart, active-plan card, plan-vs-actual nudge card
+- **Workout Plan** (`/tabs/workout/plan`): Generate/review/save an AI-generated multi-day plan with per-session rationale
 - **Diet Voice Log** (`/log-diet`): Tap-to-speak — suggest a meal from pantry/cravings, or log a meal you already ate
 - **Diet** (`/tabs/diet`): Meal log and macro tracking
-- **Profile** (`/tabs/profile`): Activity heatmap, goals, stats
+- **Profile** (`/tabs/profile`): Activity heatmap, goals, stats, AI progress-review card ("Check my progress")
 - **Settings** (`/settings`): Edit profile & preferences (targets, sport, goal), about, sign out
 
-### Data Flow
+### Data Flow — Voice Logging
 
 ```
 User Voice Input
@@ -130,6 +155,38 @@ Save to Supabase (PostgreSQL)
     ↓
 Analytics & History (charts, heatmap, stats)
 ```
+
+### Data Flow — AI Coach (agent + weekly automation)
+
+```
+                     ┌─────────────────────────┐
+Tap "Check my        │                         │   pg_cron (Sun 06:00 UTC)
+progress" / "Generate│                         │   selects active users (≥1 session
+my plan" ────────────┤   Edge Function         │   or meal logged in last 30 days)
+                     │   (Gemini tool-calling  │◄──┐
+                     │    agent loop)          │   │ pg_net async HTTP POST
+                     └───────────┬─────────────┘   │  (one call per user,
+                                 │                  │   service-role authenticated)
+                    read-only tools query           │
+                    Postgres (training stats,       │
+                    nutrition, recurring notes, ┌───┴────────────────┐
+                    active plan, plan-vs-actual)│ pg_cron dispatcher │
+                                 │               │ (security definer, │
+                                 ▼               │  reads secrets from│
+                   Deterministic orchestrator    │  Vault)            │
+                   validates + writes JSON       └────────────────────┘
+                   (model never writes to DB)
+                                 │
+                                 ▼
+          workout_plans / progress_reviews / plan_nudges
+          (idempotent: one row per user per week/plan)
+                                 │
+                                 ▼
+        Plan review card · Progress review card · Plan-nudge card
+        (Workout / Profile / Home pointer cards)
+```
+
+The **on-demand button** and the **weekly cron** hit the exact same edge function — the only difference is who's asking (a signed-in user's JWT vs. a server-side service-role call with a target `user_id`). That's a deliberate design choice: what you test manually is exactly what runs unattended.
 
 ## Design System
 
@@ -171,20 +228,31 @@ VoxFit uses a **Linear-inspired dark design system**, defined as CSS custom prop
 voxfit/
 ├── src/
 │   ├── app/
-│   │   ├── pages/          # Route components (home, voice-log, diet, diet-voice-log, workout, workout-detail, auth, profile, settings)
-│   │   ├── components/     # Shared UI (vox-card, vox-badge, vox-icon, vox-page-header) + feature components (exercise editor/review, password checklist)
-│   │   ├── services/       # Auth, voice, Gemini (workout + diet), Supabase, journal, diet log, nutrition dashboard
-│   │   ├── models/         # TypeScript types, one file per exported interface/type, all re-exported from models/index.ts
+│   │   ├── pages/          # Route components (home, voice-log, diet, diet-voice-log, workout,
+│   │   │                   #   workout-detail, workout-plan, auth, profile, settings)
+│   │   ├── components/     # Shared UI (vox-card, vox-badge, vox-icon, vox-page-header) + feature
+│   │   │                   #   components: exercise editor/review, password checklist,
+│   │   │                   #   plan-review-card, progress-review-card, plan-nudge-card,
+│   │   │                   #   coach-pointer-card (passive Home pointers)
+│   │   ├── services/       # Auth, voice, Gemini (workout extract + diet + workout-plan + checkin),
+│   │   │                   #   Supabase, journal, diet log, nutrition dashboard, workout-plan,
+│   │   │                   #   progress-coach (review/nudge signals + acknowledge)
+│   │   ├── models/         # TypeScript types, one file per exported interface/type, all re-exported
+│   │   │                   #   from models/index.ts — every consumer imports from `@/app/models`
 │   │   ├── guards/         # Route guards (auth, onboarding)
 │   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing/drafts)
-│   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal logger)
+│   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal
+│   │   │                   #   logger, workout-plan builder, weekly coach builder)
 │   │   └── data/           # Small fallback/mock display constants (not types)
 │   ├── theme/              # Design tokens (variables.scss) + shared styles (buttons, headers, fonts)
 │   ├── global.scss         # Tailwind config, Ionic imports, fonts
 │   └── index.html          # PWA manifest, viewport, meta tags
 ├── android/                # Capacitor Android project
 ├── supabase/
-│   └── functions/          # Edge Functions (extract-workout, suggest-diet-meals, log-food)
+│   ├── functions/          # extract-workout, suggest-diet-meals, log-food (single-shot Gemini calls)
+│   │                       # generate-workout-plan, generate-checkin (Gemini tool-calling agent)
+│   └── migrations/         # 0001 workout_plans · 0002 progress_reviews + plan_nudges
+│                           # 0003 pg_cron/pg_net weekly dispatcher · 0004 service_role grants
 ├── capacitor.config.ts     # Capacitor config (appId: com.voxfit.app)
 └── angular.json            # Angular CLI workspace config
 ```
@@ -246,14 +314,29 @@ cd android && ./gradlew bundleRelease
 - `workout_sessions` — Logged workouts (date, mood, energy, raw/cleaned transcript, coach summary)
 - `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance)
 - `diet_logs` — Meal entries (date, meal type, macros, source: AI-suggested or manually logged)
+- `workout_plans` — AI-generated plan content (JSONB) + status (`active`/superseded), one active plan per user at a time
+- `progress_reviews` — Weekly AI coach reflections (highlights, trends, recurring notes, suggestions), unique per `(user_id, generated_for_week)`
+- `plan_nudges` — Weekly plan-vs-actual adherence + drift signal, tied to the active plan, unique per `(user_id, generated_for_week)`
 
-All four tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for the first three, via a `workout_sessions` ownership join for `exercises_logged`).
+All tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for most, via a `workout_sessions` ownership join for `exercises_logged`). The two AI-coach tables' unique `(user_id, generated_for_week)` indexes are what make the weekly automation idempotent — re-running or overlapping never produces a duplicate.
 
 ### Gemini Edge Functions
 
+**Single-shot extraction:**
 - **`extract-workout`** — Deno runtime, POST transcript → structured `WorkoutExtractResult`
 - **`suggest-diet-meals`** — Deno runtime, POST pantry/cravings → meal suggestions with macros & recipe
 - **`log-food`** — Deno runtime, POST a description of a meal already eaten → single nutrient-estimated meal entry
+
+**Agentic (tool-calling loop, read-only tools, deterministic writes):**
+- **`generate-workout-plan`** — builds a multi-day plan grounded in the athlete's own training data; on-demand only
+- **`generate-checkin`** — writes the weekly progress review and, when an active plan exists, the plan-vs-actual nudge. Reached two ways: a signed-in user's JWT (manual "Check my progress"), or a service-role call carrying a target `user_id` (the weekly `pg_cron` dispatcher) — same function, same code path, different caller
+
+### Weekly Automation Internals
+
+- `coach_active_user_ids(window_days)` — `security definer` SQL function selecting every user with ≥1 workout session or diet log in the trailing window (default 30 days)
+- `run_weekly_checkins()` — `security definer` dispatcher: reads the function URL and service-role key from **Supabase Vault** (never hardcoded, never committed), then fires one `pg_net.http_post` per active user
+- `cron.schedule('weekly-checkin', '0 6 * * 0', …)` — every Sunday at 06:00 UTC
+- Both privileged functions have `execute` revoked from `anon`/`authenticated` — only the scheduler can invoke them
 
 ## Contributing
 
@@ -267,12 +350,18 @@ Contributions welcome! Follow these guidelines:
 
 ## Future Features
 
-- iOS support (Capacitor bridge ready, just needs testing)
+**AI Coach — next up:**
+- Push notifications (FCM) for the weekly check-in and plan nudge, supplementing today's passive in-app pointer cards — schema is already designed to accommodate this without rework
+- Per-user schedule control (custom day/time instead of one global Sunday run for everyone)
+- Real server-side streak calculation for the coach's training snapshot (currently stubbed at 0 server-side; the client-facing streak is unaffected)
+- Retry/backoff for a failed weekly dispatch, rather than waiting for next week's run
+
+**Platform:**
 - Offline-first workout logging (service worker + IndexedDB sync)
 - Social features (share sessions, friend leaderboards)
 - Wearable integration (Apple Watch, Wear OS)
-- AI agents for designing your workout plans for future based on your current goals and weekly / daily sessions recorded by you
-- Fitness coach / health care expert analysing the user's healthy progress , checking for any heatlh flags from user sessions and providing feedback based on that
+
+> iOS is not on the near-term roadmap — the Capacitor bridge is technically portable, but there's no active plan to build or test an iOS release right now.
 
 ## License
 
