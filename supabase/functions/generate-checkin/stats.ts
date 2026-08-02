@@ -106,7 +106,7 @@ export function computeTrainingStats(
     windowWeeks,
     sessionsInWindow,
     avgSessionsPerWeek,
-    currentStreakDays: 0, // streak intentionally omitted server-side in Plan 1; added with the shared helper in Plan 2
+    currentStreakDays: 0, // server-side streak still stubbed at 0 (not computed here); UI does not read this field
     weeklyVolumeKg,
     prCount,
     topExercises,

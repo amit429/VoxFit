@@ -235,6 +235,9 @@ export class WorkoutPage implements ViewWillEnter {
 
   /** Refresh CTA on a drifted plan — hands off to the plan page, which regenerates with source 'nudge_refresh'. */
   protected onRefresh(): void {
+    // Ack the current nudge first so the drifted-plan card clears once the new plan lands.
+    const n = this.coach.latestNudge();
+    if (n) this.coach.acknowledgeNudge(n.id).catch((err) => console.error('[WorkoutPage] ack nudge on refresh', err));
     void this.router.navigate(['/tabs/workout/plan'], { queryParams: { refresh: 'nudge' } });
   }
 

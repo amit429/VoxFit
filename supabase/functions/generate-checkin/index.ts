@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
     let nudgeRow = null;
     const plan = toolset.lastPlan();
     const pva = toolset.lastPlanVsActual();
-    if (plan && parsed.nudge) {
+    if (plan && pva && parsed.nudge) {
       const nudge = {
         executionNotes: strArr(parsed.nudge['executionNotes']),
         focusThisWeek: strArr(parsed.nudge['focusThisWeek']),

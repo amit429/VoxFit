@@ -14,13 +14,13 @@ const TOP_N = 6;
 export interface CheckinToolset {
   tools: ToolDef[];
   lastTrainingSnapshot: () => TrainingStatsSummary | null;
-  lastPlan: () => { id: string; plan: { days?: unknown[] } } | null;
+  lastPlan: () => { id: string; plan: { days?: unknown[] }; created_at: string } | null;
   lastPlanVsActual: () => { planned: number; completed: number; suggestsRefresh: boolean } | null;
 }
 
 export function buildCheckinTools(supabase: SupabaseClient, userId: string): CheckinToolset {
   let trainingSnapshot: TrainingStatsSummary | null = null;
-  let activePlan: { id: string; plan: { days?: unknown[] } } | null = null;
+  let activePlan: { id: string; plan: { days?: unknown[] }; created_at: string } | null = null;
   let pva: { planned: number; completed: number; suggestsRefresh: boolean } | null = null;
 
   const getTrainingStats: ToolDef = {
@@ -117,7 +117,7 @@ export function buildCheckinTools(supabase: SupabaseClient, userId: string): Che
     run: async () => {
       const { data, error } = await supabase
         .from('workout_plans')
-        .select('id, plan')
+        .select('id, plan, created_at')
         .eq('user_id', userId)
         .eq('status', 'active')
         .maybeSingle();
@@ -142,20 +142,29 @@ export function buildCheckinTools(supabase: SupabaseClient, userId: string): Che
       // Ensure we have the plan (agent may call this without get_active_plan first).
       if (!activePlan) {
         const { data } = await supabase
-          .from('workout_plans').select('id, plan')
+          .from('workout_plans').select('id, plan, created_at')
           .eq('user_id', userId).eq('status', 'active').maybeSingle();
         activePlan = (data as typeof activePlan) ?? null;
       }
       if (!activePlan) { pva = null; return { active: null }; }
       const plannedPerWeek = Array.isArray(activePlan.plan?.days) ? activePlan.plan.days.length : 0;
-      const fromDate = isoDaysAgo(weeks * 7);
+      // Cap the measurement window at the plan's age so a brand-new plan isn't flagged as
+      // severe drift just because it hasn't existed for the full lookback window yet.
+      const planCreated = activePlan.created_at ? activePlan.created_at.slice(0, 10) : isoDaysAgo(weeks * 7);
+      const planAgeDays = Math.floor(
+        (Date.now() - new Date(`${planCreated}T00:00:00`).getTime()) / 86_400_000,
+      );
+      const effectiveWeeks = Math.max(1, Math.min(weeks, Math.ceil(planAgeDays / 7)));
+      const windowFromDate = isoDaysAgo(weeks * 7);
+      // Never count sessions logged before the plan existed.
+      const countFromDate = planCreated > windowFromDate ? planCreated : windowFromDate;
       const { count, error } = await supabase
         .from('workout_sessions')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .gte('date', fromDate);
+        .gte('date', countFromDate);
       if (error) throw new Error(error.message);
-      const result = computePlanVsActual(plannedPerWeek, count ?? 0, weeks);
+      const result = computePlanVsActual(plannedPerWeek, count ?? 0, effectiveWeeks);
       pva = { planned: result.plannedSessions, completed: result.completedSessions, suggestsRefresh: result.drift === 'severe' };
       return result;
     },
