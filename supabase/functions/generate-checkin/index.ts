@@ -3,6 +3,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { runAgent } from './agent.ts';
 import { buildCheckinTools, createClient } from './tools.ts';
 import { COACH_SYSTEM } from './prompt.ts';
+import { classifyInvocation } from './auth.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -34,13 +35,27 @@ Deno.serve(async (req: Request) => {
   const geminiKey = Deno.env.get('GEMINI_API_KEY');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!geminiKey || !supabaseUrl || !anonKey) return json({ error: 'Server not configured' }, 500);
 
   const authHeader = req.headers.get('Authorization') ?? '';
-  const supabase = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
-  const userId = userData.user.id;
+  const body = await req.json().catch(() => ({}));
+  const inv = classifyInvocation(authHeader, serviceRoleKey, body);
+  if (inv.kind === 'cron_missing_user') return json({ error: 'user_id required' }, 400);
+
+  let supabase;
+  let userId: string;
+  if (inv.kind === 'cron') {
+    // Weekly cron: trusted server-side call. Service-role client writes for the target user.
+    supabase = createClient(supabaseUrl, serviceRoleKey!);
+    userId = inv.userId;
+  } else {
+    // Client call: RLS-scoped to the caller's own rows.
+    supabase = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
+    userId = userData.user.id;
+  }
 
   const forWeek = weekStartISO();
   const periodStart = isoDaysAgo(30);
