@@ -1,3 +1,4 @@
+import { PlanNudgeCardComponent } from '@/app/components/plan-nudge-card/plan-nudge-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -17,6 +18,7 @@ import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
 import type { WorkoutSessionListMock, WorkoutSessionListRow, WorkoutSessionRow } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
+import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutPlanService } from '@/app/services/workout-plan.service';
 import {
@@ -35,6 +37,7 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
   templateUrl: './workout.page.html',
   styleUrls: ['./workout.page.scss'],
   imports: [
+    PlanNudgeCardComponent,
     VoxIconComponent,
     VoxSkeletonComponent,
     RouterLink,
@@ -51,6 +54,7 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
 export class WorkoutPage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly planService = inject(WorkoutPlanService);
+  protected readonly coach = inject(ProgressCoachService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -221,6 +225,17 @@ export class WorkoutPage implements ViewWillEnter {
     void this.loadPrevWeekVolume();
     void this.loadListForActiveFilter();
     this.planService.getActivePlan().catch((err) => console.error('[WorkoutPage] load active plan', err));
+    this.coach.getLatest().catch((err) => console.error('[WorkoutPage] load latest nudge', err));
+  }
+
+  /** Ack the plan-nudge card — dismisses it without discarding the underlying row. */
+  protected onAckNudge(id: string): void {
+    void this.coach.acknowledgeNudge(id);
+  }
+
+  /** Refresh CTA on a drifted plan — hands off to the plan page, which regenerates with source 'nudge_refresh'. */
+  protected onRefresh(): void {
+    void this.router.navigate(['/tabs/workout/plan'], { queryParams: { refresh: 'nudge' } });
   }
 
   private static formatDayChip(iso: string): string {
