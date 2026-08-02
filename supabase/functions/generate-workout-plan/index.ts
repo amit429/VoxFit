@@ -33,12 +33,25 @@ Deno.serve(async (req: Request) => {
   if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
   const userId = userData.user.id;
 
+  // How many training days/week the user asked for (clamped 3–6, default 5).
+  let targetDaysPerWeek = 5;
+  try {
+    const body = (await req.json()) as { targetDaysPerWeek?: number };
+    const n = Number(body?.targetDaysPerWeek);
+    if (Number.isFinite(n)) targetDaysPerWeek = Math.min(6, Math.max(3, Math.round(n)));
+  } catch {
+    // no/invalid body → keep default
+  }
+
   try {
     const toolset = buildPlanTools(supabase, userId);
     const finalText = await runAgent({
       apiKey: geminiKey,
       system: PLAN_SYSTEM,
-      userMessage: 'Generate my training plan from my real recent stats. Call the tools first.',
+      userMessage:
+        `Build my training plan with EXACTLY ${targetDaysPerWeek} training days per week ` +
+        `(${targetDaysPerWeek} distinct day objects, each a different focus). ` +
+        'Call the tools first to ground it in my real stats, then return the plan.',
       tools: toolset.tools,
     });
 
@@ -46,7 +59,7 @@ Deno.serve(async (req: Request) => {
     return json({
       ai_rationale: parsed.ai_rationale ?? '',
       plan: parsed.plan ?? { days: [] },
-      stats_snapshot: toolset.lastSnapshot() ?? {},
+      stats_snapshot: { ...(toolset.lastSnapshot() ?? {}), targetDaysPerWeek },
     });
   } catch (e) {
     console.error('[generate-workout-plan]', e);

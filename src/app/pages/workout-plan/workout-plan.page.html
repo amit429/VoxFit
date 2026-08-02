@@ -1,45 +1,93 @@
 <ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <header class="flex shrink-0 items-center gap-3 px-2 pb-4 pt-2">
-    <button
-      type="button"
-      [routerLink]="'/tabs/workout'"
-      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-2"
-      aria-label="Back to Train"
-    >
-      <vox-icon name="chevron-back-outline" size="md" />
-    </button>
-    <div class="min-w-0">
-      <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Training</p>
-      <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">Your Plan</span>
-    </div>
-  </header>
-
-  <main class="flex-1 space-y-4 px-2 pb-6">
-    @if (error(); as err) {
-      <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">{{ err }}</p>
-    }
-
-    @if (generating()) {
-      <section class="rounded-2xl bg-surface-1 p-8 text-center ring-1 ring-hairline">
-        <ion-spinner name="crescent" style="--color: var(--vox-primary); width: 22px; height: 22px" />
-        <p class="m-0 mt-3 text-sm text-ink-subtle">Building your plan…</p>
-      </section>
-    } @else if (review(); as r) {
-      <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
-      <div class="flex gap-2">
-        <button type="button" class="vox-btn-secondary flex-1" (click)="save()">Save plan</button>
-        <button type="button" class="vox-btn-ghost flex-1" (click)="discard()">Discard</button>
+  <div class="flex min-h-full flex-col">
+    <header class="flex shrink-0 items-center gap-3 px-2 pb-4 pt-2">
+      <button
+        type="button"
+        [routerLink]="'/tabs/workout'"
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-2"
+        aria-label="Back to Train"
+      >
+        <vox-icon name="chevron-back-outline" size="md" />
+      </button>
+      <div class="min-w-0">
+        <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Training</p>
+        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">Your Plan</span>
       </div>
-    } @else if (planService.activePlan(); as active) {
-      <vox-plan-review-card [plan]="active.plan" [rationale]="active.ai_rationale ?? ''" />
-      <button type="button" class="vox-btn-secondary w-full" (click)="generate()">Regenerate</button>
-    } @else if (!loadingActive()) {
-      <section class="rounded-2xl bg-surface-1 p-5 text-center ring-1 ring-hairline">
-        <p class="m-0 text-sm leading-relaxed text-ink-subtle">
-          No active plan yet. Generate one from your recent training.
-        </p>
-        <button type="button" class="vox-btn-primary mt-4 w-full" (click)="generate()">Generate my plan</button>
-      </section>
-    }
-  </main>
+    </header>
+
+    <main class="flex flex-1 flex-col px-2 pb-6">
+      <div class="my-auto w-full space-y-4">
+        @if (error(); as err) {
+          <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">{{ err }}</p>
+        }
+
+        @if (generating()) {
+          <section class="rounded-2xl bg-surface-1 p-8 text-center ring-1 ring-hairline">
+            <ion-spinner name="crescent" style="--color: var(--vox-primary); width: 22px; height: 22px" />
+            <p class="m-0 mt-3 text-sm text-ink-subtle">Building your {{ daysPerWeek() }}-day plan…</p>
+          </section>
+        } @else if (review(); as r) {
+          <p class="m-0 text-center text-xs text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
+          <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
+          <div class="flex gap-2">
+            <button type="button" class="vox-btn-secondary flex-1" (click)="save()">Save plan</button>
+            <button type="button" class="vox-btn-ghost flex-1" (click)="discard()">Discard</button>
+          </div>
+        } @else if (planService.activePlan(); as active) {
+          <p class="m-0 text-center text-xs text-ink-tertiary">
+            {{ buildBasis(active.stats_snapshot, active.plan.days.length) }}
+          </p>
+          <vox-plan-review-card [plan]="active.plan" [rationale]="active.ai_rationale ?? ''" />
+
+          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+            <p class="m-0 mb-3 text-center text-xs text-ink-subtle">Want a fresh plan? Pick your weekly frequency.</p>
+            <div class="mb-4 flex items-center justify-center gap-2">
+              <span class="text-xs text-ink-subtle">Days / week</span>
+              @for (d of dayOptions; track d) {
+                <button
+                  type="button"
+                  (click)="daysPerWeek.set(d)"
+                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors"
+                  [class.bg-surface-3]="daysPerWeek() === d"
+                  [class.text-ink]="daysPerWeek() === d"
+                  [class.bg-surface-2]="daysPerWeek() !== d"
+                  [class.text-ink-subtle]="daysPerWeek() !== d"
+                >
+                  {{ d }}
+                </button>
+              }
+            </div>
+            <button type="button" class="vox-btn-secondary w-full" (click)="generate()">Regenerate</button>
+          </div>
+        } @else if (!loadingActive()) {
+          <section class="rounded-2xl bg-surface-1 p-6 text-center ring-1 ring-hairline">
+            <p class="m-0 text-sm leading-relaxed text-ink">Create your training plan</p>
+            <p class="m-0 mt-2 text-xs leading-relaxed text-ink-subtle">
+              I'll design a day-by-day plan around your goal and sport — using your recent sessions when you have them, and
+              sensible starting movements when you don't.
+            </p>
+
+            <div class="mt-5 flex items-center justify-center gap-2">
+              <span class="text-xs text-ink-subtle">Days / week</span>
+              @for (d of dayOptions; track d) {
+                <button
+                  type="button"
+                  (click)="daysPerWeek.set(d)"
+                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors"
+                  [class.bg-surface-3]="daysPerWeek() === d"
+                  [class.text-ink]="daysPerWeek() === d"
+                  [class.bg-surface-2]="daysPerWeek() !== d"
+                  [class.text-ink-subtle]="daysPerWeek() !== d"
+                >
+                  {{ d }}
+                </button>
+              }
+            </div>
+
+            <button type="button" class="vox-btn-primary mt-5 w-full" (click)="generate()">Generate my plan</button>
+          </section>
+        }
+      </div>
+    </main>
+  </div>
 </ion-content>
