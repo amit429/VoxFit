@@ -74,13 +74,19 @@ revoke all on function public.run_weekly_checkins() from public, anon, authentic
 
 -- pg_net logs every request it dispatches -- including the service-role bearer token
 -- run_weekly_checkins sends above -- into net.http_request_queue / net._http_response
--- (retained ~6 hours). anon/authenticated must not be able to read that schema, or a
--- client-side role could recover the service-role key and bypass RLS entirely. The
--- run_weekly_checkins dispatcher itself is security definer, owned by the
--- migration/superuser role, so it keeps calling net.http_post fine after these revokes.
-revoke all on all tables in schema net from anon, authenticated;
-revoke all on all routines in schema net from anon, authenticated;
-revoke usage on schema net from anon, authenticated;
+-- (retained ~6 hours). Primary protection: the `net` schema is NOT exposed through
+-- PostgREST, so app clients (anon/authenticated JWTs via supabase-js) cannot read these
+-- tables at all -- only a role with a direct DB connection can, and those (postgres /
+-- supabase_admin / service_role) already outrank anything in the logs.
+-- The revokes below are best-effort defense-in-depth: on Supabase-managed Postgres the
+-- USAGE/SELECT on `net` is a PUBLIC grant owned by supabase_admin, and the migration role
+-- (`postgres`, non-superuser) cannot revoke another owner's grant -- so these no-op there
+-- (harmless) and only bite where the migration runs as the grant owner/superuser. Fully
+-- tightening the PUBLIC grant requires supabase_admin. The security-definer dispatcher is
+-- owned by the migration role, so it keeps calling net.http_post regardless.
+revoke all on all tables in schema net from public, anon, authenticated;
+revoke all on all routines in schema net from public, anon, authenticated;
+revoke usage on schema net from public, anon, authenticated;
 
 -- Every Sunday at 06:00 UTC. cron.schedule upserts by job name, so re-applying is safe.
 select cron.schedule('weekly-checkin', '0 6 * * 0', $$ select public.run_weekly_checkins(); $$);
