@@ -68,6 +68,10 @@ export function computeTrainingStats(
     let sessionVolume = 0;
     for (const ex of s.exercises_logged ?? []) {
       if (ex.is_pr) prCount++;
+      // Coarse volume estimate: sets * reps * weight_kg per exercise row. Unlike the Angular
+      // client's training-stats util, this has no access to set_lines detail (per-set reps/weight)
+      // and doesn't exclude cardio exercises — so weeklyVolumeKg here intentionally differs
+      // slightly from the client-computed figure.
       sessionVolume += (ex.sets ?? 0) * (ex.reps ?? 0) * (ex.weight_kg ?? 0);
       const name = ex.exercise_name.trim();
       if (!name) continue;

@@ -5,6 +5,7 @@ import type {
   WorkoutPlanRow,
   WorkoutPlanSource,
 } from '@/app/models';
+import { environment } from '@/environments/environment';
 import { AuthService } from '@/app/services/auth.service';
 import { SupabaseService } from '@/app/services/supabase.service';
 import { GeminiWorkoutPlanService } from '@/app/services/gemini-workout-plan.service';
@@ -30,7 +31,6 @@ export class WorkoutPlanService {
   private readonly journal = inject(WorkoutJournalService);
 
   readonly activePlan = signal<WorkoutPlanRow | null>(null);
-  readonly lastError = signal<string | null>(null);
 
   async getActivePlan(): Promise<WorkoutPlanRow | null> {
     const uid = this.auth.user()?.id;
@@ -54,7 +54,8 @@ export class WorkoutPlanService {
   async generate(): Promise<WorkoutPlanGenerateResult> {
     const uid = this.auth.user()?.id;
     if (!uid) throw new Error('Not signed in');
-    const summary = await this.buildClientSummary(uid);
+    // Edge path rebuilds stats server-side and would discard a client summary — skip building it.
+    const summary = environment.useGeminiEdgeFunction ? undefined : await this.buildClientSummary(uid);
     return this.gemini.generate(summary);
   }
 

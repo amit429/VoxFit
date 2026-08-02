@@ -18,11 +18,11 @@ export class GeminiWorkoutPlanService {
   private readonly supabase = inject(SupabaseService);
 
   /**
-   * Edge path (prod): the agent gathers stats server-side; `summaryForDirect` is
-   * ignored for stats but still used as the snapshot echoed back if the function
-   * returns one. Direct path (local dev): single-shot call with the given summary.
+   * Edge path (prod): the agent gathers stats server-side, so no summary is needed —
+   * the caller skips building one entirely. Direct path (local dev): single-shot call
+   * that requires a client-built summary.
    */
-  async generate(summaryForDirect: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
+  async generate(summaryForDirect?: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
     if (environment.useGeminiEdgeFunction) {
       return this.viaEdgeFunction();
     }
@@ -47,7 +47,10 @@ export class GeminiWorkoutPlanService {
     return parseWorkoutPlanJson(text, snapshot);
   }
 
-  private async directGemini(summary: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
+  private async directGemini(summary?: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
+    if (!summary) {
+      throw new Error('Direct plan generation requires a stats summary');
+    }
     const key = environment.geminiApiKey?.trim();
     if (!key) {
       throw new Error(
