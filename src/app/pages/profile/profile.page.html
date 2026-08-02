@@ -172,6 +172,36 @@
       </section>
     }
 
+    <!-- Progress check-in -->
+    <section>
+      @if (coach.latestReview(); as r) {
+        <vox-progress-review-card [review]="r" (acknowledge)="onAcknowledge($event)" />
+      } @else {
+        <div class="rounded-2xl bg-surface-1 p-6 text-center ring-1 ring-hairline">
+          @if (generating()) {
+            <ion-spinner name="crescent" style="--color: var(--vox-primary); width: 22px; height: 22px" />
+            <p class="m-0 mt-3 text-sm text-ink-subtle">Reviewing your recent activity…</p>
+          } @else {
+            <p class="m-0 text-sm leading-relaxed text-ink">Get your progress check-in</p>
+            <p class="m-0 mt-2 text-xs leading-relaxed text-ink-subtle">
+              A quick AI read on how your training and nutrition have been trending lately.
+            </p>
+            @if (error(); as err) {
+              <p class="m-0 mt-4 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">{{ err }}</p>
+            }
+            <button
+              type="button"
+              class="vox-btn-primary mt-5 w-full"
+              [disabled]="generating()"
+              (click)="checkProgress()"
+            >
+              Check my progress
+            </button>
+          }
+        </div>
+      }
+    </section>
+
     <!-- Preferences -->
     <section class="space-y-2">
       <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">Preferences</h3>

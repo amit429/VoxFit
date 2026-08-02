@@ -1,0 +1,67 @@
+<section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <h2 class="m-0 text-sm font-semibold text-ink">Coach Note</h2>
+    @switch (review().headline_tone) {
+      @case ('positive') {
+        <span class="rounded-full bg-surface-3 px-3 py-1 text-xs font-medium text-ink">On track</span>
+      }
+      @case ('attention') {
+        <span class="rounded-full bg-surface-3 px-3 py-1 text-xs font-medium text-ink">Worth a look</span>
+      }
+      @default {
+        <span class="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-ink-subtle">Steady</span>
+      }
+    }
+  </div>
+
+  @if (review().review.highlights.length) {
+    <div class="mb-4">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Highlights</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of review().review.highlights; track item) {
+          <li class="text-sm leading-relaxed text-ink">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (review().review.trends.length) {
+    <div class="mb-4">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Trends</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of review().review.trends; track item) {
+          <li class="text-sm leading-relaxed text-ink">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (review().review.recurringNotes.length) {
+    <div class="mb-4">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Recurring notes</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of review().review.recurringNotes; track item) {
+          <li class="text-sm leading-relaxed text-ink-subtle">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (review().review.suggestions.length) {
+    <div class="mb-2">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Suggestions</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of review().review.suggestions; track item) {
+          <li class="text-sm leading-relaxed text-ink">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (!review().acknowledged_at) {
+    <button type="button" class="vox-btn-ghost mt-2 w-full" (click)="acknowledge.emit(review().id)">
+      <vox-icon name="checkmark-outline" size="sm" />
+      Acknowledge
+    </button>
+  }
+</section>

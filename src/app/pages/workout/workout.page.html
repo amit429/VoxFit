@@ -24,6 +24,12 @@
       <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" class="shrink-0" />
     </a>
 
+    @if (coach.latestNudge(); as n) {
+      @if (!n.acknowledged_at) {
+        <vox-plan-nudge-card [nudge]="n" (acknowledge)="onAckNudge($event)" (refresh)="onRefresh()" />
+      }
+    }
+
     @if (listError(); as err) {
       <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">
         Could not load workouts: {{ err }}

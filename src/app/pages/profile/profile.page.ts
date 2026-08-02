@@ -1,9 +1,10 @@
+import { ProgressReviewCardComponent } from '@/app/components/progress-review-card/progress-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   flagOutline,
@@ -18,6 +19,7 @@ import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
 import type { GoalType, HeatmapCellVm, MonthlyBarVm, MonthlyChartStatVm } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
+import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import {
   buildMonthlySeries,
@@ -55,13 +57,17 @@ const HEATMAP_BACKGROUNDS = [
   standalone: true,
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent],
+  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent, IonSpinner, ProgressReviewCardComponent],
 })
 export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
   private readonly navCtrl = inject(NavController);
   protected readonly journal = inject(WorkoutJournalService);
   private readonly nutrition = inject(NutritionDashboardService);
+  protected readonly coach = inject(ProgressCoachService);
+
+  protected readonly generating = signal(false);
+  protected readonly error = signal<string | null>(null);
 
   protected readonly profile = this.auth.profile;
 
@@ -261,6 +267,23 @@ export class ProfilePage implements ViewWillEnter {
     void this.journal.refreshActivitySummary();
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
     void this.loadAllTimeCounts();
+    void this.coach.getLatest();
+  }
+
+  protected async checkProgress(): Promise<void> {
+    this.error.set(null);
+    this.generating.set(true);
+    try {
+      await this.coach.generate();
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'Check-in failed');
+    } finally {
+      this.generating.set(false);
+    }
+  }
+
+  protected onAcknowledge(id: string): void {
+    void this.coach.acknowledgeReview(id);
   }
 
   private async loadAllTimeCounts(): Promise<void> {

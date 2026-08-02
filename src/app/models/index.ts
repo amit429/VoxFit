@@ -57,3 +57,8 @@ export * from './training-stats-summary.model';
 export * from './workout-plan-content.model';
 export * from './workout-plan-row.model';
 export * from './workout-plan-generate-result.model';
+export * from './progress-review-content.model';
+export * from './progress-review-row.model';
+export * from './plan-nudge-content.model';
+export * from './plan-nudge-row.model';
+export * from './checkin-generate-result.model';
