@@ -27,14 +27,14 @@
             <p class="m-0 mt-3 text-sm text-ink-subtle">Building your {{ daysPerWeek() }}-day plan…</p>
           </section>
         } @else if (review(); as r) {
-          <p class="m-0 text-center text-xs text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
+          <p class="mb-4 text-center text-sm text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
           <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
           <div class="flex gap-2">
             <button type="button" class="vox-btn-secondary flex-1 transition-opacity hover:opacity-90" (click)="save()">Save plan</button>
             <button type="button" class="vox-btn-ghost flex-1 transition-opacity hover:opacity-90" (click)="discard()">Discard</button>
           </div>
         } @else if (planService.activePlan(); as active) {
-          <p class="m-0 text-center text-xs text-ink-tertiary">
+          <p class="mt-4 text-center text-sm text-ink-tertiary">
             {{ buildBasis(active.stats_snapshot, active.plan.days.length) }}
           </p>
           <vox-plan-review-card [plan]="active.plan" [rationale]="active.ai_rationale ?? ''" />
