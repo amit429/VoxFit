@@ -50,13 +50,16 @@ export class WorkoutPlanService {
     return row;
   }
 
-  /** Runs the agent (edge) or single-shot (direct) and returns a normalized, unsaved result. */
-  async generate(): Promise<WorkoutPlanGenerateResult> {
+  /**
+   * Runs the agent (edge) or single-shot (direct) and returns a normalized, unsaved result.
+   * `targetDaysPerWeek` is the user-chosen training frequency for this generation.
+   */
+  async generate(targetDaysPerWeek: number): Promise<WorkoutPlanGenerateResult> {
     const uid = this.auth.user()?.id;
     if (!uid) throw new Error('Not signed in');
     // Edge path rebuilds stats server-side and would discard a client summary — skip building it.
     const summary = environment.useGeminiEdgeFunction ? undefined : await this.buildClientSummary(uid);
-    return this.gemini.generate(summary);
+    return this.gemini.generate(summary, targetDaysPerWeek);
   }
 
   /** Supersede any current active plan, then insert the new one as active. */

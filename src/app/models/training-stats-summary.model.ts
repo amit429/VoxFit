@@ -30,4 +30,9 @@ export interface TrainingStatsSummary {
   topExercises: TopExerciseStat[];
   /** Deduplicated recent physical-flag notes (free text). */
   recentFlags: string[];
+  /**
+   * Target training days/week the user chose for this generation. Not a historical
+   * stat — a generation parameter recorded in the snapshot for audit/UI.
+   */
+  targetDaysPerWeek?: number;
 }

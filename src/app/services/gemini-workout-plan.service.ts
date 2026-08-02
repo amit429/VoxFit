@@ -22,16 +22,19 @@ export class GeminiWorkoutPlanService {
    * the caller skips building one entirely. Direct path (local dev): single-shot call
    * that requires a client-built summary.
    */
-  async generate(summaryForDirect?: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
+  async generate(
+    summaryForDirect: TrainingStatsSummary | undefined,
+    targetDaysPerWeek: number,
+  ): Promise<WorkoutPlanGenerateResult> {
     if (environment.useGeminiEdgeFunction) {
-      return this.viaEdgeFunction();
+      return this.viaEdgeFunction(targetDaysPerWeek);
     }
-    return this.directGemini(summaryForDirect);
+    return this.directGemini(summaryForDirect, targetDaysPerWeek);
   }
 
-  private async viaEdgeFunction(): Promise<WorkoutPlanGenerateResult> {
+  private async viaEdgeFunction(targetDaysPerWeek: number): Promise<WorkoutPlanGenerateResult> {
     const { data, error } = await this.supabase.client.functions.invoke('generate-workout-plan', {
-      body: {},
+      body: { targetDaysPerWeek },
     });
     if (error) {
       console.error('[GeminiWorkoutPlan] Edge function error', error);
@@ -47,7 +50,10 @@ export class GeminiWorkoutPlanService {
     return parseWorkoutPlanJson(text, snapshot);
   }
 
-  private async directGemini(summary?: TrainingStatsSummary): Promise<WorkoutPlanGenerateResult> {
+  private async directGemini(
+    summary: TrainingStatsSummary | undefined,
+    targetDaysPerWeek: number,
+  ): Promise<WorkoutPlanGenerateResult> {
     if (!summary) {
       throw new Error('Direct plan generation requires a stats summary');
     }
@@ -57,7 +63,8 @@ export class GeminiWorkoutPlanService {
         'Missing geminiApiKey — add it in environment.dev.ts or enable useGeminiEdgeFunction with generate-workout-plan.',
       );
     }
-    const { system, user } = buildWorkoutPlanPrompt(summary);
+    const snapshot: TrainingStatsSummary = { ...summary, targetDaysPerWeek };
+    const { system, user } = buildWorkoutPlanPrompt(snapshot, targetDaysPerWeek);
     const res = await fetch(`${GEMINI_URL}?key=${encodeURIComponent(key)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -75,7 +82,7 @@ export class GeminiWorkoutPlanService {
     const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
     const part = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!part) throw new Error('Empty Gemini response');
-    return parseWorkoutPlanJson(part, summary);
+    return parseWorkoutPlanJson(part, snapshot);
   }
 }
 

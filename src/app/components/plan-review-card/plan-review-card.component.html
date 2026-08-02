@@ -2,25 +2,49 @@
   @if (rationale()) {
     <p class="m-0 mb-4 text-sm leading-relaxed text-ink-subtle">{{ rationale() }}</p>
   }
-  @for (day of plan().days; track day.day_label) {
-    <div class="mb-4 last:mb-0">
-      <header class="mb-2">
-        <h3 class="m-0 text-sm font-semibold text-ink">{{ day.day_label }}</h3>
-        <p class="m-0 mt-0.5 text-xs text-ink-subtle">{{ day.focus }}</p>
-      </header>
-      <ul class="m-0 list-none space-y-2 p-0">
-        @for (ex of day.exercises; track ex.name) {
-          <li class="border-b border-hairline pb-2 last:border-b-0 last:pb-0">
-            <div class="flex items-baseline justify-between gap-3">
-              <span class="text-sm text-ink">{{ ex.name }}</span>
-              <span class="shrink-0 font-mono text-xs text-ink-subtle">{{ ex.sets ?? '—' }} × {{ ex.reps ?? '—' }}</span>
-            </div>
-            @if (ex.note) {
-              <p class="m-0 mt-0.5 text-xs text-ink-tertiary">{{ ex.note }}</p>
+  <div class="space-y-2">
+    @for (day of plan().days; track day.day_label; let i = $index) {
+      <div class="overflow-hidden rounded-xl bg-surface-2 ring-1 ring-hairline mb-6">
+        <button
+          type="button"
+          class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-3"
+          [attr.aria-expanded]="isOpen(i)"
+          (click)="toggle(i)"
+        >
+          <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-3 font-mono text-xs text-ink-subtle">
+            {{ i + 1 }}
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-sm font-semibold text-ink">{{ day.day_label }}</span>
+            <span class="block truncate text-xs text-ink-subtle">{{ day.focus }}</span>
+          </span>
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 font-mono text-xs text-ink-subtle">
+            {{ day.exercises.length }}
+          </span>
+          <vox-icon
+            name="chevron-down-outline"
+            size="sm"
+            class="shrink-0 text-ink-subtle transition-transform duration-200"
+            [class.rotate-180]="isOpen(i)"
+          />
+        </button>
+
+        @if (isOpen(i)) {
+          <ul class="m-0 list-none space-y-2 border-t border-hairline px-4 py-3 p-0">
+            @for (ex of day.exercises; track ex.name) {
+              <li class="border-b border-hairline pb-2 last:border-b-0 last:pb-0">
+                <div class="flex items-baseline justify-between gap-3">
+                  <span class="text-sm text-ink">{{ ex.name }}</span>
+                  <span class="shrink-0 font-mono text-xs text-ink-subtle">{{ ex.sets ?? '—' }} × {{ ex.reps ?? '—' }}</span>
+                </div>
+                @if (ex.note) {
+                  <p class="m-0 mt-0.5 text-xs text-ink-tertiary">{{ ex.note }}</p>
+                }
+              </li>
             }
-          </li>
+          </ul>
         }
-      </ul>
-    </div>
-  }
+      </div>
+    }
+  </div>
 </section>
