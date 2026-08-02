@@ -52,3 +52,8 @@ export * from './macro-row-mock.model';
 export * from './home-macros-mock.model';
 
 export * from './password-rule-result.model';
+
+export * from './training-stats-summary.model';
+export * from './workout-plan-content.model';
+export * from './workout-plan-row.model';
+export * from './workout-plan-generate-result.model';
