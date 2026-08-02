@@ -72,5 +72,15 @@ $$;
 
 revoke all on function public.run_weekly_checkins() from public, anon, authenticated;
 
+-- pg_net logs every request it dispatches -- including the service-role bearer token
+-- run_weekly_checkins sends above -- into net.http_request_queue / net._http_response
+-- (retained ~6 hours). anon/authenticated must not be able to read that schema, or a
+-- client-side role could recover the service-role key and bypass RLS entirely. The
+-- run_weekly_checkins dispatcher itself is security definer, owned by the
+-- migration/superuser role, so it keeps calling net.http_post fine after these revokes.
+revoke all on all tables in schema net from anon, authenticated;
+revoke all on all routines in schema net from anon, authenticated;
+revoke usage on schema net from anon, authenticated;
+
 -- Every Sunday at 06:00 UTC. cron.schedule upserts by job name, so re-applying is safe.
 select cron.schedule('weekly-checkin', '0 6 * * 0', $$ select public.run_weekly_checkins(); $$);
