@@ -1,0 +1,45 @@
+<section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+  <h2 class="m-0 mb-1.5 text-sm font-semibold text-ink">Plan Check-in</h2>
+  <p class="m-0 mb-4 font-mono text-sm text-ink-subtle">
+    {{ nudge().completed_sessions }} of {{ nudge().planned_sessions }} planned sessions
+  </p>
+
+  @if (nudge().nudge.executionNotes.length) {
+    <div class="mb-4">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Execution notes</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of nudge().nudge.executionNotes; track item) {
+          <li class="text-sm leading-relaxed text-ink">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (nudge().nudge.focusThisWeek.length) {
+    <div class="mb-4">
+      <h3 class="m-0 mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle">Focus this week</h3>
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (item of nudge().nudge.focusThisWeek; track item) {
+          <li class="text-sm leading-relaxed text-ink">{{ item }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (nudge().nudge.driftReason) {
+    <p class="m-0 mb-4 text-sm leading-relaxed text-ink-subtle">{{ nudge().nudge.driftReason }}</p>
+  }
+
+  @if (nudge().suggests_refresh) {
+    <button type="button" class="vox-btn-primary mt-2 w-full" (click)="refresh.emit()">
+      This plan no longer matches how you're training — refresh it?
+    </button>
+  }
+
+  @if (!nudge().acknowledged_at) {
+    <button type="button" class="vox-btn-ghost mt-2 w-full" (click)="acknowledge.emit(nudge().id)">
+      <vox-icon name="checkmark-outline" size="sm" />
+      Acknowledge
+    </button>
+  }
+</section>
