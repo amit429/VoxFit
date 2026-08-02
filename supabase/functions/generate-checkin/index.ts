@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
       .select('*').single();
     if (revErr) throw new Error(revErr.message);
 
-    // Deterministic write #2 — the nudge, only when an active plan exists.
+    // Deterministic write #2 — the nudge, only when an active plan exists and adherence data is present.
     let nudgeRow = null;
     const plan = toolset.lastPlan();
     const pva = toolset.lastPlanVsActual();
@@ -108,8 +108,8 @@ Deno.serve(async (req: Request) => {
         .from('plan_nudges')
         .upsert({
           user_id: userId, plan_id: plan.id, period_start: periodStart, period_end: periodEnd,
-          generated_for_week: forWeek, suggests_refresh: pva?.suggestsRefresh ?? false,
-          planned_sessions: pva?.planned ?? 0, completed_sessions: pva?.completed ?? 0, nudge,
+          generated_for_week: forWeek, suggests_refresh: pva.suggestsRefresh,
+          planned_sessions: pva.planned, completed_sessions: pva.completed, nudge,
         }, { onConflict: 'user_id,generated_for_week' })
         .select('*').single();
       if (nErr) throw new Error(nErr.message);
