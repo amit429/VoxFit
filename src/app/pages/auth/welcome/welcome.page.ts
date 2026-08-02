@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { micOutline, arrowForwardOutline } from 'ionicons/icons';
+import { arrowForwardOutline } from 'ionicons/icons';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 
-addIcons({ micOutline, arrowForwardOutline });
+addIcons({ arrowForwardOutline, voxfitMic });
 
 @Component({
   selector: 'app-welcome',

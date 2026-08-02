@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonSpinner, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  mic,
   sparklesOutline,
   checkmarkCircle,
   warningOutline,
@@ -22,8 +21,18 @@ import { AuthService } from '@/app/services/auth.service';
 import { workoutExtractToVoiceDoneMock } from '@/app/utils/workout-extract-ui.mapper';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 
-addIcons({ mic, sparklesOutline, checkmarkCircle, warningOutline, close, refreshOutline, checkmarkOutline, chevronBackOutline });
+addIcons({
+  sparklesOutline,
+  checkmarkCircle,
+  warningOutline,
+  close,
+  refreshOutline,
+  checkmarkOutline,
+  chevronBackOutline,
+  voxfitMic,
+});
 
 type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
 

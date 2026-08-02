@@ -13,13 +13,71 @@
   <meta name="msapplication-tap-highlight" content="no" />
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/icon/apple-touch-icon.png" />
 
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <style>
+    #app-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0c;
+      transition: opacity 0.3s ease-out;
+    }
+
+    #app-splash.app-splash-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #app-splash-logo {
+      width: 96px;
+      height: 96px;
+      animation: app-splash-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes app-splash-pulse {
+      0%, 100% {
+        transform: scale(0.92);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #app-splash-logo {
+        animation: none;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div id="app-splash" role="presentation">
+    <svg
+      id="app-splash-logo"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      fill="none"
+      stroke="#5e6ad2"
+      stroke-width="32"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M192 448h128M384 208v32c0 70.4-57.6 128-128 128h0c-70.4 0-128-57.6-128-128v-32M256 368v80" />
+      <path d="M256 64a63.68 63.68 0 00-64 64v111c0 35.2 29 65 64 65s64-29 64-65V128c0-36-28-64-64-64z" />
+      <path d="M208 190h20l10-40 16 80 14-70 14 30h22" />
+    </svg>
+  </div>
   <app-root></app-root>
 </body>
 

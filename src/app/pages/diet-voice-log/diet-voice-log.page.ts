@@ -15,7 +15,6 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  mic,
   sparklesOutline,
   checkmarkCircle,
   checkmarkOutline,
@@ -32,15 +31,16 @@ import { AuthService } from '@/app/services/auth.service';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 
 addIcons({
-  mic,
   sparklesOutline,
   checkmarkCircle,
   checkmarkOutline,
   timeOutline,
   chevronBackOutline,
   restaurantOutline,
+  voxfitMic,
 });
 
 type DietVoiceUiState = 'idle' | 'recording' | 'processing' | 'results';
