@@ -7,6 +7,23 @@
   </header>
 
   <main class="flex-1 space-y-6 px-2 pb-6">
+    <a
+      routerLink="/tabs/workout/plan"
+      class="flex items-center justify-between gap-3 rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline"
+    >
+      <div class="min-w-0">
+        <p class="m-0 text-sm font-medium text-ink">Your Plan</p>
+        <p class="m-0 mt-0.5 text-xs text-ink-subtle">
+          @if (planService.activePlan(); as p) {
+            {{ p.plan.days.length }} days · active
+          } @else {
+            Generate a plan from your training
+          }
+        </p>
+      </div>
+      <vox-icon name="chevron-forward-outline" tone="ink-subtle" size="sm" class="shrink-0" />
+    </a>
+
     @if (listError(); as err) {
       <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">
         Could not load workouts: {{ err }}

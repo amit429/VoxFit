@@ -1,7 +1,7 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -18,6 +18,7 @@ import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutlin
 import type { WorkoutSessionListMock, WorkoutSessionListRow, WorkoutSessionRow } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
+import { WorkoutPlanService } from '@/app/services/workout-plan.service';
 import {
   formatSessionDateLabel,
   getCurrentWeekDayKeys,
@@ -36,6 +37,7 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
   imports: [
     VoxIconComponent,
     VoxSkeletonComponent,
+    RouterLink,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -48,6 +50,7 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
 })
 export class WorkoutPage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
+  protected readonly planService = inject(WorkoutPlanService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -217,6 +220,7 @@ export class WorkoutPage implements ViewWillEnter {
     void this.journal.refreshCurrentWeekSessions();
     void this.loadPrevWeekVolume();
     void this.loadListForActiveFilter();
+    this.planService.getActivePlan().catch((err) => console.error('[WorkoutPage] load active plan', err));
   }
 
   private static formatDayChip(iso: string): string {

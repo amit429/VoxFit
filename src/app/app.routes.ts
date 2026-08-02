@@ -84,6 +84,12 @@ export const routes: Routes = [
         loadComponent: () => import('@/app/pages/workout/workout.page').then((m) => m.WorkoutPage),
       },
       {
+        // Must precede `workout/:sessionId` — otherwise `plan` would be captured as a sessionId.
+        path: 'workout/plan',
+        loadComponent: () =>
+          import('@/app/pages/workout-plan/workout-plan.page').then((m) => m.WorkoutPlanPage),
+      },
+      {
         path: 'workout/:sessionId',
         loadComponent: () =>
           import('@/app/pages/workout-detail/workout-detail.page').then((m) => m.WorkoutDetailPage),
