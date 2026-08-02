@@ -230,7 +230,7 @@ export class WorkoutPage implements ViewWillEnter {
 
   /** Ack the plan-nudge card — dismisses it without discarding the underlying row. */
   protected onAckNudge(id: string): void {
-    void this.coach.acknowledgeNudge(id);
+    this.coach.acknowledgeNudge(id).catch((err) => console.error('[WorkoutPage] acknowledge nudge', err));
   }
 
   /** Refresh CTA on a drifted plan — hands off to the plan page, which regenerates with source 'nudge_refresh'. */

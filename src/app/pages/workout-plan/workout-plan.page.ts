@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -22,6 +22,7 @@ addIcons({ chevronBackOutline });
 export class WorkoutPlanPage implements ViewWillEnter {
   protected readonly planService = inject(WorkoutPlanService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly loadingActive = signal(true);
   protected readonly generating = signal(false);
@@ -35,11 +36,20 @@ export class WorkoutPlanPage implements ViewWillEnter {
   /** Set when arriving via the Train tab's plan-nudge "refresh" CTA (`?refresh=nudge`) — the next save() uses this source instead of 'on_demand'. */
   private readonly saveSource = signal<WorkoutPlanSource>('on_demand');
 
+  /**
+   * One-shot guard for the `?refresh=nudge` auto-generate. `IonicRouteStrategy` caches this page
+   * instance, so `ionViewWillEnter` re-fires on every re-entry — without this, switching tabs away
+   * mid-review and back (before save/discard) would silently re-trigger `runGenerate`, discarding
+   * the on-screen review and firing a redundant Gemini call. Cleared query param is the primary
+   * defense (belt); this flag is the suspenders in case a stale snapshot still carries it.
+   */
+  private nudgeRefreshConsumed = false;
+
   async ionViewWillEnter(): Promise<void> {
     this.loadingActive.set(true);
     this.error.set(null);
     this.review.set(null);
-    const isNudgeRefresh = this.route.snapshot.queryParamMap.get('refresh') === 'nudge';
+    const isNudgeRefresh = !this.nudgeRefreshConsumed && this.route.snapshot.queryParamMap.get('refresh') === 'nudge';
     try {
       await this.planService.getActivePlan();
     } catch (err) {
@@ -49,6 +59,10 @@ export class WorkoutPlanPage implements ViewWillEnter {
       this.loadingActive.set(false);
     }
     if (isNudgeRefresh) {
+      this.nudgeRefreshConsumed = true;
+      // Strip the query param immediately so a re-entry (tab switch away/back before save/discard)
+      // can't see it and re-trigger this branch via the cached page instance's ionViewWillEnter.
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
       // Arrived via the Train tab's plan-nudge "refresh" CTA — auto-run generate() and tag the
       // resulting save as 'nudge_refresh'. A manual Regenerate/Generate click always stays 'on_demand'.
       await this.runGenerate('nudge_refresh');
