@@ -7,7 +7,7 @@
       <div class="overflow-hidden rounded-xl bg-surface-2 ring-1 ring-hairline">
         <button
           type="button"
-          class="flex w-full items-center gap-3 px-4 py-3 text-left"
+          class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-3"
           [attr.aria-expanded]="isOpen(i)"
           (click)="toggle(i)"
         >
@@ -18,7 +18,9 @@
             <span class="block truncate text-sm font-semibold text-ink">{{ day.day_label }}</span>
             <span class="block truncate text-xs text-ink-subtle">{{ day.focus }}</span>
           </span>
-          <span class="shrink-0 font-mono text-xs text-ink-tertiary">{{ day.exercises.length }}</span>
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 font-mono text-xs text-ink-subtle">
+            {{ day.exercises.length }}
+          </span>
           <vox-icon
             name="chevron-down-outline"
             size="sm"

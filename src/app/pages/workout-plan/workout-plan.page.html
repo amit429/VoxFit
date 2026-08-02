@@ -30,8 +30,8 @@
           <p class="m-0 text-center text-xs text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
           <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
           <div class="flex gap-2">
-            <button type="button" class="vox-btn-secondary flex-1" (click)="save()">Save plan</button>
-            <button type="button" class="vox-btn-ghost flex-1" (click)="discard()">Discard</button>
+            <button type="button" class="vox-btn-secondary flex-1 transition-opacity hover:opacity-90" (click)="save()">Save plan</button>
+            <button type="button" class="vox-btn-ghost flex-1 transition-opacity hover:opacity-90" (click)="discard()">Discard</button>
           </div>
         } @else if (planService.activePlan(); as active) {
           <p class="m-0 text-center text-xs text-ink-tertiary">
@@ -47,17 +47,18 @@
                 <button
                   type="button"
                   (click)="daysPerWeek.set(d)"
-                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors"
+                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors cursor-pointer"
                   [class.bg-surface-3]="daysPerWeek() === d"
                   [class.text-ink]="daysPerWeek() === d"
                   [class.bg-surface-2]="daysPerWeek() !== d"
                   [class.text-ink-subtle]="daysPerWeek() !== d"
+                  [class.hover:bg-surface-3]="daysPerWeek() !== d"
                 >
                   {{ d }}
                 </button>
               }
             </div>
-            <button type="button" class="vox-btn-secondary w-full" (click)="generate()">Regenerate</button>
+            <button type="button" class="vox-btn-secondary w-full transition-opacity hover:opacity-90" (click)="generate()">Regenerate</button>
           </div>
         } @else if (!loadingActive()) {
           <section class="rounded-2xl bg-surface-1 p-6 text-center ring-1 ring-hairline">
@@ -73,11 +74,12 @@
                 <button
                   type="button"
                   (click)="daysPerWeek.set(d)"
-                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors"
+                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors cursor-pointer"
                   [class.bg-surface-3]="daysPerWeek() === d"
                   [class.text-ink]="daysPerWeek() === d"
                   [class.bg-surface-2]="daysPerWeek() !== d"
                   [class.text-ink-subtle]="daysPerWeek() !== d"
+                  [class.hover:bg-surface-3]="daysPerWeek() !== d"
                 >
                   {{ d }}
                 </button>
