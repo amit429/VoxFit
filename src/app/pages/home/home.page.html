@@ -1,12 +1,6 @@
 <ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <header class="flex shrink-0 items-center justify-between px-4 pb-6 pt-2">
+  <header class="flex shrink-0 items-center justify-between px-4 pb-10 pt-4">
     <div class="flex min-w-0 items-center gap-3">
-      <div
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-hairline bg-surface-2"
-        aria-hidden="true"
-      >
-        <vox-icon name="voxfit-mic" size="sm" tone="accent" />
-      </div>
       <div class="min-w-0">
         <p class="m-0 uppercase text-sm vx-tracking-18 font-mono text-ink-subtle">{{ todayLabel() }}</p>
         <h1 class="m-0 mt-1 truncate text-xl font-semibold tracking-tight text-ink">{{ greeting() }}</h1>

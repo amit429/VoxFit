@@ -1,0 +1,75 @@
+<!--
+  VoxFit — "Confirm signup" auth email template.
+
+  Supabase Auth email templates aren't reachable via migration/MCP tooling — they live in
+  Dashboard → Authentication → Emails → Confirm signup. Paste the <body> markup below into
+  the template editor there (it accepts raw HTML). Suggested subject line:
+
+    Welcome to VoxFit — confirm to start logging 🎙️
+
+  Template variable used: {{ .ConfirmationURL }}.
+  ({{ .Email }} is not a real substitution on this template — Supabase only populates it for
+  the "link identity" flow, so it printed as literal text. Don't reintroduce it here.)
+-->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+  Confirm your email and say your first workout out loud.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f8;padding:32px 16px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background-color:#ffffff;border:1px solid #e6e6ef;border-radius:12px;">
+        <tr>
+          <td style="padding:40px 40px 32px 40px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;">
+
+            <div style="font-size:12px;font-weight:700;letter-spacing:0.14em;color:#5e6ad2;text-transform:uppercase;margin:0 0 20px 0;">
+              VoxFit
+            </div>
+
+            <div style="font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;color:#5e6ad2;font-size:20px;letter-spacing:0.05em;margin:0 0 20px 0;">
+              &#9603;&#9605;&#9607;&#9605;&#9603;&nbsp;&#9603;&#9607;&#9605;&#9603;&nbsp;&#9605;&#9607;&#9603;
+            </div>
+
+            <h1 style="margin:0 0 12px 0;font-size:24px;line-height:1.3;font-weight:600;letter-spacing:-0.02em;color:#14151a;">
+              Welcome to VoxFit
+            </h1>
+
+            <p style="margin:0 0 28px 0;font-size:15px;line-height:1.6;color:#4b4d5c;">
+              Your voice is faster than your thumbs. Confirm your email and you can log a workout
+              or a meal just by talking &mdash; no forms, no typing.
+            </p>
+
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 28px 0;">
+              <tr>
+                <td style="border-radius:8px;background-color:#5e6ad2;">
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;">
+                    Confirm email &amp; start logging
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 32px 0;font-size:13px;line-height:1.6;color:#8b8d9c;">
+              Button not working? Paste this link into your browser:<br>
+              <a href="{{ .ConfirmationURL }}" style="color:#5e6ad2;word-break:break-all;">{{ .ConfirmationURL }}</a>
+            </p>
+
+            <hr style="border:none;border-top:1px solid #e6e6ef;margin:0 0 20px 0;">
+
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#a3a5b3;">
+              This link expires in 24 hours. Didn't create a VoxFit account? You can safely
+              ignore this email.
+            </p>
+
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:20px 0 0 0;font-size:12px;color:#a3a5b3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;">
+        First rep's always the hardest to start. Let's go. &mdash; Team VoxFit
+      </p>
+
+    </td>
+  </tr>
+</table>
