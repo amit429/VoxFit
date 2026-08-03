@@ -1,11 +1,15 @@
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { PasswordStrengthChecklistComponent } from '@/app/components/password-strength-checklist/password-strength-checklist.component';
 import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonInput, IonInputPasswordToggle, IonBackButton } from '@ionic/angular/standalone';
+import { catchError, debounceTime, distinctUntilChanged, from, of, switchMap } from 'rxjs';
 import { AuthService } from '@/app/services/auth.service';
 import { PASSWORD_MIN_LENGTH, passwordStrengthValidator } from '@/app/utils/password-strength.util';
+
+const EMAIL_CHECK_DEBOUNCE_MS = 400;
 
 @Component({
   selector: 'app-register',
@@ -43,6 +47,32 @@ export class RegisterPage {
     this.passwordValue.set(value);
   }
 
+  /** True once the debounced check confirms the typed email is already registered. */
+  protected readonly emailTaken = signal(false);
+  protected readonly checkingEmail = signal(false);
+
+  constructor() {
+    this.form.controls.email.valueChanges
+      .pipe(
+        debounceTime(EMAIL_CHECK_DEBOUNCE_MS),
+        distinctUntilChanged(),
+        switchMap((value) => {
+          this.emailTaken.set(false);
+          if (this.form.controls.email.invalid) {
+            this.checkingEmail.set(false);
+            return of(false);
+          }
+          this.checkingEmail.set(true);
+          return from(this.auth.checkEmailExists(value)).pipe(catchError(() => of(false)));
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((exists) => {
+        this.checkingEmail.set(false);
+        this.emailTaken.set(exists);
+      });
+  }
+
   loading = false;
   errorMessage = '';
   infoMessage = '';
@@ -50,7 +80,7 @@ export class RegisterPage {
   async submit(): Promise<void> {
     this.errorMessage = '';
     this.infoMessage = '';
-    if (this.form.invalid) {
+    if (this.form.invalid || this.emailTaken()) {
       this.form.markAllAsTouched();
       return;
     }

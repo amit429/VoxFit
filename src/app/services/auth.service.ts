@@ -3,6 +3,17 @@ import type { Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from '@/app/services/supabase.service';
 import type { UserProfile } from '@/app/models';
 
+/**
+ * Supabase quirk: `auth.signUp()` for an email that's already registered and confirmed
+ * returns no `error` — just `session: null` and a synthetic `user` whose `identities` array
+ * is empty (a genuine new signup has one identity). Without this check that case is
+ * indistinguishable from "check your email to confirm", so we'd tell an existing user their
+ * account was just created.
+ */
+export function isAlreadyRegisteredSignUpResponse(data: { session: Session | null; user: User | null }): boolean {
+  return !data.session && !!data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly supabase = inject(SupabaseService);
@@ -79,11 +90,22 @@ export class AuthService {
     if (error) {
       throw error;
     }
+    if (isAlreadyRegisteredSignUpResponse(data)) {
+      throw new Error('An account with this email already exists. Try signing in instead.');
+    }
     if (data.session) {
       await this.refreshProfile();
       return { needsEmailConfirmation: false };
     }
     return { needsEmailConfirmation: true };
+  }
+
+  async checkEmailExists(email: string): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('email_exists', { check_email: email.trim().toLowerCase() });
+    if (error) {
+      throw error;
+    }
+    return Boolean(data);
   }
 
   async signOut(): Promise<void> {
