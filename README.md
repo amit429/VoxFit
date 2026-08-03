@@ -1,10 +1,22 @@
 # VoxFit — Voice-First Fitness Logging for the Modern Gym
 
-![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold) ![Automation](https://img.shields.io/badge/automation-pg__cron%20%2B%20pg__net-blueviolet)
+![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold) ![Automation](https://img.shields.io/badge/automation-pg__cron%20%2B%20pg__net-blueviolet) [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://voxfit.amitpile.com/auth/welcome)
 
 **Speak your workout. Track your progress. Let an AI coach watch your trends.**
 
 VoxFit is a voice-first fitness logging application designed for gym-goers and fitness communities who want to log their workouts and meals without typing. Just speak naturally — "did three sets of ten twenty thirty on bench" — and VoxFit's AI parses it into structured workout data in seconds. On top of that, an agentic AI coach generates personalized workout plans on demand, writes a weekly progress reflection automatically, and nudges you when your training has drifted from your plan.
+
+🔗 **Live app:** [voxfit.amitpile.com](https://voxfit.amitpile.com/auth/welcome) · 📄 **PRD & Design:** [Notion doc](https://app.notion.com/p/VoxFit-PRD-and-Design-3a72d7e24b0581088740dd1e36936c8b#2b6e03e9372c443ea2d0cceba656e936)
+
+## Project Glimpses
+
+<img src="screenshots/hero-banner.png" alt="VoxFit — Home, voice logging, and profile screens" width="100%" />
+
+| | | |
+|---|---|---|
+| ![Home dashboard](screenshots/home-dashboard.png) Home — streak, daily macros, today's session | ![Voice workout log](screenshots/voice-workout-log.png) Hold-to-talk workout capture | ![Session detail with AI coach note](screenshots/session-detail-coach-note.png) Session detail — AI coach note per workout |
+| ![PR badges and physical flags](screenshots/session-physical-flags.png) PR badges & recurring physical-note flags | ![Training journal](screenshots/journal-training-log.png) Training journal — weekly volume & history | ![Diet voice picker](screenshots/diet-voice-picker.png) Diet voice — suggest a meal or log what you ate |
+| ![AI-generated meal recipe](screenshots/meal-recipe-detail.png) AI-suggested recipe from your pantry | ![Profile overview](screenshots/profile-overview.png) Profile — activity heatmap & stats | |
 
 ## Features
 
