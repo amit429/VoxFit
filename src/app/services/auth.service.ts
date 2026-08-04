@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import type { Session, User } from '@supabase/supabase-js';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { SupabaseService } from '@/app/services/supabase.service';
 import type { UserProfile } from '@/app/models';
 import { Capacitor } from '@capacitor/core';
@@ -132,6 +133,23 @@ export class AuthService {
       throw error;
     }
     /* Listener may lag behind Zone / microtasks; clear app state immediately so guards + UI match. */
+    this.applySession(null);
+    this.profile.set(null);
+  }
+
+  async deleteAccount(): Promise<void> {
+    const { error } = await this.supabase.client.functions.invoke('delete-account');
+    if (error) {
+      if (error instanceof FunctionsHttpError) {
+        const body: unknown = await error.context.json().catch(() => null);
+        const message =
+          body && typeof body === 'object' && 'error' in body
+            ? String((body as { error: unknown }).error)
+            : error.message;
+        throw new Error(message);
+      }
+      throw new Error(error.message || 'Failed to delete account');
+    }
     this.applySession(null);
     this.profile.set(null);
   }
