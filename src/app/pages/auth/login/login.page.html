@@ -50,6 +50,10 @@
         }
       </div>
 
+      @if (linkExpiredMessage) {
+        <div class="auth-banner auth-banner--error mb-4" role="alert">{{ linkExpiredMessage }}</div>
+      }
+
       <a routerLink="/auth/forgot-password" class="auth-hint self-end text-primary no-underline">
         Forgot password?
       </a>
