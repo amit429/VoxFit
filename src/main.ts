@@ -6,10 +6,12 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 import { routes } from '@/app/app.routes';
 import { AppComponent } from '@/app/app.component';
 import { AuthService } from '@/app/services/auth.service';
+import { DeepLinkService } from '@/app/services/deep-link.service';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideAppInitializer(() => inject(AuthService).init()),
+    provideAppInitializer(() => inject(DeepLinkService).init()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
