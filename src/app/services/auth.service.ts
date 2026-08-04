@@ -85,6 +85,10 @@ export class AuthService {
       password,
       options: {
         data: { display_name: displayName?.trim() || '' },
+        /* Without this, GoTrue falls back to the project's static Site URL dashboard setting for
+         * every confirmation link regardless of where signup was called from. Tying it to the
+         * calling origin instead means dev and prod each land back on themselves. */
+        emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
       },
     });
     if (error) {
