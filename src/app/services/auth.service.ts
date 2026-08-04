@@ -2,6 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import type { Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from '@/app/services/supabase.service';
 import type { UserProfile } from '@/app/models';
+import { Capacitor } from '@capacitor/core';
+import { buildAuthRedirectUrl } from '@/app/utils/auth-redirect.util';
 
 /**
  * Supabase quirk: `auth.signUp()` for an email that's already registered and confirmed
@@ -79,16 +81,28 @@ export class AuthService {
     await this.refreshProfile();
   }
 
+  async setSessionFromTokens(accessToken: string, refreshToken: string): Promise<void> {
+    const { error } = await this.supabase.client.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) {
+      throw error;
+    }
+    await this.refreshProfile();
+  }
+
   async signUpWithEmail(email: string, password: string, displayName?: string): Promise<{ needsEmailConfirmation: boolean }> {
     const { data, error } = await this.supabase.client.auth.signUp({
       email,
       password,
       options: {
         data: { display_name: displayName?.trim() || '' },
-        /* Without this, GoTrue falls back to the project's static Site URL dashboard setting for
-         * every confirmation link regardless of where signup was called from. Tying it to the
-         * calling origin instead means dev and prod each land back on themselves. */
-        emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        emailRedirectTo: buildAuthRedirectUrl(
+          'confirmed',
+          Capacitor.isNativePlatform(),
+          typeof window !== 'undefined' ? window.location.origin : '',
+        ),
       },
     });
     if (error) {
@@ -178,7 +192,11 @@ export class AuthService {
 
   async sendPasswordReset(email: string): Promise<void> {
     const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/reset-password` : undefined,
+      redirectTo: buildAuthRedirectUrl(
+        'reset-password',
+        Capacitor.isNativePlatform(),
+        typeof window !== 'undefined' ? window.location.origin : '',
+      ),
     });
     if (error) {
       throw error;
