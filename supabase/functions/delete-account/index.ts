@@ -1,7 +1,6 @@
 /// <reference path="../deno-global.d.ts" />
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { USER_SCOPED_TABLES } from './tables.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -31,27 +30,17 @@ Deno.serve(async (req: Request) => {
   if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
   const userId = userData.user.id;
 
+  // Every table this account owns FKs to user_profiles (or, for exercises_logged, to
+  // workout_sessions) with ON DELETE CASCADE, and user_profiles.id FKs to auth.users.id with
+  // ON DELETE CASCADE too — confirmed live via pg_constraint. A single deleteUser call is
+  // therefore enough; Postgres cascades the rest atomically in one transaction, so there's no
+  // window where the account is left half-deleted by a failure partway through a manual chain.
   const admin = createClient(supabaseUrl, serviceRoleKey);
-
-  const { data: sessions, error: sessionsErr } = await admin
-    .from('workout_sessions')
-    .select('id')
-    .eq('user_id', userId);
-  if (sessionsErr) return json({ error: `Failed to look up workout sessions: ${sessionsErr.message}` }, 500);
-
-  const sessionIds = (sessions ?? []).map((s: { id: string }) => s.id);
-  if (sessionIds.length > 0) {
-    const { error } = await admin.from('exercises_logged').delete().in('session_id', sessionIds);
-    if (error) return json({ error: `Failed to delete exercises_logged: ${error.message}` }, 500);
-  }
-
-  for (const step of USER_SCOPED_TABLES) {
-    const { error } = await admin.from(step.table).delete().eq(step.column, userId);
-    if (error) return json({ error: `Failed to delete ${step.table}: ${error.message}` }, 500);
-  }
-
   const { error: deleteUserErr } = await admin.auth.admin.deleteUser(userId);
-  if (deleteUserErr) return json({ error: `Failed to delete auth user: ${deleteUserErr.message}` }, 500);
+  if (deleteUserErr) {
+    console.error('[delete-account] deleteUser failed', deleteUserErr);
+    return json({ error: `Failed to delete account: ${deleteUserErr.message}` }, 500);
+  }
 
   return json({ success: true });
 });
