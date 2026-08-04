@@ -1,13 +1,13 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonContent, IonInput, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, logOutOutline } from 'ionicons/icons';
+import { chevronBackOutline, logOutOutline, trashOutline } from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
 import type { GoalType, SportType } from '@/app/models';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
-addIcons({ chevronBackOutline, logOutOutline });
+addIcons({ chevronBackOutline, logOutOutline, trashOutline });
 
 interface ChipOption<T extends string> {
   readonly value: T;
@@ -47,6 +47,40 @@ export class SettingsPage implements OnInit {
 
   protected readonly saving = signal(false);
   protected readonly signingOut = signal(false);
+  protected readonly confirmingDelete = signal(false);
+  protected readonly deleteConfirmText = signal('');
+  protected readonly deletingAccount = signal(false);
+  protected readonly deleteConfirmValid = computed(() => this.deleteConfirmText() === 'DELETE');
+
+  protected onDeleteConfirmInput(value: string): void {
+    this.deleteConfirmText.set(value);
+  }
+
+  protected openDeleteConfirm(): void {
+    this.confirmingDelete.set(true);
+    this.deleteConfirmText.set('');
+  }
+
+  protected cancelDeleteConfirm(): void {
+    this.confirmingDelete.set(false);
+    this.deleteConfirmText.set('');
+  }
+
+  protected async confirmDeleteAccount(): Promise<void> {
+    if (!this.deleteConfirmValid() || this.deletingAccount()) return;
+    this.deletingAccount.set(true);
+    try {
+      await this.auth.deleteAccount();
+      await this.navCtrl.navigateRoot('/auth/welcome', { animated: true, animationDirection: 'forward' });
+      await this.presentToast('Account deleted', 'success');
+    } catch (err) {
+      console.error('Delete account failed', err);
+      const msg = err instanceof Error ? err.message : 'Could not delete account';
+      await this.presentToast(msg, 'danger');
+    } finally {
+      this.deletingAccount.set(false);
+    }
+  }
 
   readonly form = this.fb.nonNullable.group({
     displayName: [''],

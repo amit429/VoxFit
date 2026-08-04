@@ -148,6 +148,56 @@
           Sign out
         }
       </button>
+
+      <!-- Delete account -->
+      @if (!confirmingDelete()) {
+        <button
+          type="button"
+          (click)="openDeleteConfirm()"
+          class="flex w-full items-center justify-center gap-2 rounded-xl bg-danger py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
+        >
+          <vox-icon name="trash-outline" size="sm" />
+          Delete account
+        </button>
+      } @else {
+        <div class="space-y-3 rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+          <p class="m-0 text-sm text-ink">
+            This permanently deletes your account and all logged workouts and meals. This can't be undone.
+          </p>
+          <ion-input
+            [value]="deleteConfirmText()"
+            (ionInput)="onDeleteConfirmInput($any($event.target).value ?? '')"
+            type="text"
+            label="Type DELETE to confirm"
+            labelPlacement="stacked"
+            fill="outline"
+            autocapitalize="characters"
+          />
+          <div class="flex gap-3">
+            <button
+              type="button"
+              (click)="cancelDeleteConfirm()"
+              [disabled]="deletingAccount()"
+              class="flex-1 rounded-xl bg-surface-1 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-surface-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="confirmDeleteAccount()"
+              [disabled]="!deleteConfirmValid() || deletingAccount()"
+              [class.opacity-50]="!deleteConfirmValid() || deletingAccount()"
+              class="flex-1 rounded-xl bg-danger py-3 text-sm font-medium text-white transition-colors"
+            >
+              @if (deletingAccount()) {
+                Deleting…
+              } @else {
+                Delete permanently
+              }
+            </button>
+          </div>
+        </div>
+      }
     </main>
   </div>
 </ion-content>
