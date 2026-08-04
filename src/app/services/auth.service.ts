@@ -150,6 +150,7 @@ export class AuthService {
       }
       throw new Error(error.message || 'Failed to delete account');
     }
+    await this.supabase.client.auth.signOut({ scope: 'local' });
     this.applySession(null);
     this.profile.set(null);
   }
