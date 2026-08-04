@@ -48,6 +48,12 @@ export const routes: Routes = [
           import('@/app/pages/auth/onboarding/onboarding.page').then((m) => m.OnboardingPage),
       },
       {
+        path: 'confirmed',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@/app/pages/auth/email-confirmed/email-confirmed.page').then((m) => m.EmailConfirmedPage),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'welcome',

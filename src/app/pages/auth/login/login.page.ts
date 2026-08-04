@@ -1,7 +1,7 @@
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IonContent, IonInput, IonInputPasswordToggle, IonBackButton } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
 
@@ -24,6 +24,15 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  linkExpiredMessage = '';
+
+  constructor() {
+    if (this.route.snapshot.queryParamMap.get('authError') === 'expired') {
+      this.linkExpiredMessage = 'That link has expired — sign in or request a new one.';
+    }
+  }
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
