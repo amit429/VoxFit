@@ -27,7 +27,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0a0a0c;
+      /* Matches --vox-canvas-gradient so the splash and the first painted
+         screen are the same surface, with no flash between them. */
+      background: linear-gradient(180deg, #1c1536 0%, #151228 40%, #0d0b18 70%, #191029 100%);
       transition: opacity 0.3s ease-out;
     }
 

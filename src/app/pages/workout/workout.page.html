@@ -5,13 +5,13 @@
   </div>
   <div class="vx-grain" aria-hidden="true"></div>
 
-  <main class="vx-layer">
+  <main class="vx-layer vx-stack">
     <header class="flex shrink-0 items-start justify-between gap-3 pb-3.5 pt-1">
       <div class="min-w-0">
         <p class="vox-eyebrow m-0">Training log</p>
         <h1 class="wk-title">Journal</h1>
       </div>
-      <button type="button" class="wk-icon-btn" (click)="openFilterSheet()" aria-label="Filter sessions">
+      <button type="button" class="vx-icon-btn" (click)="openFilterSheet()" aria-label="Filter sessions">
         <vox-icon name="options-outline" size="sm" tone="ink" />
       </button>
     </header>
@@ -30,18 +30,18 @@
 
     @if (coach.latestNudge(); as n) {
       @if (!n.acknowledged_at) {
-        <vox-plan-nudge-card class="mt-3.5 block" [nudge]="n" (acknowledge)="onAckNudge($event)" (refresh)="onRefresh()" />
+        <vox-plan-nudge-card class="block" [nudge]="n" (acknowledge)="onAckNudge($event)" (refresh)="onRefresh()" />
       }
     }
 
     @if (listError(); as err) {
-      <vox-card variant="rose" padding="sm" class="mt-3.5 block">
+      <vox-card variant="rose" padding="sm" class="block">
         <p class="m-0 text-sm text-rose-text">Could not load workouts: {{ err }}</p>
       </vox-card>
     }
 
     <!-- Filter chips -->
-    <div class="vox-chip-row mt-3.5 flex gap-2 overflow-x-auto pb-1">
+    <div class="vox-chip-row flex gap-2 overflow-x-auto pb-1">
       @for (f of filters; track f.id) {
         <button type="button" class="wk-chip-btn" (click)="onFilterClick(f.id)" [attr.aria-pressed]="activeFilter() === f.id">
           <vox-badge [tone]="activeFilter() === f.id ? 'jade' : 'neutral'">
@@ -67,9 +67,9 @@
 
     <!-- Weekly volume -->
     @if (!journal.weekSessionsLoaded()) {
-      <vox-skeleton height="176px" radius="xl" class="mt-3.5 block" />
+      <vox-skeleton height="176px" radius="xl" class="block" />
     } @else {
-      <vox-card class="mt-3.5 block">
+      <vox-card class="block">
         <vox-volume-chart
           [bars]="volumeBars()"
           [eyebrow]="weeklyVolumeStat().caption"
@@ -82,7 +82,7 @@
     }
 
     <!-- Session list -->
-    <section class="mt-4">
+    <section>
       <h2 class="wk-section-title">Recent sessions</h2>
 
       @if (listLoading()) {
@@ -99,11 +99,11 @@
             </p>
             <p class="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-ink-subtle">
               @if (hasActiveFilters()) {
-                Try a different mood or clear the filters to see everything.
+                Try clearing the filters.
               } @else if (activeFilter() !== 'week') {
-                No workouts in this range. Try another month or switch back to This week.
+                Nothing logged in this range.
               } @else {
-                Log your first workout and it will show up here — your volume chart fills in automatically.
+                Log a workout and it shows up here.
               }
             </p>
           </vox-card>

@@ -18,25 +18,6 @@
   background: rgba(217, 117, 103, 0.11);
 }
 
-.st-icon-btn {
-  display: flex;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: 50%;
-  background: var(--vox-surface-1);
-  cursor: pointer;
-}
-
-/* Balances the back button so the title stays optically centred. */
-.st-icon-spacer {
-  width: 36px;
-  flex-shrink: 0;
-}
-
 .st-header-title {
   font-size: 1rem;
   font-weight: 700;

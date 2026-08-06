@@ -7,11 +7,11 @@
 
   <main class="vx-layer">
     <header class="flex shrink-0 items-center justify-between gap-3 pb-4 pt-1">
-      <button type="button" (click)="goBack()" class="st-icon-btn" aria-label="Back to profile">
+      <button type="button" (click)="goBack()" class="vx-icon-btn" aria-label="Back to profile">
         <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
       </button>
       <span class="st-header-title">Settings</span>
-      <span class="st-icon-spacer"></span>
+      <span class="vx-icon-spacer"></span>
     </header>
 
     <form [formGroup]="form" (ngSubmit)="save()">
@@ -116,8 +116,7 @@
     @if (confirmingDelete()) {
       <vox-card variant="rose" class="mt-3 block">
         <p class="m-0 text-sm leading-relaxed text-ink">
-          This permanently deletes your account and every workout and meal you have logged.
-          It can't be undone.
+Permanently deletes your account and everything you've logged. Can't be undone.
         </p>
         <ion-input
           class="mt-3"

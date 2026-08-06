@@ -190,16 +190,16 @@ ion-select {
  */
 .tab-page-content {
   /* Tab bar (~3.5rem) + safe area + extra so last cards/actions clear the bar comfortably */
-  --padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-  --padding-start: max(1rem, env(safe-area-inset-left, 0px));
-  --padding-end: max(1rem, env(safe-area-inset-right, 0px));
-  --padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  --padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
+  --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
+  --padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }
 
 /* Standalone routes (e.g. /voice) — no tab bar; still need safe inset + scroll breathing room */
 .vox-standalone-page {
-  --padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+  --padding-bottom: calc(2.25rem + env(safe-area-inset-bottom, 0px));
   --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
-  --padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  --padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }

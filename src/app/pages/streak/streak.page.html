@@ -1,0 +1,70 @@
+<ion-content [fullscreen]="true" class="vox-standalone-page">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob sk-blob-1"></span>
+    <span class="vx-blob sk-blob-2"></span>
+    <span class="vx-blob sk-blob-3"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <div class="vx-layer sk-shell">
+    <header class="flex justify-end pt-1">
+      <button type="button" class="vx-icon-btn" (click)="close()" aria-label="Close">
+        <vox-icon name="close-outline" size="sm" tone="ink" />
+      </button>
+    </header>
+
+    <div class="sk-hero">
+      <p class="sk-flame" aria-hidden="true">🔥</p>
+      <p class="sk-count">{{ days() }}</p>
+      <p class="sk-unit">Day streak</p>
+
+      <h1 class="sk-headline">{{ headline() }}</h1>
+      <p class="sk-sub">{{ subline() }}</p>
+
+      @if (weekDots().length) {
+        <div class="sk-dots" role="list" aria-label="This week">
+          @for (dot of weekDots(); track $index) {
+            <span
+              class="sk-dot"
+              [class.sk-dot--done]="dot.completed"
+              role="listitem"
+              [attr.aria-label]="dot.label + (dot.completed ? ': logged' : ': not logged')"
+            >
+              @if (dot.completed) {
+                <vox-icon name="checkmark-outline" size="xs" tone="inherit" />
+              }
+            </span>
+          }
+        </div>
+        <div class="sk-dot-labels" aria-hidden="true">
+          @for (dot of weekDots(); track $index) {
+            <span>{{ dot.label }}</span>
+          }
+        </div>
+      }
+
+      <vox-card padding="sm" class="sk-stats">
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div>
+            <p class="sk-stat-value">{{ longestStreak() }}</p>
+            <p class="sk-stat-label">Best run</p>
+          </div>
+          <div>
+            <p class="sk-stat-value">{{ totalLoggedDays() }}</p>
+            <p class="sk-stat-label">Days logged</p>
+          </div>
+        </div>
+      </vox-card>
+    </div>
+
+    <div class="sk-actions">
+      @if (canShare()) {
+        <button type="button" class="sk-share" (click)="share()">
+          <vox-icon name="share-social-outline" size="sm" tone="inherit" />
+          Share my streak
+        </button>
+      }
+      <button type="button" class="sk-keep" (click)="close()">Keep going</button>
+    </div>
+  </div>
+</ion-content>

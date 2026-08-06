@@ -26,24 +26,6 @@
   background: rgba(139, 128, 240, 0.17);
 }
 
-.vl-icon-btn {
-  display: flex;
-  width: 38px;
-  height: 38px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: 50%;
-  background: var(--vox-surface-1);
-  text-decoration: none;
-}
-
-/* Keeps the header title optically centred against the back button. */
-.vl-icon-spacer {
-  width: 38px;
-  flex-shrink: 0;
-}
-
 .vl-header-title {
   font-size: 0.9375rem;
   font-weight: 700;

@@ -21,7 +21,6 @@ import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
-import { StreakMilestoneService } from '@/app/services/streak-milestone.service';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
@@ -29,7 +28,6 @@ import { VoxVoiceOrbComponent } from '@/app/components/vox-voice-orb/vox-voice-o
 import { VoxStreakPillComponent } from '@/app/components/vox-streak-pill/vox-streak-pill.component';
 import { VoxQuickActionGridComponent } from '@/app/components/vox-quick-action-grid/vox-quick-action-grid.component';
 import { VoxProgressNudgeComponent } from '@/app/components/vox-progress-nudge/vox-progress-nudge.component';
-import { VoxStreakCelebrationComponent } from '@/app/components/vox-streak-celebration/vox-streak-celebration.component';
 import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 import { sessionTotalVolumeKg, formatVolumeKg, formatSessionDateLabel } from '@/app/utils/workout-display.util';
 import type { VoxQuickAction } from '@/app/models';
@@ -72,7 +70,6 @@ const MACRO_TRACK_TONES: Record<string, string> = {
     VoxStreakPillComponent,
     VoxQuickActionGridComponent,
     VoxProgressNudgeComponent,
-    VoxStreakCelebrationComponent,
   ],
 })
 export class HomePage implements ViewWillEnter {
@@ -80,7 +77,6 @@ export class HomePage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly nutrition = inject(NutritionDashboardService);
   protected readonly coach = inject(ProgressCoachService);
-  private readonly milestones = inject(StreakMilestoneService);
 
   protected readonly showSkeleton = computed(
     () => !this.journal.activityLoaded() || !this.journal.weekSessionsLoaded() || !this.nutrition.hasLoadedOnce(),
@@ -159,26 +155,12 @@ export class HomePage implements ViewWillEnter {
     return DUMMY_PROFILE_DISPLAY.initial;
   });
 
-  /** Milestone modal. Opened from ionViewWillEnter once the streak is known. */
-  protected readonly celebratingMilestone = signal<number | null>(null);
-
   ionViewWillEnter(): void {
-    void this.journal.refreshActivitySummary().then(() => this.maybeCelebrate());
+    void this.journal.refreshActivitySummary();
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
     void this.coach.getLatest();
-  }
-
-  protected dismissCelebration(): void {
-    const milestone = this.celebratingMilestone();
-    if (milestone !== null) this.milestones.markCelebrated(milestone);
-    this.celebratingMilestone.set(null);
-  }
-
-  private maybeCelebrate(): void {
-    const pending = this.milestones.pendingMilestone(this.journal.streak().days);
-    if (pending !== null) this.celebratingMilestone.set(pending);
   }
 
   private pickGreeting(): string {

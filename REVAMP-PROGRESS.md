@@ -241,7 +241,58 @@ logic under test.
 "issue". That is a product-safety requirement from the AI Coach PRD, not a copy preference —
 a test is the only thing that stops it regressing.
 
-## Phase 5 — Polish ⏳ not started
+## Phase 5 — Polish + vibrancy, spacing, streak page ✅
+
+**Checkpoint 5 met.** `npm run build` ✅ · `npm run lint` ✅ · **66/66 tests** ✅ · all routes 200.
+
+### Vibrancy pass (user feedback)
+
+Every accent's saturation raised ~1.22×, **hue and role unchanged** — computed in HLS so the
+palette shifts together rather than drifting. Tint alphas raised (dims 0.16–0.20 → 0.22–0.26,
+borders → 0.40–0.52) so a tinted surface reads as coloured rather than grey-with-a-hint, and
+the canvas gradient carries a little more hue. The two comments claiming accents are
+"desaturated" were rewritten — restraint here is structural (one job per accent, faint glows),
+not chromatic.
+
+### Spacing pass (user feedback)
+
+- New `--vox-space-stack` (20px) and `--vox-space-card` (18px) tokens.
+- `.vx-stack` / `.vx-stack-tight` utilities using the lobotomised-owl selector. Pages set the
+  rhythm once on `<main>` instead of sprinkling `mt-3.5` on every child — so it stays even when
+  sections are added or reordered, and is tuned in one place.
+- Card padding 16 → 18px, page gutters 1rem → 1.25rem, bottom room 5.5 → 6.5rem.
+- Verbose copy shortened across five screens.
+
+### Streak page (`/streak`)
+
+Reached by tapping the streak pill on Home. Built as a **page, not a modal**: it deep-links,
+it's a destination the user chooses, and it keeps one implementation of this visual.
+`vox-streak-celebration` was deleted — it would have been a second copy of the same screen.
+
+Data derives entirely from the activity window the journal already loads: current streak and
+week dots from `streak()`, plus a new `computeLongestStreakDays()` for best-run and days-logged.
+No new fetch. "Share my streak" uses the **Web Share API**, which the Capacitor WebView already
+provides — no new plugin — with a clipboard fallback. Hidden at a zero streak.
+
+### Bug the streak page exposed
+
+`computeWorkoutStreakDays()` walked backward past *any* number of empty days to find the most
+recent session, so a single workout three weeks ago reported a live 1-day streak — while the
+week dots correctly showed nothing logged. It now allows one day of grace for today (the day
+isn't over) and returns 0 if neither today nor yesterday has a session. Five regression tests.
+
+### Polish
+
+- **Reduced motion**: audited every `animation:` declaration; two files had no guard
+  (`session-exercise-review-card`, the shared `.vox-wave-bar`). All silenced now.
+- **Touch targets**: seven pages each defined their own circular icon button at 36–40px, all
+  under the 44px minimum. Consolidated into one `.vx-icon-btn` that keeps the 38px visual and
+  grows the *hit area* to 44px with `content-box` padding + negative margin.
+- **Android chrome**: `@capacitor/status-bar` was a dependency that was never called. Wired in
+  `AppComponent`, native-only, matching the canvas top stop (`#1c1536`).
+- **Splash**: `index.html` still painted the old flat `#0a0a0c`, flashing before the first
+  screen. Now the canvas gradient.
+- **Removed** the temporary `/gallery` route and page.
 
 ---
 
@@ -280,8 +331,9 @@ Nothing here blocks the redesign. Each is a real gap between the mockups and the
    session-type column, and min-volume needs `set_lines`, which the journal's lean paginated
    query deliberately omits for cost. Mood / has-PRs / has-notes ship.
 
-8. **"Share my streak"** (`06_streak_moment`) — no share-image generation, no `@capacitor/share`.
-   Milestone modal ships without the share button.
+8. **Shareable streak *image*** (`06_streak_moment`) — partially resolved: text sharing now
+   works through the Web Share API with a clipboard fallback, no new dependency. Rendering the
+   streak card as an image to share still needs canvas/SVG rasterisation.
 
 9. **"You're trending up / best 4-week stretch"** (`11_components` nudge state) — needs a rolling
    multi-week volume comparison; only the current and previous week are loaded today.

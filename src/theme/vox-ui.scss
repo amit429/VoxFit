@@ -63,6 +63,18 @@
   animation: vox-wave 0.45s ease-in-out infinite alternate;
 }
 
+/*
+ * Motion is opt-out across the app, not opt-in: every animation must be
+ * silenced under prefers-reduced-motion. The duration tokens already collapse
+ * to 1ms, but keyframe animations declare their own timing, so they need this
+ * explicitly.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .vox-wave-bar {
+    animation: none;
+  }
+}
+
 /* ==================================================================
  * CANVAS + ATMOSPHERE (Dusk system)
  *
@@ -112,6 +124,21 @@
 .vx-layer {
   position: relative;
   z-index: 2;
+}
+
+/*
+ * Even vertical rhythm between a page's stacked sections. Using the
+ * lobotomised-owl selector rather than per-element margin classes keeps the
+ * spacing consistent when sections are added, removed, or reordered — and
+ * means the rhythm is tuned in one place.
+ */
+.vx-stack > * + * {
+  margin-top: var(--vox-space-stack);
+}
+
+/* Half-step, for tightly related items inside a section. */
+.vx-stack-tight > * + * {
+  margin-top: var(--vox-space-sm);
 }
 
 /*
@@ -167,6 +194,52 @@
   border-radius: 11px;
 }
 
+/*
+ * Circular icon button — back arrows, close, settings, filter. Seven pages had
+ * each defined their own copy of this at 36–40px, all of them below the 44px
+ * minimum tap target.
+ *
+ * The visual stays 38px because the mockups call for a small, quiet control;
+ * padding plus a matching negative margin grows the *hit area* to 44px without
+ * growing the circle or disturbing the layout around it. `content-box` keeps
+ * the padding outside the declared size, and `background-clip: padding-box`
+ * stops the background bleeding into it.
+ */
+.vx-icon-btn {
+  display: flex;
+  flex-shrink: 0;
+  box-sizing: content-box;
+  width: 38px;
+  height: 38px;
+  padding: 3px;
+  margin: -3px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  background-clip: padding-box;
+  color: var(--vox-ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vx-icon-btn:active {
+  background: var(--vox-surface-2);
+  background-clip: padding-box;
+}
+
+.vx-icon-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+/* Balances a leading icon button so a centred title stays optically centred. */
+.vx-icon-spacer {
+  width: 38px;
+  flex-shrink: 0;
+}
+
 /* Small uppercase tracked label sitting above a title. */
 .vox-eyebrow {
   font-size: 0.6875rem;
@@ -215,14 +288,6 @@ ion-modal.vox-sheet-auto {
   --height: auto;
 
   align-items: flex-end;
-}
-
-/* Full-screen celebration modal — no rounding, no backdrop tint to fight the
-   gradient underneath. Inner layout is in the component's own stylesheet. */
-ion-modal.vox-streak-modal {
-  --border-radius: 0;
-  --box-shadow: none;
-  --backdrop-opacity: 0.6;
 }
 
 /* Horizontally-scrolling chip rows (filters, meal-type tabs) — keep the

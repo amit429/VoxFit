@@ -8,17 +8,21 @@
   </div>
   <div class="vx-grain" aria-hidden="true"></div>
 
-  <main class="vx-layer">
+  <main class="vx-layer vx-stack">
     <!-- Top bar: identity + streak -->
     <header class="flex items-center gap-2.5 pb-4 pt-1">
       <a routerLink="/tabs/profile" class="home-avatar" [attr.aria-label]="'Open profile'">
         {{ initial() }}
       </a>
-      <vox-streak-pill class="min-w-0 flex-1" [days]="journal.streak().days" />
+      <a routerLink="/streak" routerDirection="forward" class="min-w-0 flex-1 no-underline">
+        <vox-streak-pill [days]="journal.streak().days" />
+      </a>
     </header>
 
-    <p class="vox-eyebrow m-0">{{ todayLabel() }}</p>
-    <h1 class="home-greeting">{{ greeting() }},<br />{{ firstName() }} 👋</h1>
+    <section>
+      <p class="vox-eyebrow m-0">{{ todayLabel() }}</p>
+      <h1 class="home-greeting">{{ greeting() }},<br />{{ firstName() }} 👋</h1>
+    </section>
 
     <!-- Signature: the voice orb is the hero, not a button in a row -->
     <a routerLink="/voice" routerDirection="forward" class="home-orb-link">
@@ -28,7 +32,7 @@
     </a>
 
     @if (showReviewPointer() || showNudgePointer()) {
-      <section class="mt-4 space-y-2">
+      <section class="vx-stack-tight">
         @if (showReviewPointer()) {
           <a routerLink="/tabs/profile" routerDirection="forward" class="block no-underline">
             <vox-progress-nudge
@@ -51,7 +55,7 @@
     }
 
     @if (showSkeleton()) {
-      <vox-card class="mt-4 block">
+      <vox-card class="block">
         <vox-skeleton shape="text" width="90px" height="12px" />
         <div class="mt-4 flex gap-4">
           @for (i of [0, 1, 2]; track i) {
@@ -64,7 +68,7 @@
       </vox-card>
     } @else {
       <!-- Today's fuel -->
-      <vox-card class="mt-4 block">
+      <vox-card class="block">
         <div class="flex items-center justify-between">
           <span class="text-sm font-bold text-ink">Today's fuel</span>
           @if (caloriesRow(); as cal) {
@@ -85,12 +89,12 @@
       </vox-card>
     }
 
-    <vox-quick-action-grid class="mt-3 block" [actions]="quickActions" />
+    <vox-quick-action-grid class="block" [actions]="quickActions" />
 
     <!-- Last session -->
     @if (lastSession(); as session) {
       <a
-        class="mt-3 block no-underline"
+        class="block no-underline"
         [routerLink]="['/tabs/workout', session.id]"
         routerDirection="forward"
       >
@@ -108,18 +112,11 @@
         </vox-card>
       </a>
     } @else if (!showSkeleton()) {
-      <vox-card padding="sm" class="mt-3 block">
+      <vox-card padding="sm" class="block">
         <p class="m-0 py-1 text-center text-xs leading-relaxed text-ink-subtle">
-          No sessions this week yet — hold the orb and say what you did.
+No sessions this week yet.
         </p>
       </vox-card>
     }
   </main>
 </ion-content>
-
-<vox-streak-celebration
-  [isOpen]="celebratingMilestone() !== null"
-  [days]="celebratingMilestone() ?? 0"
-  [weekDots]="journal.streak().weekDots"
-  (dismissed)="dismissCelebration()"
-/>

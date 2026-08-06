@@ -26,25 +26,6 @@
   background: rgba(139, 128, 240, 0.2);
 }
 
-.dv-icon-btn {
-  display: flex;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: 50%;
-  background: var(--vox-surface-1);
-  cursor: pointer;
-}
-
-/* Balances the back button so the title stays optically centred. */
-.dv-icon-spacer {
-  width: 38px;
-  flex-shrink: 0;
-}
-
 .dv-header-title {
   font-size: 0.9375rem;
   font-weight: 700;

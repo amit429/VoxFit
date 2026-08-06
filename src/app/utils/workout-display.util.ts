@@ -254,25 +254,63 @@ export function buildWeekCompletionDots(
 }
 
 /**
- * Count consecutive calendar days with a workout, walking backward from the most recent
- * day (on or before today) that has a session.
+ * Consecutive calendar days with a workout, counting back from today.
+ *
+ * Today is allowed to be empty — the day isn't over, and showing a streak
+ * collapse at 00:01 would be wrong — but yesterday is not. If neither today
+ * nor yesterday has a session, the streak is broken and the answer is 0.
+ *
+ * The earlier version walked backward past *any* number of empty days to find
+ * the most recent session, so a single workout three weeks ago still reported
+ * a live 1-day streak.
  */
 export function computeWorkoutStreakDays(sessionDates: Set<string>): number {
   if (sessionDates.size === 0) return 0;
+
   const cursor = new Date();
+  /* One day of grace for today, then the run must be unbroken. */
+  if (!sessionDates.has(parseLocalDateKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+    if (!sessionDates.has(parseLocalDateKey(cursor))) return 0;
+  }
+
   let streak = 0;
   for (let i = 0; i < 366; i++) {
-    const key = parseLocalDateKey(cursor);
-    if (sessionDates.has(key)) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else if (streak > 0) {
-      break;
-    } else {
-      cursor.setDate(cursor.getDate() - 1);
-    }
+    if (!sessionDates.has(parseLocalDateKey(cursor))) break;
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
+}
+
+/**
+ * The longest run of consecutive logged days anywhere in the given set.
+ *
+ * Walks the sorted dates rather than the calendar, so cost scales with how
+ * many days were logged, not with how far back the window reaches. Bounded in
+ * practice by the caller's fetch window (366 days), which means a longer
+ * historical streak outside that window will not be found — acceptable, since
+ * this only ever backs a "personal best" line.
+ */
+export function computeLongestStreakDays(sessionDates: Set<string>): number {
+  if (sessionDates.size === 0) return 0;
+
+  const sorted = [...sessionDates].sort();
+  let longest = 1;
+  let run = 1;
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    const curr = sorted[i];
+    if (!prev || !curr) continue;
+
+    const prevDate = parseIsoDateLocal(prev);
+    prevDate.setDate(prevDate.getDate() + 1);
+    run = parseLocalDateKey(prevDate) === curr ? run + 1 : 1;
+    if (run > longest) longest = run;
+  }
+
+  return longest;
 }
 
 /**

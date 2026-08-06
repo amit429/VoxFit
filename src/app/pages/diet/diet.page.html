@@ -5,7 +5,7 @@
   </div>
   <div class="vx-grain" aria-hidden="true"></div>
 
-  <main class="vx-layer">
+  <main class="vx-layer vx-stack">
     <header class="flex shrink-0 items-start justify-between gap-3 pb-3.5 pt-1">
       <div class="min-w-0">
         <p class="vox-eyebrow m-0">Nutrition</p>
@@ -20,7 +20,7 @@
     </header>
 
     @if (nutrition.loadState() === 'error' && nutrition.lastError()) {
-      <vox-card variant="rose" padding="sm" class="mb-3.5 block">
+      <vox-card variant="rose" padding="sm" class="block">
         <p class="m-0 text-sm text-rose-text">
           Could not load today's nutrition: {{ nutrition.lastError() }}
         </p>
@@ -83,7 +83,7 @@
     }
 
     <!-- The two voice modes, equal weight -->
-    <div class="mt-3.5 flex gap-3">
+    <div class="flex gap-3">
       <a class="fu-mode fu-mode--jade" routerLink="/log-diet" [queryParams]="{ mode: 'suggest' }" routerDirection="forward">
         <span class="fu-mode-emoji">✨</span>
         <span class="fu-mode-title">What can<br />I make?</span>
@@ -97,7 +97,7 @@
     </div>
 
     <!-- Date navigation -->
-    <div class="mt-4 flex items-center gap-2">
+    <div class="flex items-center gap-2">
       <button
         type="button"
         class="fu-nav-btn"
@@ -126,7 +126,7 @@
     </div>
 
     <!-- Meal-type filter -->
-    <div class="vox-chip-row mt-3 flex gap-2 overflow-x-auto pb-1">
+    <div class="vox-chip-row flex gap-2 overflow-x-auto pb-1">
       @for (c of mealTypeChips; track c.id) {
         <button type="button" class="fu-chip-btn" (click)="setMealFilter(c.id)" [attr.aria-pressed]="mealTypeFilter() === c.id">
           <vox-badge [tone]="mealTypeFilter() === c.id ? 'jade' : 'neutral'">{{ c.label }}</vox-badge>
@@ -135,7 +135,7 @@
     </div>
 
     @if (logsError(); as err) {
-      <vox-card variant="rose" padding="sm" class="mt-3 block">
+      <vox-card variant="rose" padding="sm" class="block">
         <p class="m-0 text-sm text-rose-text">{{ err }}</p>
       </vox-card>
     }
@@ -152,7 +152,7 @@
       <vox-card padding="lg">
         <p class="m-0 text-center text-base font-semibold text-ink">Nothing logged yet</p>
         <p class="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-ink-subtle">
-          Say what you ate, or what's in your fridge — the two cards above both take voice.
+Use either card above — both take voice.
         </p>
       </vox-card>
     } @else if (rangeMode() === 'day') {

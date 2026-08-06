@@ -26,19 +26,6 @@
   background: rgba(232, 160, 85, 0.11);
 }
 
-.pr-icon-btn {
-  display: flex;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: 50%;
-  background: var(--vox-surface-1);
-  cursor: pointer;
-}
-
 /* Identity mark — the one element allowed all three accents at once. */
 .pr-avatar-ring {
   display: block;

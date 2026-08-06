@@ -5,15 +5,15 @@
   </div>
   <div class="vx-grain" aria-hidden="true"></div>
 
-  <main class="vx-layer">
+  <main class="vx-layer vx-stack">
     <header class="flex shrink-0 items-center justify-between gap-3 pb-4 pt-1">
-      <button type="button" (click)="goToJournal()" class="wd-icon-btn" aria-label="Back to journal">
+      <button type="button" (click)="goToJournal()" class="vx-icon-btn" aria-label="Back to journal">
         <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
       </button>
       <span class="wd-header-title">
         {{ detail()?.title || 'Session' }}
       </span>
-      <span class="wd-icon-spacer"></span>
+      <span class="vx-icon-spacer"></span>
     </header>
 
     @if (loadingDetail()) {
@@ -22,8 +22,8 @@
           <vox-skeleton height="72px" radius="xl" class="block flex-1" />
         }
       </div>
-      <vox-skeleton height="110px" radius="xl" class="mt-3.5 block" />
-      <vox-skeleton height="180px" radius="xl" class="mt-3.5 block" />
+      <vox-skeleton height="110px" radius="xl" class="block" />
+      <vox-skeleton height="180px" radius="xl" class="block" />
     } @else if (detail(); as d) {
       <p class="vox-eyebrow m-0 pb-3">{{ d.dateLabel }}</p>
 
@@ -36,7 +36,7 @@
 
       <!-- Coach note -->
       @if (d.coachNote) {
-        <vox-card variant="brand" class="mt-3.5 block">
+        <vox-card variant="brand" class="block">
           <div class="flex gap-3">
             <span class="vox-ai-mark shrink-0">
               <vox-icon name="sparkles-outline" size="sm" />
@@ -50,7 +50,7 @@
       }
 
       <!-- Mood / energy -->
-      <vox-card padding="sm" class="mt-3.5 block">
+      <vox-card padding="sm" class="block">
         <div class="grid grid-cols-2 gap-3 text-center">
           <div>
             <p class="wd-meta-label">Mood</p>
@@ -66,7 +66,7 @@
       </vox-card>
 
       <app-session-exercise-review-card
-        class="mt-3.5 block"
+        class="block"
         [sessionContextId]="detailSessionId() ?? undefined"
         [sessionTitle]="d.title"
         [coachSummary]="null"
@@ -77,7 +77,7 @@
 
       <!-- Physical notes. Rose and observational — never an alert. -->
       @if (d.hasFlags) {
-        <vox-card variant="rose" padding="sm" class="mt-3.5 block">
+        <vox-card variant="rose" padding="sm" class="block">
           <div class="flex items-center gap-3">
             <span class="wd-note-mark">
               <vox-icon name="chatbubble-ellipses-outline" size="sm" tone="inherit" />
@@ -93,7 +93,7 @@
       <vox-card padding="lg" class="mt-4 block">
         <p class="m-0 text-center text-base font-semibold text-ink">Session not found</p>
         <p class="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-ink-subtle">
-          This workout may have been deleted, or the link is out of date.
+It may have been deleted, or the link is out of date.
         </p>
         <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4 w-full">
           Back to journal

@@ -9,10 +9,10 @@
  *      An accent is never chosen because it looks nice in that spot.
  *   3. Glass surfaces with a top rim-light, not opaque greys.
  *
- * Restraint is deliberate. Accents are desaturated, glows are faint, and a
- * rim-light does the work a neon halo would. The product is a personal
- * instrument used mid-set, not a marketplace competing for attention — it
- * should feel closer to Whoop or Oura than to a gym-class app.
+ * Restraint is structural, not chromatic. Accents are saturated enough to
+ * read as colour on a dark canvas, but each still has exactly one job, glows
+ * stay faint, and a rim-light does the work a neon halo would. The product is
+ * a personal instrument used mid-set — depth and warmth, but quiet.
  *
  * The legacy alias block near the bottom is load-bearing: existing screens
  * consume those names. Keep it until every page is migrated.
@@ -32,7 +32,7 @@
      same three-stop structure so screens feel related. */
   /* stylelint-disable-next-line -- kept on one line: Sass preserves newlines
      inside custom-property values, which some WebView versions reject. */
-  --vox-canvas-gradient: linear-gradient(180deg, #17122c 0%, #121020 40%, #0c0a14 70%, #150f22 100%);
+  --vox-canvas-gradient: linear-gradient(180deg, #1c1536 0%, #151228 40%, #0d0b18 70%, #191029 100%);
 
   /* ================================================================
    * SURFACES — glass, not opaque greys
@@ -75,49 +75,49 @@
   /* PERIWINKLE — the brand. Voice orb, primary CTA, active tab, AI output.
      This is the original VoxFit lavender, brightened — identity reclaimed
      rather than borrowed. */
-  --vox-brand: #8b80f0;
-  --vox-brand-bright: #9a8ff5;
-  --vox-brand-deep: #6559c8;
-  --vox-brand-text: #a79ef5;
-  --vox-brand-dim: rgba(139, 128, 240, 0.18);
-  --vox-brand-border: rgba(139, 128, 240, 0.42);
-  --vox-brand-gradient: linear-gradient(90deg, #7c6fe8, #6355d4);
-  --vox-brand-gradient-orb: linear-gradient(150deg, #9a8ff5 0%, #7c6fe8 45%, #5a4cc4 100%);
+  --vox-brand: #887bfc;
+  --vox-brand-bright: #998dff;
+  --vox-brand-deep: #6153d6;
+  --vox-brand-text: #a69cff;
+  --vox-brand-dim: rgba(136, 123, 252, 0.24);
+  --vox-brand-border: rgba(136, 123, 252, 0.5);
+  --vox-brand-gradient: linear-gradient(90deg, #7a6bf7, #5f51e0);
+  --vox-brand-gradient-orb: linear-gradient(150deg, #a297ff 0%, #7a6bf7 45%, #5442d4 100%);
   --vox-on-brand: #ffffff;
 
   /* JADE — affirmative: selected, completed, positive delta, success,
-     current-best markers. Desaturated on purpose — a quiet confirmation
-     colour, not a highlighter. */
-  --vox-jade: #3fb68f;
-  --vox-jade-bright: #55c9a2;
-  --vox-jade-deep: #2e8f70;
-  --vox-jade-text: #5fc7a2;
-  --vox-jade-dim: rgba(63, 182, 143, 0.16);
-  --vox-jade-border: rgba(63, 182, 143, 0.38);
-  --vox-jade-gradient: linear-gradient(90deg, #55c9a2, #3fb68f);
+     current-best markers. A confirmation colour, not a highlighter: it says
+     "done", never "look here". */
+  --vox-jade: #33c998;
+  --vox-jade-bright: #4ed7a9;
+  --vox-jade-deep: #25a079;
+  --vox-jade-text: #5ad4a8;
+  --vox-jade-dim: rgba(51, 201, 152, 0.22);
+  --vox-jade-border: rgba(51, 201, 152, 0.46);
+  --vox-jade-gradient: linear-gradient(90deg, #4ed7a9, #33c998);
   --vox-on-jade: #08251c;
 
   /* APRICOT — streak, calories, PRs, gentle urgency. */
-  --vox-apricot: #e8a055;
-  --vox-apricot-bright: #f0b26b;
-  --vox-apricot-text: #edbe8a;
-  --vox-apricot-dim: rgba(232, 160, 85, 0.2);
-  --vox-apricot-border: rgba(232, 160, 85, 0.45);
-  --vox-apricot-gradient: linear-gradient(90deg, #f0b26b, #d98a4a);
+  --vox-apricot: #f8a44c;
+  --vox-apricot-bright: #ffb764;
+  --vox-apricot-text: #f8c286;
+  --vox-apricot-dim: rgba(248, 164, 76, 0.26);
+  --vox-apricot-border: rgba(248, 164, 76, 0.52);
+  --vox-apricot-gradient: linear-gradient(90deg, #ffb764, #ef8f3f);
   --vox-on-apricot: #2e1b06;
 
   /* ROSE — physical notes, destructive actions.
      NOTE: rose is deliberately NOT an alert red. Physical-flag UI must stay
      observational per the AI Coach PRD framing. */
-  --vox-rose: #d97567;
-  --vox-rose-text: #e08d80;
-  --vox-rose-dim: rgba(217, 117, 103, 0.16);
-  --vox-rose-border: rgba(217, 117, 103, 0.3);
+  --vox-rose: #e77161;
+  --vox-rose-text: #ec8b7c;
+  --vox-rose-dim: rgba(231, 113, 97, 0.22);
+  --vox-rose-border: rgba(231, 113, 97, 0.4);
 
   /* SLATE BLUE — secondary data series (carbs, comparison bars). */
-  --vox-slate: #6b92d6;
-  --vox-slate-deep: #557ab8;
-  --vox-slate-dim: rgba(107, 146, 214, 0.16);
+  --vox-slate: #6693e3;
+  --vox-slate-deep: #507cc5;
+  --vox-slate-dim: rgba(102, 147, 227, 0.22);
 
   /* ================================================================
    * SEMANTIC — mapped onto the accent roles above
@@ -154,16 +154,22 @@
   --vox-space-xxl: 48px;
   --vox-space-section: 96px;
 
+  /* Vertical rhythm between stacked cards/sections on a page, and the padding
+     inside a card. Both are deliberately generous: at 14px the screens read
+     as cramped. Change here rather than per-page so the rhythm stays even. */
+  --vox-space-stack: 20px;
+  --vox-space-card: 18px;
+
   /* ================================================================
    * ELEVATION — restrained. The rim-light separates surfaces; shadows only
    * lift genuinely floating elements. Coloured glows are faint.
    * ================================================================ */
   --vox-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --vox-shadow-brand: 0 6px 18px rgba(139, 128, 240, 0.18);
-  --vox-shadow-jade: 0 6px 16px rgba(63, 182, 143, 0.14);
-  --vox-shadow-apricot: 0 6px 16px rgba(232, 160, 85, 0.16);
+  --vox-shadow-brand: 0 6px 18px rgba(136, 123, 252, 0.24);
+  --vox-shadow-jade: 0 6px 16px rgba(51, 201, 152, 0.2);
+  --vox-shadow-apricot: 0 6px 16px rgba(248, 164, 76, 0.22);
   /* The single permitted halo — orb only. */
-  --vox-glow-orb: 0 0 0 6px rgba(139, 128, 240, 0.07), 0 0 26px rgba(139, 128, 240, 0.25);
+  --vox-glow-orb: 0 0 0 7px rgba(136, 123, 252, 0.1), 0 0 34px rgba(136, 123, 252, 0.34);
 
   /* ================================================================
    * TYPOGRAPHY
@@ -232,32 +238,32 @@
   --ion-text-color: #ffffff;
   --ion-text-color-rgb: 255, 255, 255;
 
-  --ion-color-primary: #8b80f0;
-  --ion-color-primary-rgb: 139, 128, 240;
+  --ion-color-primary: #887bfc;
+  --ion-color-primary-rgb: 136, 123, 252;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #6559c8;
-  --ion-color-primary-tint: #9a8ff5;
+  --ion-color-primary-shade: #6153d6;
+  --ion-color-primary-tint: #998dff;
 
   --ion-toolbar-background: transparent;
   --ion-item-background: transparent;
   --ion-card-background: var(--vox-surface-solid-2);
   --ion-border-color: var(--vox-border-hairline);
 
-  --ion-color-secondary: #6b92d6;
-  --ion-color-secondary-rgb: 107, 146, 214;
+  --ion-color-secondary: #6693e3;
+  --ion-color-secondary-rgb: 102, 147, 227;
 
   --ion-color-medium: rgba(255, 255, 255, 0.62);
   --ion-color-medium-rgb: 255, 255, 255;
 
-  --ion-color-success: #3fb68f;
-  --ion-color-success-rgb: 63, 182, 143;
+  --ion-color-success: #33c998;
+  --ion-color-success-rgb: 51, 201, 152;
 
-  --ion-color-warning: #e8a055;
-  --ion-color-warning-rgb: 232, 160, 85;
+  --ion-color-warning: #f8a44c;
+  --ion-color-warning-rgb: 248, 164, 76;
 
-  --ion-color-danger: #d97567;
-  --ion-color-danger-rgb: 217, 117, 103;
+  --ion-color-danger: #e77161;
+  --ion-color-danger-rgb: 231, 113, 97;
 }
 
 /* `dark.always.css` is imported in global.scss, so this palette class is

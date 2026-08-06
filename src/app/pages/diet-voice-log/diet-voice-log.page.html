@@ -8,7 +8,7 @@
 
   <div class="vx-layer flex h-full w-full flex-col">
     <header class="flex shrink-0 items-center justify-between gap-3 pb-2 pt-1">
-      <button type="button" class="dv-icon-btn" [routerLink]="'/tabs/diet'" aria-label="Back to Fuel">
+      <button type="button" class="vx-icon-btn" [routerLink]="'/tabs/diet'" aria-label="Back to Fuel">
         <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
       </button>
       @if (dietFlow() === 'recording') {
@@ -18,7 +18,7 @@
           {{ mode() === 'log_eaten' ? 'What you ate' : mode() === 'suggest' ? 'What can I make' : 'Log a meal' }}
         </span>
       }
-      <span class="dv-icon-spacer"></span>
+      <span class="vx-icon-spacer"></span>
     </header>
     @if (dietFlow() !== 'results') {
       <div class="flex flex-1 w-full flex-col items-center justify-center gap-8 pb-16 pt-4 text-center">
