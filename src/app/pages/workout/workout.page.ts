@@ -35,10 +35,10 @@ import { AuthService } from '@/app/services/auth.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutPlanService } from '@/app/services/workout-plan.service';
+import { countMatchingSessions, sessionMatchesFilters } from '@/app/utils/session-filter.util';
 import {
   formatSessionDateLabel,
   getCurrentWeekDayKeys,
-  moodEmoji,
   parseLocalDateKey,
   parseIsoDateLocal,
   sessionTotalVolumeKg,
@@ -267,22 +267,34 @@ export class WorkoutPage implements ViewWillEnter {
   // which that query omits for cost). See Deferred #7.
 
   protected readonly filterSheetOpen = signal(false);
+
+  /** What the list is actually filtered by. */
   protected readonly sessionFilters = signal<VoxSessionFilters>(EMPTY_SESSION_FILTERS);
+
+  /**
+   * What the sheet currently has staged. Separate from `sessionFilters` so the
+   * CTA can preview a count the user has not committed to yet, without the
+   * list changing under them.
+   */
+  protected readonly stagedFilters = signal<VoxSessionFilters>(EMPTY_SESSION_FILTERS);
 
   protected readonly hasActiveFilters = computed(() => {
     const f = this.sessionFilters();
     return f.moods.length > 0 || f.prsOnly || f.notesOnly;
   });
 
-  protected readonly visibleSessions = computed(() => {
-    const f = this.sessionFilters();
-    return this.sessionList().filter((s) => {
-      if (f.prsOnly && !s.hasPr) return false;
-      if (f.notesOnly && !s.hasFlag) return false;
-      if (f.moods.length > 0 && !f.moods.some((m) => s.moodEmoji === moodEmoji(m))) return false;
-      return true;
-    });
-  });
+  protected readonly visibleSessions = computed(() =>
+    this.sessionList().filter((s) => sessionMatchesFilters(s, this.sessionFilters())),
+  );
+
+  protected readonly stagedResultCount = computed(() =>
+    countMatchingSessions(this.sessionList(), this.stagedFilters()),
+  );
+
+  protected openFilterSheet(): void {
+    this.stagedFilters.set(this.sessionFilters());
+    this.filterSheetOpen.set(true);
+  }
 
   protected onApplyFilters(next: VoxSessionFilters): void {
     this.sessionFilters.set(next);

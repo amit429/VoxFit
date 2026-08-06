@@ -1,8 +1,11 @@
+<!--
+  `handle` is off because the sheet draws its own grabber, styled to the
+  system; Ionic's default would stack a second one above it.
+-->
 <ion-modal
-  class="vox-bottom-sheet"
+  class="vox-bottom-sheet vox-sheet-auto"
   [isOpen]="isOpen()"
-  [breakpoints]="[0, 1]"
-  [initialBreakpoint]="1"
+  [handle]="false"
   (ionModalDidDismiss)="onDismiss()"
 >
   <ng-template>

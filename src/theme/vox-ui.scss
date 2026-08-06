@@ -207,6 +207,16 @@ ion-modal.vox-bottom-sheet::part(content) {
   border-top: 1px solid var(--vox-border-hairline-strong);
 }
 
+/*
+ * Content-height sheet, bottom-anchored. Without this a sheet with only a few
+ * controls still fills the viewport, leaving a large dead area under the CTA.
+ */
+ion-modal.vox-sheet-auto {
+  --height: auto;
+
+  align-items: flex-end;
+}
+
 /* Full-screen celebration modal — no rounding, no backdrop tint to fight the
    gradient underneath. Inner layout is in the component's own stylesheet. */
 ion-modal.vox-streak-modal {

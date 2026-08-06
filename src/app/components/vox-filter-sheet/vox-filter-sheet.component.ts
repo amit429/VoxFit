@@ -43,6 +43,12 @@ export class VoxFilterSheetComponent {
 
   readonly apply = output<VoxSessionFilters>();
   readonly dismissed = output<void>();
+  /**
+   * Fires on every staged edit so the host can preview the result count.
+   * Distinct from `apply`: staging must not change what the list shows until
+   * the user confirms.
+   */
+  readonly stagedChange = output<VoxSessionFilters>();
 
   protected readonly moodOptions = MOOD_OPTIONS;
 
@@ -68,23 +74,27 @@ export class VoxFilterSheetComponent {
 
   protected toggleMood(mood: MoodDb): void {
     const c = this.current();
-    const moods =
-      c.moods.includes(mood) ? c.moods.filter((m) => m !== mood) : [...c.moods, mood];
-    this.staged.set({ ...c, moods });
+    const moods = c.moods.includes(mood) ? c.moods.filter((m) => m !== mood) : [...c.moods, mood];
+    this.stage({ ...c, moods });
   }
 
   protected togglePrs(): void {
     const c = this.current();
-    this.staged.set({ ...c, prsOnly: !c.prsOnly });
+    this.stage({ ...c, prsOnly: !c.prsOnly });
   }
 
   protected toggleNotes(): void {
     const c = this.current();
-    this.staged.set({ ...c, notesOnly: !c.notesOnly });
+    this.stage({ ...c, notesOnly: !c.notesOnly });
   }
 
   protected reset(): void {
-    this.staged.set(EMPTY_SESSION_FILTERS);
+    this.stage(EMPTY_SESSION_FILTERS);
+  }
+
+  private stage(next: VoxSessionFilters): void {
+    this.staged.set(next);
+    this.stagedChange.emit(next);
   }
 
   protected onApply(): void {
@@ -93,7 +103,9 @@ export class VoxFilterSheetComponent {
   }
 
   protected onDismiss(): void {
+    /* Discard staged edits and tell the host to re-sync its preview count. */
     this.staged.set(null);
+    this.stagedChange.emit(this.filters());
     this.dismissed.emit();
   }
 }

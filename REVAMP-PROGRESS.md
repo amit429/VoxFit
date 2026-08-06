@@ -200,7 +200,46 @@ into Profile. `vox-filter-sheet` is wired into Train.
 - Three more silently-dead arbitrary-value Tailwind classes found and fixed
   (`[--background:...]` on four pages, `max-w-[250px]`, `text-[1rem]`).
 
-## Phase 4 — Data-backed additions ⏳ not started
+## Phase 4 — Data-backed additions ✅
+
+**Checkpoint 4 met.** `npm run build` ✅ · `npm run lint` ✅ · **57/57 tests** ✅ (was 33) ·
+filter sheet exercised end-to-end in-browser.
+
+Most of this phase's service work landed in Phase 3, because Profile's trend chart needed it.
+What this phase actually did was verify the wiring, fix two bugs it exposed, and put the new
+logic under test.
+
+### Bugs found and fixed
+
+1. **Mood filtering matched sessions with no mood.** Filtering compared
+   `moodEmoji(session.mood)` against `moodEmoji(filterValue)` — but `moodEmoji(null)` and
+   `moodEmoji('neutral')` both render 😐, so selecting "Neutral" also returned every session
+   with no mood recorded. `WorkoutSessionListMock` now carries the narrowed `mood: MoodDb | null`
+   alongside the emoji, and filtering tests the value. Narrowing happens once in
+   `sessionToListItem` via an `isMoodDb` type guard rather than a cast, so an unexpected DB
+   value becomes `null` instead of a union member that silently fails to match.
+
+2. **The sheet's "Show N sessions" CTA was always stale.** It counted the *applied* filters,
+   but the sheet stages edits locally and only emits on apply — so toggling a chip never moved
+   the number. The sheet now emits `stagedChange` on every edit; the page keeps `sessionFilters`
+   (drives the list) separate from `stagedFilters` (drives the preview only), so the count can
+   move without the list shifting under the user. Verified live: 4 → 2 (PRs) → 1 (PRs+Notes)
+   → 4 (reset) → 3 (Positive).
+
+### Added
+
+- `utils/session-filter.util.ts` — `sessionMatchesFilters()` / `countMatchingSessions()`. One
+  predicate, shared by the list and the preview count, so the two can't disagree again.
+- `vox-filter-sheet` now renders at content height (`vox-sheet-auto`) and suppresses Ionic's
+  default handle, which was stacking a second grabber above its own.
+
+### Tests (24 new)
+
+`badge.service.spec.ts`, `streak-milestone.service.spec.ts`, `session-filter.util.spec.ts`,
+`workout-display.util.spec.ts`. The last one includes a **framing guard**: it asserts
+`flagsSummary()` output contains none of "flag", "diagnos", "health", "injur", "symptom",
+"issue". That is a product-safety requirement from the AI Coach PRD, not a copy preference —
+a test is the only thing that stops it regressing.
 
 ## Phase 5 — Polish ⏳ not started
 

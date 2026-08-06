@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import type {
+  MoodDb,
   HomeStreakMock,
   HomeWorkoutCardMock,
   WeeklyVolumeMock,
@@ -158,6 +159,7 @@ export class WorkoutJournalService {
       dateLabel: session.date ? formatSessionDateLabel(session.date) : '—',
       dateKey: session.date ?? '',
       exercises: ex.length,
+      mood: isMoodDb(session.mood) ? session.mood : null,
       moodEmoji: moodEmoji(session.mood),
       energyLabel: energyShortLabel(session.energy_level),
       hasFlag: !!flags,
@@ -406,6 +408,15 @@ export class WorkoutJournalService {
 
     return { workouts: workoutsRes.count ?? 0, prs: prsRes.count ?? 0 };
   }
+}
+
+/**
+ * `mood` arrives as free `string | null` from the DB row type. Narrow it here
+ * rather than casting, so an unexpected value becomes null instead of a bad
+ * union member that later filters silently fail to match.
+ */
+function isMoodDb(value: string | null): value is MoodDb {
+  return value === 'positive' || value === 'neutral' || value === 'negative';
 }
 
 function pickLatestSession(sameDay: WorkoutSessionRow[]): WorkoutSessionRow {
