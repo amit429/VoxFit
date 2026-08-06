@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline } from 'ionicons/icons';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import type { PlanNudgeRow } from '@/app/models';
 
@@ -15,7 +16,7 @@ addIcons({ checkmarkOutline });
 @Component({
   selector: 'vox-plan-nudge-card',
   standalone: true,
-  imports: [VoxIconComponent],
+  imports: [VoxIconComponent, VoxCardComponent],
   templateUrl: './plan-nudge-card.component.html',
   styleUrl: './plan-nudge-card.component.scss',
 })

@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 
 export type VoxPlanBannerState = 'active' | 'rest-day' | 'no-plan';
@@ -14,7 +13,7 @@ export type VoxPlanBannerState = 'active' | 'rest-day' | 'no-plan';
 @Component({
   selector: 'vox-plan-banner',
   standalone: true,
-  imports: [NgClass, VoxIconComponent],
+  imports: [VoxIconComponent],
   templateUrl: './vox-plan-banner.component.html',
   styleUrl: './vox-plan-banner.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

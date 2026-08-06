@@ -1,219 +1,139 @@
-<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <header class="flex shrink-0 items-center justify-between px-2 pb-4 pt-4">
-    <div class="min-w-0 mb-4">
-      <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Profile</p>
-      <div class="m-0 mt-3 truncate text-2xl font-semibold tracking-tight text-ink">{{ displayName() }}</div>
+<ion-content [fullscreen]="true" class="tab-page-content">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob pr-blob-1"></span>
+    <span class="vx-blob pr-blob-2"></span>
+    <span class="vx-blob pr-blob-3"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <main class="vx-layer">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-3.5 pt-1">
+      <p class="vox-eyebrow m-0">Profile</p>
+      <button type="button" (click)="goToSettings()" class="pr-icon-btn" aria-label="Settings">
+        <vox-icon name="settings-outline" size="sm" tone="ink" />
+      </button>
+    </header>
+
+    <!-- Identity -->
+    <div class="flex items-center gap-3.5">
+      <span class="pr-avatar-ring">
+        <span class="pr-avatar">{{ avatarInitial() }}</span>
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="pr-name">{{ displayName() }}</p>
+        <div class="mt-1.5 flex flex-wrap gap-1.5">
+          <vox-badge size="xs">{{ sportChip() }}</vox-badge>
+          <vox-badge size="xs">{{ goalChip() }}</vox-badge>
+        </div>
+      </div>
     </div>
-    <button
-      type="button"
-      (click)="goToSettings()"
-      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-surface-2 transition-colors"
-      aria-label="Settings"
-    >
-      <vox-icon name="settings-outline" tone="ink-muted" size="md" />
-    </button>
-  </header>
-
-  <main class="flex-1 space-y-6 px-2 pb-6">
-    <!-- Identity chips -->
-    <div class="flex flex-wrap gap-2">
-      <span class="rounded-full bg-surface-2 px-3 py-1 vx-text-11 font-medium text-ink-subtle ring-1 ring-hairline">{{ sportChip() }}</span>
-      <span class="rounded-full bg-surface-2 px-3 py-1 vx-text-11 font-medium text-ink-subtle ring-1 ring-hairline">{{ goalChip() }}</span>
-      <span class="rounded-full bg-surface-2 px-3 py-1 vx-text-11 font-medium text-ink-subtle ring-1 ring-hairline">{{ email() }}</span>
-    </div>
-
-    @if (showSkeleton()) {
-      <!-- Hero stats skeleton -->
-      <section class="grid grid-cols-3 gap-2">
-        @for (i of [0, 1, 2]; track i) {
-          <div class="rounded-xl bg-surface-1 p-4 text-center ring-1 ring-hairline">
-            <vox-skeleton shape="text" width="32px" height="18px" class="mx-auto" />
-            <vox-skeleton shape="text" width="48px" height="9px" class="mx-auto mt-2" />
-          </div>
-        }
-      </section>
-
-      <!-- Activity heatmap skeleton -->
-      <section class="space-y-3 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <vox-skeleton shape="text" width="60px" height="10px" />
-        <div class="grid grid-flow-col grid-rows-7 gap-[3px] overflow-x-auto" style="grid-auto-columns: 8px">
-          @for (i of heatmapSkeletonCells; track i) {
-            <vox-skeleton shape="block" radius="xs" width="8px" height="8px" surface="surface-4" />
-          }
-        </div>
-      </section>
-
-      <!-- Monthly charts skeleton -->
-      @for (i of profileChartSkeletonBars.slice(0, 2); track i) {
-        <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-          <vox-skeleton shape="text" width="90px" height="10px" />
-          <vox-skeleton shape="text" width="70px" height="20px" class="mt-2" />
-          <div class="mt-4 flex h-24 items-end gap-2">
-            @for (j of profileChartSkeletonBars; track j) {
-              <div class="flex flex-1 flex-col items-center justify-end gap-2">
-                <vox-skeleton [height]="(12 + (j % 4) * 10) + 'px'" width="100%" radius="xs" surface="surface-4" />
-                <vox-skeleton shape="text" width="18px" height="8px" />
-              </div>
-            }
-          </div>
-        </section>
-      }
-    } @else {
-      <!-- Hero stats -->
-      <section class="grid grid-cols-3 gap-2">
-        @for (s of heroStats(); track s.label) {
-          <div class="rounded-xl bg-surface-1 p-4 text-center ring-1 ring-hairline">
-            <p class="m-0 font-mono text-xl text-ink">{{ s.value }}</p>
-            <p class="m-0 mt-1 whitespace-nowrap vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ s.label }}</p>
-          </div>
-        }
-      </section>
-
-      <!-- Activity heatmap -->
-      <section class="space-y-3 rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="m-0 vx-text-10 uppercase tracking-[0.16em] text-ink-subtle">Activity</p>
-            <h3 class="m-0 mt-0.5 text-sm font-medium text-ink">Last 6 months</h3>
-          </div>
-          <div class="flex items-center gap-1 text-ink-subtle" style="font-size: 9px">
-            <span>less</span>
-            @for (c of heatmapLegendColors; track c) {
-              <span class="h-2 w-2 rounded-[2px]" [style.background]="c"></span>
-            }
-            <span>more</span>
-          </div>
-        </div>
-        <div
-          class="grid grid-flow-col grid-rows-7 gap-[3px] overflow-x-auto"
-          style="grid-auto-columns: 8px"
-        >
-          @for (cell of heatmapCells(); track cell.key) {
-            <span
-              class="h-2 w-2 rounded-[2px]"
-              [style.background]="heatmapCellBackground(cell)"
-            ></span>
-          }
-        </div>
-      </section>
-
-      <!-- Monthly workouts -->
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <div class="flex items-baseline justify-between">
-          <div>
-            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ workoutChartStat().caption }}</p>
-            <p class="m-0 mt-1 font-mono text-xl text-ink">
-              {{ workoutChartStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ workoutChartStat().unit }}</span>
-            </p>
-          </div>
-          @if (selectedWorkoutMonthIdx() !== null) {
-            <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
-          }
-        </div>
-        <div class="mt-4 flex h-24 items-end gap-2">
-          @for (bar of monthlyWorkoutBars(); track bar.label + $index) {
-            <div
-              (click)="toggleWorkoutMonth($index)"
-              class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
-            >
-              <div
-                class="w-full rounded-sm transition-colors"
-                [class.bg-ink]="bar.isSelected"
-                [class.bg-primary]="bar.isCurrent && !bar.isSelected"
-                [class.bg-surface-4]="!bar.isCurrent && !bar.isSelected"
-                [style.height.px]="bar.heightPx"
-              ></div>
-              <span
-                class="font-mono vx-text-9"
-                [class.text-ink]="bar.isSelected"
-                [class.font-semibold]="bar.isSelected"
-                [class.text-ink-tertiary]="!bar.isSelected"
-              >{{ bar.label }}</span>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- Monthly calorie intake -->
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <div class="flex items-baseline justify-between">
-          <div>
-            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">{{ calorieChartStat().caption }}</p>
-            <p class="m-0 mt-1 font-mono text-xl text-ink">
-              {{ calorieChartStat().value }}<span class="ml-2 text-xs text-ink-subtle">{{ calorieChartStat().unit }}</span>
-            </p>
-          </div>
-          @if (selectedCalorieMonthIdx() !== null) {
-            <span class="rounded bg-surface-3 px-2 py-1 font-mono vx-text-9 uppercase tracking-wider text-ink-subtle">Tap again to clear</span>
-          }
-        </div>
-        <div class="mt-4 flex h-24 items-end gap-2">
-          @for (bar of monthlyCalorieBars(); track bar.label + $index) {
-            <div
-              (click)="toggleCalorieMonth($index)"
-              class="flex flex-1 cursor-pointer flex-col items-center justify-end gap-2"
-            >
-              <div
-                class="w-full rounded-sm transition-colors"
-                [class.bg-ink]="bar.isSelected"
-                [class.bg-primary]="bar.isCurrent && !bar.isSelected"
-                [class.bg-surface-4]="!bar.isCurrent && !bar.isSelected"
-                [style.height.px]="bar.heightPx"
-              ></div>
-              <span
-                class="font-mono vx-text-9"
-                [class.text-ink]="bar.isSelected"
-                [class.font-semibold]="bar.isSelected"
-                [class.text-ink-tertiary]="!bar.isSelected"
-              >{{ bar.label }}</span>
-            </div>
-          }
-        </div>
-      </section>
-    }
 
     <!-- Progress check-in -->
-    <section>
-      @if (coach.latestReview(); as r) {
-        <vox-progress-review-card [review]="r" (acknowledge)="onAcknowledge($event)" />
-      } @else {
-        <div class="rounded-2xl bg-surface-1 p-6 text-center ring-1 ring-hairline">
-          @if (generating()) {
-            <ion-spinner name="crescent" style="--color: var(--vox-primary); width: 22px; height: 22px" />
-            <p class="m-0 mt-3 text-sm text-ink-subtle">Reviewing your recent activity…</p>
-          } @else {
-            <p class="m-0 text-sm leading-relaxed text-ink">Get your progress check-in</p>
-            <p class="m-0 mt-2 text-xs leading-relaxed text-ink-subtle">
-              A quick AI read on how your training and nutrition have been trending lately.
-            </p>
-            @if (error(); as err) {
-              <p class="m-0 mt-4 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">{{ err }}</p>
-            }
-            <button
-              type="button"
-              class="vox-btn-primary mt-5 w-full"
-              [disabled]="generating()"
-              (click)="checkProgress()"
-            >
-              Check my progress
-            </button>
-          }
-        </div>
+    @if (coach.latestReview(); as r) {
+      <vox-progress-review-card class="mt-3.5 block" [review]="r" (acknowledge)="onAcknowledge($event)" />
+    } @else {
+      <vox-progress-nudge
+        class="mt-3.5 block"
+        state="check-in-ready"
+        title="Get your progress check-in"
+        detail="A read on how your training and nutrition have been trending"
+        [ctaLabel]="generating() ? 'Reviewing…' : 'Check my progress'"
+        (action)="checkProgress()"
+      />
+      @if (error(); as err) {
+        <vox-card variant="rose" padding="sm" class="mt-2 block">
+          <p class="m-0 text-sm text-rose-text">{{ err }}</p>
+        </vox-card>
       }
-    </section>
+    }
+
+    @if (showSkeleton()) {
+      <div class="mt-3.5 flex gap-2.5">
+        @for (i of [0, 1, 2]; track i) {
+          <vox-skeleton height="72px" radius="xl" class="block flex-1" />
+        }
+      </div>
+      <vox-skeleton height="120px" radius="xl" class="mt-3.5 block" />
+      <vox-skeleton height="150px" radius="xl" class="mt-3.5 block" />
+    } @else {
+      <!-- Hero stats -->
+      <div class="mt-3.5 flex gap-2.5">
+        @for (s of heroStats(); track s.label; let i = $index) {
+          <vox-stat-tile [value]="s.value" [label]="s.label" [tone]="statTones[i]" />
+        }
+      </div>
+
+      <!-- Badges -->
+      <vox-card class="mt-3.5 block">
+        <vox-badge-shelf [badges]="badges()" />
+      </vox-card>
+
+      <!-- Activity heatmap -->
+      <vox-card class="mt-3.5 block">
+        <vox-heatmap [cells]="heatmapCells()" [weeks]="heatmapWeeks" />
+      </vox-card>
+
+      <!-- Sessions this week -->
+      <vox-card padding="lg" class="mt-3.5 block">
+        <vox-activity-ring
+          [done]="sessionsThisWeek()"
+          [target]="weeklySessionTarget()"
+          [caption]="weeklyTargetCaption()"
+        />
+      </vox-card>
+
+      <!-- Strength trend -->
+      @if (trendExercise(); as exercise) {
+        <vox-card class="mt-3.5 block">
+          <vox-trend-chart
+            gradientId="profile-trend-fill"
+            [points]="trendPoints()"
+            [title]="exercise"
+            [subtitle]="'Top set · last ' + trendWeeks + ' weeks'"
+            [headline]="trendHeadline()"
+          />
+        </vox-card>
+      }
+
+      <!-- Monthly workouts -->
+      <vox-card class="mt-3.5 block">
+        <vox-volume-chart
+          [bars]="monthlyWorkoutVolumeBars()"
+          [eyebrow]="workoutChartStat().caption"
+          [total]="workoutChartStat().value.toString()"
+          [unit]="workoutChartStat().unit"
+          [selectedIndex]="selectedWorkoutMonthIdx()"
+          (barClick)="toggleWorkoutMonth($event)"
+        />
+      </vox-card>
+
+      <!-- Monthly calorie intake -->
+      <vox-card class="mt-3.5 block">
+        <vox-volume-chart
+          [bars]="monthlyCalorieVolumeBars()"
+          [eyebrow]="calorieChartStat().caption"
+          [total]="calorieChartStat().value.toString()"
+          [unit]="calorieChartStat().unit"
+          [selectedIndex]="selectedCalorieMonthIdx()"
+          (barClick)="toggleCalorieMonth($event)"
+        />
+      </vox-card>
+    }
 
     <!-- Preferences -->
-    <section class="space-y-2">
-      <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">Preferences</h3>
+    <h2 class="pr-section-title">Preferences</h2>
+    <vox-card padding="sm">
       @for (g of goalRows(); track g.label) {
-        <div class="flex w-full items-center gap-3 rounded-xl bg-surface-1 p-4 text-left ring-1 ring-hairline transition-colors hover:bg-surface-2 mb-5">
-          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-3 ring-1 ring-hairline">
-            <vox-icon [name]="g.icon" tone="ink-muted" size="sm" />
+        <div class="pr-pref-row">
+          <span class="pr-pref-icon">
+            <vox-icon [name]="g.icon" tone="ink-subtle" size="sm" />
           </span>
           <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
-          <span class="font-mono text-xs text-ink-subtle">{{ g.value }}</span>
+          <span class="pr-pref-value">{{ g.value }}</span>
         </div>
       }
-    </section>
+    </vox-card>
+
+    <p class="pr-footer">{{ email() }}</p>
   </main>
 </ion-content>

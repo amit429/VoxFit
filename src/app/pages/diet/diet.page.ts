@@ -1,6 +1,9 @@
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
-import { DecimalPipe } from '@angular/common';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxSegmentedComponent } from '@/app/components/vox-segmented/vox-segmented.component';
+import { VoxMealRowComponent } from '@/app/components/vox-meal-row/vox-meal-row.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
@@ -57,13 +60,16 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
   imports: [
     VoxIconComponent,
     VoxSkeletonComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxSegmentedComponent,
+    VoxMealRowComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     RouterLink,
     IonRouterLinkWithHref,
-    DecimalPipe,
     IonButtons,
     IonModal,
     IonButton,
@@ -137,6 +143,40 @@ export class DietPage implements ViewWillEnter {
       : b.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     return `${left} – ${right}`;
   });
+
+  protected readonly rangeSegments = [
+    { id: 'day' as const, label: 'Day' },
+    { id: 'week' as const, label: 'Week' },
+  ];
+
+  /** Ring geometry — r=43 in a 106px box, matching the mockup. */
+  protected readonly calorieCircumference = 2 * Math.PI * 43;
+
+  protected readonly calorieDashOffset = computed(
+    () => this.calorieCircumference * (1 - this.macroSummary().pct / 100),
+  );
+
+  /** Headline reads as remaining-to-go, or as an overshoot once past target. */
+  protected readonly calorieHeadline = computed(() => {
+    const cal = this.macroSummary().calories;
+    if (!cal) return '—';
+    const left = cal.target - cal.current;
+    if (left > 0) return `${left.toLocaleString()} kcal left`;
+    if (left === 0) return 'Target hit';
+    return `${Math.abs(left).toLocaleString()} kcal over`;
+  });
+
+  /** Series colour per macro — same assignment as Home's fuel card. */
+  protected macroTrackColor(label: string): string {
+    switch (label) {
+      case 'Protein':
+        return 'var(--vox-jade)';
+      case 'Carbs':
+        return 'var(--vox-slate)';
+      default:
+        return 'var(--vox-apricot)';
+    }
+  }
 
   protected readonly mealTypeChips: { id: 'all' | DietMealTypeDb; label: string }[] = [
     { id: 'all', label: 'All' },

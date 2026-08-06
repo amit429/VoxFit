@@ -24,6 +24,8 @@
   font-family: var(--vox-font-text);
   font-size: 0.78125rem;
   font-weight: 600;
+  /* Without this a narrow container breaks "Week" across two lines. */
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background var(--vox-dur-fast) var(--vox-ease),

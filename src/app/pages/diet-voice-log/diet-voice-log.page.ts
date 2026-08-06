@@ -1,5 +1,5 @@
 import { Component, DestroyRef, effect, inject, signal, type OnDestroy } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { interval } from 'rxjs';
 import type { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import {
@@ -28,9 +28,9 @@ import { GeminiDietMealsService } from '@/app/services/gemini-diet-meals.service
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { DietLogService } from '@/app/services/diet-log.service';
 import { AuthService } from '@/app/services/auth.service';
-import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxVoiceOrbComponent } from '@/app/components/vox-voice-orb/vox-voice-orb.component';
 import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
 
 addIcons({
@@ -61,13 +61,14 @@ type DietVoiceMode = 'suggest' | 'log_eaten';
     IonModal,
     IonButton,
     IonSpinner,
-    VoxCardComponent,
     VoxBadgeComponent,
     VoxIconComponent,
+    VoxVoiceOrbComponent,
   ],
 })
 export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   protected readonly voiceSession = inject(VoiceSessionService);
   private readonly geminiMeals = inject(GeminiDietMealsService);
   private readonly nutrition = inject(NutritionDashboardService);
@@ -106,6 +107,16 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
   ionViewWillEnter(): void {
     /* Fresh session each visit from Diet tab. */
     this.resetSession();
+
+    /*
+     * The Fuel screen's two mode cards deep-link straight into a mode, so the
+     * user isn't asked the same question twice. Anything unrecognised falls
+     * through to the in-page picker.
+     */
+    const requested = this.route.snapshot.queryParamMap.get('mode');
+    if (requested === 'suggest' || requested === 'log_eaten') {
+      this.mode.set(requested);
+    }
   }
 
   ionViewWillLeave(): void {

@@ -1,6 +1,7 @@
 import { Component, input, signal } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline } from 'ionicons/icons';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import type { WorkoutPlanContent } from '@/app/models';
 
@@ -15,7 +16,7 @@ addIcons({ chevronDownOutline });
 @Component({
   selector: 'vox-plan-review-card',
   standalone: true,
-  imports: [VoxIconComponent],
+  imports: [VoxIconComponent, VoxCardComponent],
   templateUrl: './plan-review-card.component.html',
   styleUrl: './plan-review-card.component.scss',
 })

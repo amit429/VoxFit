@@ -1,115 +1,104 @@
-<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <header class="flex shrink-0 items-center gap-3 px-2 pb-4 pt-2">
-    <button
-      type="button"
-      (click)="goToJournal()"
-      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-2"
-      aria-label="Back to journal"
-    >
-      <vox-icon name="chevron-back-outline" size="md" />
-    </button>
-    <div class="min-w-0">
-      <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Session</p>
-      @if (detail(); as d) {
-        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">{{ d.title }} · {{ d.dateLabel }}</span>
-      } @else {
-        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">Session</span>
-      }
-    </div>
-  </header>
+<ion-content [fullscreen]="true" class="tab-page-content">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob wd-blob-1"></span>
+    <span class="vx-blob wd-blob-2"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
 
-  <main class="flex-1 space-y-6 px-2 pb-6">
+  <main class="vx-layer">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-4 pt-1">
+      <button type="button" (click)="goToJournal()" class="wd-icon-btn" aria-label="Back to journal">
+        <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
+      </button>
+      <span class="wd-header-title">
+        {{ detail()?.title || 'Session' }}
+      </span>
+      <span class="wd-icon-spacer"></span>
+    </header>
+
     @if (loadingDetail()) {
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <div class="grid grid-cols-3 gap-3">
-          @for (i of [0, 1, 2]; track i) {
-            <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-              <vox-skeleton shape="text" width="36px" height="10px" class="mx-auto" />
-              <vox-skeleton shape="text" width="48px" height="16px" class="mx-auto mt-2" surface="surface-4" />
-            </div>
-          }
-        </div>
-      </section>
-
-      <section class="rounded-2xl bg-surface-1 ring-1 ring-hairline">
-        <div class="flex items-center justify-between border-b border-hairline p-4">
-          <div class="min-w-0">
-            <vox-skeleton shape="text" width="60px" height="10px" />
-            <vox-skeleton shape="text" width="140px" height="16px" class="mt-2" />
-          </div>
-          <vox-skeleton shape="pill" width="64px" height="22px" />
-        </div>
-        <div class="space-y-3 p-4">
-          @for (i of [0, 1]; track i) {
-            <div class="flex items-center justify-between rounded-md bg-surface-2 px-3 py-3">
-              <vox-skeleton shape="text" width="55%" height="14px" />
-              <vox-skeleton shape="circle" width="16px" height="16px" />
-            </div>
-          }
-        </div>
-      </section>
-
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <vox-skeleton shape="text" width="120px" height="12px" />
-        <vox-skeleton shape="text" width="90%" height="12px" class="mt-3" />
-        <vox-skeleton shape="text" width="60%" height="12px" class="mt-2" />
-      </section>
+      <div class="flex gap-2.5">
+        @for (i of [0, 1, 2]; track i) {
+          <vox-skeleton height="72px" radius="xl" class="block flex-1" />
+        }
+      </div>
+      <vox-skeleton height="110px" radius="xl" class="mt-3.5 block" />
+      <vox-skeleton height="180px" radius="xl" class="mt-3.5 block" />
     } @else if (detail(); as d) {
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <div class="grid grid-cols-3 gap-3">
-          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-            <p class="m-0 text-xs text-ink-subtle">Mood</p>
-            <p class="m-0 mt-1 text-lg leading-none">{{ d.moodEmoji }}</p>
-            <p class="m-0 mt-1 text-xs font-semibold text-success">{{ d.moodLabel }}</p>
-          </div>
-          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-            <p class="m-0 text-xs text-ink-subtle">Energy</p>
-            <p class="m-0 mt-1 text-sm font-semibold leading-tight text-warning">{{ d.energyLabel }}</p>
-          </div>
-          <div class="rounded-md bg-surface-3 px-2 py-3 text-center">
-            <p class="m-0 text-xs text-ink-subtle">Volume</p>
-            <p class="m-0 mt-1 font-mono text-sm font-semibold tabular-nums text-primary">{{ d.volumeLabel }}</p>
-          </div>
-        </div>
-      </section>
+      <p class="vox-eyebrow m-0 pb-3">{{ d.dateLabel }}</p>
 
-      <section class="rounded-2xl bg-surface-1 ring-1 ring-hairline">
-        <div class="flex items-center justify-between border-b border-hairline p-4">
+      <!-- Hero stats -->
+      <div class="flex gap-2.5">
+        <vox-stat-tile [value]="volumeValue()" label="Volume kg" tone="jade" />
+        <vox-stat-tile [value]="detailExercises().length" label="Exercises" />
+        <vox-stat-tile [value]="prCount()" label="New PRs" tone="apricot" />
+      </div>
+
+      <!-- Coach note -->
+      @if (d.coachNote) {
+        <vox-card variant="brand" class="mt-3.5 block">
+          <div class="flex gap-3">
+            <span class="vox-ai-mark shrink-0">
+              <vox-icon name="sparkles-outline" size="sm" />
+            </span>
+            <div class="min-w-0">
+              <p class="m-0 vx-text-10 font-bold uppercase vx-tracking-16 text-brand-text">Your coach</p>
+              <p class="m-0 mt-1.5 text-sm leading-relaxed text-ink-muted">{{ d.coachNote }}</p>
+            </div>
+          </div>
+        </vox-card>
+      }
+
+      <!-- Mood / energy -->
+      <vox-card padding="sm" class="mt-3.5 block">
+        <div class="grid grid-cols-2 gap-3 text-center">
           <div>
-            <p class="m-0 vx-text-10 uppercase vx-tracking-16 text-ink-subtle">Session</p>
-            <h3 class="m-0 mt-1 text-base font-semibold text-ink">{{ d.title }}</h3>
+            <p class="wd-meta-label">Mood</p>
+            <p class="wd-meta-emoji">{{ d.moodEmoji }}</p>
+            <p class="wd-meta-value">{{ d.moodLabel }}</p>
           </div>
-          <span class="rounded bg-primary-dim px-2 py-1 font-mono vx-text-10 uppercase tracking-wider text-primary border border-primary-dim">
-            Editable
-          </span>
+          <div>
+            <p class="wd-meta-label">Energy</p>
+            <p class="wd-meta-emoji">⚡</p>
+            <p class="wd-meta-value">{{ d.energyLabel }}</p>
+          </div>
         </div>
-        <div class="p-4">
-          <app-session-exercise-review-card
-            [sessionContextId]="detailSessionId() ?? undefined"
-            [sessionTitle]="d.title"
-            [coachSummary]="d.coachNote || null"
-            [exercises]="detailExercises()"
-            [saving]="savingExercises()"
-            (exercisesChange)="onJournalExercisesChange($event)"
-          />
-        </div>
-      </section>
+      </vox-card>
 
-      <section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
-        <p class="m-0 mb-2 flex items-center gap-1.5 text-xs font-semibold text-danger">
-          <vox-icon name="warning-outline" tone="danger" size="xs" />
-          {{ d.flagsTitle }}
-        </p>
-        <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ d.flagsBody }}</p>
-      </section>
+      <app-session-exercise-review-card
+        class="mt-3.5 block"
+        [sessionContextId]="detailSessionId() ?? undefined"
+        [sessionTitle]="d.title"
+        [coachSummary]="null"
+        [exercises]="detailExercises()"
+        [saving]="savingExercises()"
+        (exercisesChange)="onJournalExercisesChange($event)"
+      />
+
+      <!-- Physical notes. Rose and observational — never an alert. -->
+      @if (d.hasFlags) {
+        <vox-card variant="rose" padding="sm" class="mt-3.5 block">
+          <div class="flex items-center gap-3">
+            <span class="wd-note-mark">
+              <vox-icon name="chatbubble-ellipses-outline" size="sm" tone="inherit" />
+            </span>
+            <div class="min-w-0">
+              <p class="m-0 vx-text-10 font-bold uppercase vx-tracking-16 text-rose-text">{{ d.flagsTitle }}</p>
+              <p class="m-0 mt-0.5 text-sm leading-relaxed text-ink-muted">{{ d.flagsBody }}</p>
+            </div>
+          </div>
+        </vox-card>
+      }
     } @else if (notFound()) {
-      <section class="rounded-2xl bg-surface-1 p-5 text-center ring-1 ring-hairline">
-        <p class="m-0 text-base font-semibold text-ink">Session not found</p>
-        <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-subtle">
+      <vox-card padding="lg" class="mt-4 block">
+        <p class="m-0 text-center text-base font-semibold text-ink">Session not found</p>
+        <p class="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-ink-subtle">
           This workout may have been deleted, or the link is out of date.
         </p>
-        <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4">Back to journal</button>
-      </section>
+        <button type="button" (click)="goToJournal()" class="vox-btn-secondary mt-4 w-full">
+          Back to journal
+        </button>
+      </vox-card>
     }
   </main>
 </ion-content>

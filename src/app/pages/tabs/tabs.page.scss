@@ -11,14 +11,16 @@ ion-tab-bar {
 }
 
 ion-tab-button {
-  --color: var(--vox-ink-subtle);
-  --color-selected: var(--vox-primary);
-  font-size: 0.6875rem;
+  --color: var(--vox-ink-tertiary);
+  /* Periwinkle-bright for the active tab — the brand accent doing its job. */
+  --color-selected: var(--vox-brand-text);
+  font-size: 0.65625rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
   min-height: 3rem;
 }
 
 ion-tab-button ion-icon {
-  font-size: 1.375rem;
-  margin-bottom: 2px;
+  font-size: 1.3125rem;
+  margin-bottom: 3px;
 }

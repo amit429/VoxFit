@@ -1,19 +1,22 @@
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, ToastController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { warningOutline } from 'ionicons/icons';
+import { chevronBackOutline, sparklesOutline, chatbubbleEllipsesOutline } from 'ionicons/icons';
 import type { WorkoutDetailMock, WorkoutExerciseExtract } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
 import { exerciseLoggedLikesToExtracts } from '@/app/utils/exercise-logged.mapper';
+import { exerciseStrengthVolumeKg } from '@/app/utils/workout-display.util';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxStatTileComponent } from '@/app/components/vox-stat-tile/vox-stat-tile.component';
 
-addIcons({ warningOutline });
+addIcons({ chevronBackOutline, sparklesOutline, chatbubbleEllipsesOutline });
 
 /** Deep-linkable detail route (`/tabs/workout/:sessionId`) — real back-stack entry, not a view toggle. */
 @Component({
@@ -21,7 +24,14 @@ addIcons({ warningOutline });
   standalone: true,
   templateUrl: './workout-detail.page.html',
   styleUrls: ['./workout-detail.page.scss'],
-  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent, SessionExerciseReviewCardComponent],
+  imports: [
+    VoxIconComponent,
+    VoxSkeletonComponent,
+    IonContent,
+    SessionExerciseReviewCardComponent,
+    VoxCardComponent,
+    VoxStatTileComponent,
+  ],
 })
 export class WorkoutDetailPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
@@ -37,6 +47,28 @@ export class WorkoutDetailPage implements ViewWillEnter {
   protected readonly notFound = signal(false);
   protected readonly loadingDetail = signal(true);
   protected readonly savingExercises = signal(false);
+
+  /**
+   * Bare figure for the hero tile — the tile's own label carries the unit, so
+   * `formatVolumeKg` would render "kg" twice.
+   */
+  protected readonly volumeValue = computed(() => {
+    const total = this.detailExercises().reduce(
+      (sum, ex) =>
+        sum +
+        exerciseStrengthVolumeKg({
+          exercise_type: ex.exercise_type,
+          sets: null,
+          reps: null,
+          weight_kg: null,
+          set_lines: ex.set_lines,
+        }),
+      0,
+    );
+    return total > 0 ? Math.round(total).toLocaleString() : '—';
+  });
+
+  protected readonly prCount = computed(() => this.detailExercises().filter((ex) => ex.is_pr).length);
 
   async ionViewWillEnter(): Promise<void> {
     this.loadingDetail.set(true);

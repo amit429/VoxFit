@@ -1,161 +1,283 @@
-ion-modal.vox-picker-modal {
-  --width: min(100%, 22rem);
-  --max-height: 90vh;
-  --border-radius: var(--vox-radius-xl) var(--vox-radius-xl) 0 0;
-  --box-shadow: none;
-  --backdrop-opacity: 0.55;
+:host {
+  display: block;
 }
 
-ion-modal.vox-picker-modal::part(content) {
-  border: 1px solid var(--vox-border-hairline-strong);
-  border-bottom: none;
+.wk-blob-1 {
+  width: 310px;
+  height: 250px;
+  top: -60px;
+  right: -90px;
+  background: rgba(63, 182, 143, 0.21);
 }
+
+.wk-blob-2 {
+  width: 280px;
+  height: 220px;
+  top: 300px;
+  left: -100px;
+  background: rgba(139, 128, 240, 0.23);
+}
+
+.wk-title {
+  margin: 3px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.5625rem;
+  font-weight: var(--vox-weight-display);
+  line-height: 1.15;
+  letter-spacing: var(--vox-tracking-display);
+  color: var(--vox-ink);
+}
+
+.wk-icon-btn {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+/* The chip visual is vox-badge; this button only supplies the 44px target. */
+.wk-chip-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wk-chip-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-pill);
+}
+
+.wk-link {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--vox-brand-text);
+  font-family: var(--vox-font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wk-section-title {
+  margin: 0 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.wk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wk-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 15px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-rim-light), var(--vox-surface-1);
+  cursor: pointer;
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wk-row:active {
+  transform: scale(0.99);
+}
+
+.wk-row-mark {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--vox-brand-dim);
+  font-size: 1.125rem;
+}
+
+.wk-row-title {
+  display: block;
+  overflow: hidden;
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-row-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.wk-more {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wk-more:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ==================================================================
+ * Month / date picker modals — unchanged behaviour, retinted only.
+ * ================================================================== */
 
 .vox-month-year-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.vox-year-label {
-  min-width: 4.5rem;
-  text-align: center;
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--vox-ink);
+  gap: var(--vox-space-md);
+  margin-bottom: var(--vox-space-md);
 }
 
 .vox-year-nav {
-  display: inline-flex;
+  display: flex;
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  margin: 0;
-  padding: 0;
   border: 1px solid var(--vox-border-hairline);
   border-radius: var(--vox-radius-md);
-  background: var(--vox-surface-2);
-  color: var(--vox-ink);
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1;
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+}
 
-  &:active {
-    opacity: 0.82;
-  }
+.vox-year-label {
+  min-width: 4rem;
+  font-family: var(--vox-font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--vox-ink);
 }
 
 .vox-month-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: var(--vox-space-xs);
 }
 
 .vox-month-cell {
-  min-height: 3rem;
-  margin: 0;
-  padding: 0.5rem 0.35rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--vox-border-hairline);
   border-radius: var(--vox-radius-md);
-  background: var(--vox-surface-2);
-  color: var(--vox-ink);
-  font-size: 0.9rem;
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-  -webkit-tap-highlight-color: transparent;
+}
 
-  &:active {
-    opacity: 0.85;
-  }
-
-  &--selected {
-    border-color: var(--vox-primary);
-    background: var(--vox-primary-dim);
-    color: var(--vox-primary-hover);
-  }
+.vox-month-cell--selected {
+  background: var(--vox-brand-dim);
+  border-color: var(--vox-brand-border);
+  color: var(--vox-brand-text);
 }
 
 .vox-picker-footnote {
-  margin: 1rem 0 0;
+  margin: var(--vox-space-md) 0 0;
   font-size: 0.75rem;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--vox-ink-tertiary);
-  text-align: center;
 }
 
 .vox-date-mode-row {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: 3px;
+  padding: 4px;
+  margin-bottom: var(--vox-space-md);
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
 }
 
 .vox-date-mode-btn {
   flex: 1;
-  min-height: 2.75rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: var(--vox-radius-pill);
-  background: var(--vox-surface-2);
-  color: var(--vox-ink-muted);
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--vox-radius-sm);
+  background: none;
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-text);
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+}
 
-  &--active {
-    border-color: var(--vox-primary);
-    background: var(--vox-primary-dim);
-    color: var(--vox-primary-hover);
-  }
-
-  &:active {
-    opacity: 0.9;
-  }
+.vox-date-mode-btn--active {
+  background: var(--vox-jade-gradient);
+  color: var(--vox-on-jade);
+  font-weight: 700;
 }
 
 .vox-date-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  margin-bottom: 1rem;
+  display: block;
+  margin-bottom: var(--vox-space-sm);
 }
 
 .vox-date-field__lab {
-  font-size: 0.7rem;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--vox-ink-muted);
+  color: var(--vox-ink-tertiary);
 }
 
 .vox-date-input {
-  min-height: 3rem;
   width: 100%;
-  box-sizing: border-box;
-  padding: 0.6rem 0.75rem;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--vox-border-hairline);
   border-radius: var(--vox-radius-md);
-  background: var(--vox-surface-2);
+  background: var(--vox-surface-1);
   color: var(--vox-ink);
-  font-size: 1rem;
-  font-variant-numeric: tabular-nums;
-
-  /* iOS Safari */
-  -webkit-appearance: none;
-  appearance: none;
+  font-family: var(--vox-font-mono);
+  font-size: 0.875rem;
 }

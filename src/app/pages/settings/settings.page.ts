@@ -2,12 +2,15 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonContent, IonInput, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, logOutOutline, trashOutline } from 'ionicons/icons';
+import { chevronBackOutline, chevronForwardOutline, logOutOutline, trashOutline } from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
 import type { GoalType, SportType } from '@/app/models';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxStepperRowComponent } from '@/app/components/vox-stepper-row/vox-stepper-row.component';
 
-addIcons({ chevronBackOutline, logOutOutline, trashOutline });
+addIcons({ chevronBackOutline, chevronForwardOutline, logOutOutline, trashOutline });
 
 interface ChipOption<T extends string> {
   readonly value: T;
@@ -18,6 +21,19 @@ const SPORT_OPTIONS: readonly ChipOption<SportType>[] = [
   { value: 'gym', label: 'Gym' },
   { value: 'runner', label: 'Running' },
 ];
+
+/**
+ * The four macro targets, driven by steppers instead of number inputs. Bounds
+ * mirror the form validators so a stepper can never produce an invalid value.
+ */
+const TARGET_ROWS = [
+  { control: 'targetCalories', label: 'Calories', emoji: '🔥', tint: 'rgba(232,160,85,.15)', unit: '', step: 50, max: 8000 },
+  { control: 'targetProtein', label: 'Protein', emoji: '🥚', tint: 'rgba(63,182,143,.15)', unit: 'g', step: 5, max: 400 },
+  { control: 'targetCarbs', label: 'Carbs', emoji: '🍚', tint: 'rgba(107,146,214,.15)', unit: 'g', step: 10, max: 1000 },
+  { control: 'targetFat', label: 'Fat', emoji: '🥑', tint: 'rgba(217,117,103,.15)', unit: 'g', step: 5, max: 200 },
+] as const;
+
+type TargetControl = (typeof TARGET_ROWS)[number]['control'];
 
 const GOAL_OPTIONS: readonly ChipOption<GoalType>[] = [
   { value: 'bulk', label: 'Build muscle' },
@@ -33,7 +49,15 @@ const APP_VERSION = '1.0.0';
   standalone: true,
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
-  imports: [ReactiveFormsModule, IonContent, IonInput, VoxIconComponent],
+  imports: [
+    ReactiveFormsModule,
+    IonContent,
+    IonInput,
+    VoxIconComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxStepperRowComponent,
+  ],
 })
 export class SettingsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -105,6 +129,19 @@ export class SettingsPage implements OnInit {
         targetFat: p.target_fat_g,
       });
     }
+  }
+
+  protected readonly targetRows = TARGET_ROWS;
+
+  protected readonly email = computed(() => this.auth.profile()?.email ?? '');
+
+  protected targetValue(control: TargetControl): number {
+    return this.form.controls[control].value;
+  }
+
+  protected setTarget(control: TargetControl, next: number): void {
+    this.form.controls[control].setValue(next);
+    this.form.controls[control].markAsDirty();
   }
 
   protected selectSport(value: SportType): void {

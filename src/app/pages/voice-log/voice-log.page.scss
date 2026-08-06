@@ -2,19 +2,181 @@
   display: block;
 }
 
-@keyframes vox-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
+/* Voice capture is the one screen with a radial rather than a top-down ramp —
+   the light comes from the orb, so the atmosphere centres on it. */
+.vl-radial {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, #241c4e 0%, #161230 38%, #0c0a14 72%);
+}
+
+.vl-blob-1 {
+  width: 400px;
+  height: 400px;
+  top: 130px;
+  left: -5px;
+  background: rgba(139, 128, 240, 0.26);
+}
+
+.vl-blob-2 {
+  width: 280px;
+  height: 200px;
+  bottom: 20px;
+  right: -70px;
+  background: rgba(139, 128, 240, 0.17);
+}
+
+.vl-icon-btn {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  text-decoration: none;
+}
+
+/* Keeps the header title optically centred against the back button. */
+.vl-icon-spacer {
+  width: 38px;
+  flex-shrink: 0;
+}
+
+.vl-header-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+/* The orb is the tap target; the button contributes no chrome of its own. */
+.vl-orb-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vl-title {
+  margin: 8px 0 0;
+  font-size: 1.03125rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.vl-hint {
+  margin: 3px 0 0;
+  font-size: 0.84375rem;
+  color: var(--vox-ink-subtle);
+}
+
+.vl-eyebrow {
+  margin: 20px 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vox-brand-text);
+}
+
+.vl-transcript {
+  margin: 16px 0 0;
+  padding: 0 12px;
+  font-family: var(--vox-font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.42;
+  letter-spacing: -0.01em;
+  color: var(--vox-ink);
+}
+
+.vl-transcript--waiting {
+  color: var(--vox-ink-tertiary);
+}
+
+/* Blinking caret so the live transcript reads as still-in-progress. */
+.vl-caret {
+  display: inline-block;
+  width: 3px;
+  height: 22px;
+  margin-left: 4px;
+  vertical-align: -3px;
+  background: var(--vox-brand);
+  animation: vl-blink 1s steps(2, start) infinite;
+}
+
+@keyframes vl-blink {
+  to {
+    visibility: hidden;
   }
 }
 
-/** Matches Lovable's `mic-pulse` utility (`styles.css`) — breathing glow on the idle record button. */
-.mic-pulse {
-  animation: vox-pulse 2.4s ease-in-out infinite;
+.vl-timer {
+  margin: 18px 0 0;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.vl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 15px;
+  border: 0;
+  border-radius: var(--vox-radius-card);
+  font-family: var(--vox-font-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.vl-btn--ghost {
+  flex: 1;
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-weight: 600;
+}
+
+/* The primary action is wider than cancel — the mockup's 1 : 1.6 split. */
+.vl-btn--primary {
+  flex: 1.6;
+  background: var(--vox-brand-gradient);
+  color: var(--vox-on-brand);
+  font-weight: 700;
+}
+
+.vl-btn--primary:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.vl-meta-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.vl-meta-emoji {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.vl-meta-value {
+  margin: 4px 0 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--vox-ink-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vl-caret {
+    animation: none;
+  }
 }

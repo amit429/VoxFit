@@ -1,0 +1,20 @@
+<button type="button" class="mr" (click)="openRecipe.emit(log())">
+  <span class="mr-emoji" aria-hidden="true">{{ emoji() }}</span>
+
+  <span class="min-w-0 flex-1 text-left">
+    @if (timeLabel()) {
+      <span class="mr-time">{{ timeLabel() }}</span>
+    }
+    <span class="mr-name">{{ log().meal_name }}</span>
+    <span class="mr-macros">
+      <span class="mr-chip">P {{ log().protein_g | number: '1.0-0' }}</span>
+      <span class="mr-chip">C {{ log().carbs_g | number: '1.0-0' }}</span>
+      <span class="mr-chip">F {{ log().fat_g | number: '1.0-0' }}</span>
+    </span>
+  </span>
+
+  <span class="mr-kcal">
+    <span class="mr-kcal-value">{{ log().calories }}</span>
+    <span class="mr-kcal-unit">kcal</span>
+  </span>
+</button>

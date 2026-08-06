@@ -1,3 +1,164 @@
 :host {
   display: block;
 }
+
+.st-blob-1 {
+  width: 300px;
+  height: 240px;
+  top: -70px;
+  right: -80px;
+  background: rgba(139, 128, 240, 0.23);
+}
+
+.st-blob-2 {
+  width: 280px;
+  height: 200px;
+  bottom: -50px;
+  left: -60px;
+  background: rgba(217, 117, 103, 0.11);
+}
+
+.st-icon-btn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+/* Balances the back button so the title stays optically centred. */
+.st-icon-spacer {
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.st-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.st-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.st-chip-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-pill);
+}
+
+/* ---- Account rows ---- */
+
+.st-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.st-row:last-child {
+  border-bottom: none;
+}
+
+.st-row:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.st-row-icon {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.st-row-icon--neutral {
+  background: var(--vox-surface-2);
+}
+
+.st-row-icon--rose {
+  background: rgba(217, 117, 103, 0.15);
+  color: var(--vox-rose-text);
+}
+
+.st-row-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+.st-row-name--rose {
+  color: var(--vox-rose-text);
+}
+
+.st-row-desc {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.71875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+/* ---- Delete confirmation ---- */
+
+.st-btn {
+  flex: 1;
+  min-height: 48px;
+  padding: 13px;
+  border: 0;
+  border-radius: var(--vox-radius-md);
+  font-family: var(--vox-font-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.st-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.st-btn--ghost {
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink);
+}
+
+/*
+ * Destructive confirm is the one place a solid rose fill is used. It stays
+ * rose rather than an alert red — the action is serious, not an error.
+ */
+.st-btn--destructive {
+  background: var(--vox-rose);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.st-footer {
+  margin: 20px 0 0;
+  font-size: 0.6875rem;
+  text-align: center;
+  color: var(--vox-ink-tertiary);
+}

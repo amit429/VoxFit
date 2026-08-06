@@ -27,6 +27,7 @@ import {
   moodEmoji,
   moodLabel,
   parseLocalDateKey,
+  parseSetLines,
   sessionTotalVolumeKg,
 } from '@/app/utils/workout-display.util';
 
@@ -39,6 +40,15 @@ const SESSION_DETAIL_COLUMNS = `
 `;
 
 const JOURNAL_PAGE_SIZE = 20;
+
+/**
+ * Bounds for the strength-trend query, in one place rather than at each call
+ * site. This is a cost knob: the window caps how many sessions are fetched,
+ * and the top-N caps how many exercises are considered for the default
+ * subject. Widen deliberately, not incidentally.
+ */
+export const TREND_WINDOW_WEEKS = 8;
+export const TREND_TOP_EXERCISES = 5;
 
 @Injectable({ providedIn: 'root' })
 export class WorkoutJournalService {
@@ -126,6 +136,7 @@ export class WorkoutJournalService {
       })),
       flagsTitle: flag.title,
       flagsBody: flag.body,
+      hasFlags: flag.hasFlags,
     };
   }
 
@@ -280,6 +291,107 @@ export class WorkoutJournalService {
       throw new Error(error.message);
     }
     return data as unknown as WorkoutSessionRow | null;
+  }
+
+  /**
+   * Top-set-per-session series for one exercise, oldest first.
+   *
+   * "Top set" is the heaviest weight logged in that session, which is what the
+   * chart is actually about — a light back-off set after a PR shouldn't pull
+   * the line down. Sessions where the exercise was logged without a weight
+   * (cardio, bodyweight) are skipped rather than plotted as zero.
+   */
+  async getExerciseTrend(
+    userId: string,
+    exerciseName: string,
+    weeks = TREND_WINDOW_WEEKS,
+  ): Promise<{ dateKey: string; topWeightKg: number; isPr: boolean }[]> {
+    const from = new Date();
+    from.setDate(from.getDate() - weeks * 7);
+
+    const { data, error } = await this.supabase.client
+      .from('workout_sessions')
+      .select('date, exercises_logged!inner(exercise_name, weight_kg, is_pr, set_lines)')
+      .eq('user_id', userId)
+      .eq('exercises_logged.exercise_name', exerciseName)
+      .gte('date', parseLocalDateKey(from))
+      .order('date', { ascending: true });
+
+    if (error) {
+      console.error('[WorkoutJournal] exercise trend', error);
+      throw new Error(error.message);
+    }
+
+    const rows = (data ?? []) as unknown as {
+      date: string | null;
+      exercises_logged: { weight_kg: number | string | null; is_pr: boolean | null; set_lines: unknown }[] | null;
+    }[];
+
+    /* Built with push rather than flatMap — this tsconfig's lib predates it. */
+    const out: { dateKey: string; topWeightKg: number; isPr: boolean }[] = [];
+    for (const row of rows) {
+      if (!row.date) continue;
+      const logged = row.exercises_logged ?? [];
+
+      const weights: number[] = [];
+      for (const ex of logged) {
+        const lines = parseSetLines(ex.set_lines);
+        const fromLines = lines
+          .map((l) => l.weight_kg)
+          .filter((w): w is number => w != null && Number.isFinite(w) && w > 0);
+        if (fromLines.length > 0) {
+          weights.push(...fromLines);
+          continue;
+        }
+        const direct = ex.weight_kg == null ? null : Number(ex.weight_kg);
+        if (direct != null && Number.isFinite(direct) && direct > 0) weights.push(direct);
+      }
+
+      if (weights.length === 0) continue;
+      out.push({
+        dateKey: row.date,
+        topWeightKg: Math.max(...weights),
+        isPr: logged.some((ex) => ex.is_pr),
+      });
+    }
+    return out;
+  }
+
+  /**
+   * Distinct exercise names by frequency within the trend window, most-logged
+   * first. Used to pick a sensible default subject for the trend chart rather
+   * than making the user choose before they have seen the thing.
+   */
+  async listTopExercises(userId: string, limit = TREND_TOP_EXERCISES): Promise<string[]> {
+    const from = new Date();
+    from.setDate(from.getDate() - TREND_WINDOW_WEEKS * 7);
+
+    const { data, error } = await this.supabase.client
+      .from('workout_sessions')
+      .select('date, exercises_logged!inner(exercise_name, exercise_type)')
+      .eq('user_id', userId)
+      .gte('date', parseLocalDateKey(from));
+
+    if (error) {
+      console.error('[WorkoutJournal] top exercises', error);
+      throw new Error(error.message);
+    }
+
+    const counts = new Map<string, number>();
+    for (const row of (data ?? []) as unknown as {
+      exercises_logged: { exercise_name: string; exercise_type: string | null }[] | null;
+    }[]) {
+      for (const ex of row.exercises_logged ?? []) {
+        /* Cardio has no meaningful top-set weight, so it never leads the chart. */
+        if (ex.exercise_type === 'cardio') continue;
+        counts.set(ex.exercise_name, (counts.get(ex.exercise_name) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([name]) => name);
   }
 
   /** True all-time counts via count-only queries — cheap, no row data transferred. */

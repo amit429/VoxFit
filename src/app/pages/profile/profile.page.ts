@@ -1,10 +1,22 @@
 import { ProgressReviewCardComponent } from '@/app/components/progress-review-card/progress-review-card.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxStatTileComponent } from '@/app/components/vox-stat-tile/vox-stat-tile.component';
+import { VoxBadgeShelfComponent } from '@/app/components/vox-badge-shelf/vox-badge-shelf.component';
+import { VoxHeatmapComponent } from '@/app/components/vox-heatmap/vox-heatmap.component';
+import { VoxActivityRingComponent } from '@/app/components/vox-activity-ring/vox-activity-ring.component';
+import { VoxVolumeChartComponent } from '@/app/components/vox-volume-chart/vox-volume-chart.component';
+import { VoxTrendChartComponent } from '@/app/components/vox-trend-chart/vox-trend-chart.component';
+import { VoxProgressNudgeComponent } from '@/app/components/vox-progress-nudge/vox-progress-nudge.component';
+import { BadgeService } from '@/app/services/badge.service';
+import { WorkoutPlanService } from '@/app/services/workout-plan.service';
+import { TREND_WINDOW_WEEKS } from '@/app/services/workout-journal.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
-import { IonContent, IonSpinner } from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   flagOutline,
@@ -16,7 +28,14 @@ import {
   settingsOutline,
 } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
-import type { GoalType, HeatmapCellVm, MonthlyBarVm, MonthlyChartStatVm } from '@/app/models';
+import type {
+  GoalType,
+  HeatmapCellVm,
+  MonthlyChartStatVm,
+  VoxEarnedBadge,
+  VoxTrendPoint,
+  VoxVolumeBar,
+} from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
@@ -41,6 +60,12 @@ addIcons({
 });
 
 const HEATMAP_WEEKS = 26;
+
+/**
+ * Fallback weekly session target when the user has no active plan. There is
+ * no configurable target in `user_profiles` — see Deferred #2.
+ */
+const DEFAULT_WEEKLY_TARGET = 5;
 const MONTHLY_CHART_MONTHS = 6;
 
 /** Success-based ramp, never the accent — matches this design system's own heatmap convention. */
@@ -57,7 +82,21 @@ const HEATMAP_BACKGROUNDS = [
   standalone: true,
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  imports: [VoxIconComponent, VoxSkeletonComponent, IonContent, IonSpinner, ProgressReviewCardComponent],
+  imports: [
+    VoxIconComponent,
+    VoxSkeletonComponent,
+    IonContent,
+    ProgressReviewCardComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxStatTileComponent,
+    VoxBadgeShelfComponent,
+    VoxHeatmapComponent,
+    VoxActivityRingComponent,
+    VoxVolumeChartComponent,
+    VoxTrendChartComponent,
+    VoxProgressNudgeComponent,
+  ],
 })
 export class ProfilePage implements ViewWillEnter {
   private readonly auth = inject(AuthService);
@@ -65,6 +104,8 @@ export class ProfilePage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   private readonly nutrition = inject(NutritionDashboardService);
   protected readonly coach = inject(ProgressCoachService);
+  private readonly badgeService = inject(BadgeService);
+  private readonly planService = inject(WorkoutPlanService);
 
   protected readonly generating = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -78,8 +119,12 @@ export class ProfilePage implements ViewWillEnter {
   /** All-time exact counts (Workouts, PRs) — fetched once per page load via count-only queries. */
   protected readonly allTimeCounts = signal({ workouts: 0, prs: 0 });
 
-  protected readonly heatmapSkeletonCells = Array.from({ length: HEATMAP_WEEKS * 7 }, (_, i) => i);
-  protected readonly profileChartSkeletonBars = Array.from({ length: MONTHLY_CHART_MONTHS }, (_, i) => i);
+  protected readonly heatmapWeeks = HEATMAP_WEEKS;
+
+  /** Tones for the three hero tiles, matching the mockup: neutral / streak / PRs. */
+  protected readonly statTones = ['ink', 'apricot', 'jade'] as const;
+
+  protected readonly trendWeeks = TREND_WINDOW_WEEKS;
 
   /** Oldest→newest window for both monthly charts below — captured once per page load. */
   private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);
@@ -122,12 +167,6 @@ export class ProfilePage implements ViewWillEnter {
     return cells;
   });
 
-  protected readonly heatmapLegendColors = HEATMAP_BACKGROUNDS;
-
-  protected heatmapCellBackground(cell: HeatmapCellVm): string {
-    return HEATMAP_BACKGROUNDS[cell.intensity];
-  }
-
   /** Tapped bar per chart — null means "show the 6-month aggregate", set means "show that month's stat". */
   protected readonly selectedWorkoutMonthIdx = signal<number | null>(null);
   protected readonly selectedCalorieMonthIdx = signal<number | null>(null);
@@ -142,13 +181,26 @@ export class ProfilePage implements ViewWillEnter {
     buildMonthlySeries(this.nutrition.monthlyCalorieRows(), (r) => r.date, (r) => r.calories, this.monthKeys),
   );
 
-  protected readonly monthlyWorkoutBars = computed((): MonthlyBarVm[] =>
-    this.toBars(this.monthlyWorkoutValues(), this.selectedWorkoutMonthIdx()),
+  /**
+   * Both monthly charts now render through `vox-volume-chart`, which does its
+   * own scaling — so these pass raw values and month labels, not pixel heights.
+   */
+  protected readonly monthlyWorkoutVolumeBars = computed((): VoxVolumeBar[] =>
+    this.toVolumeBars(this.monthlyWorkoutValues()),
   );
 
-  protected readonly monthlyCalorieBars = computed((): MonthlyBarVm[] =>
-    this.toBars(this.monthlyCalorieValues(), this.selectedCalorieMonthIdx()),
+  protected readonly monthlyCalorieVolumeBars = computed((): VoxVolumeBar[] =>
+    this.toVolumeBars(this.monthlyCalorieValues()),
   );
+
+  private toVolumeBars(values: readonly number[]): VoxVolumeBar[] {
+    return values.map((value, i) => ({
+      label: this.monthLabels[i] ?? '?',
+      value,
+      /* The last month in the window is the current one. */
+      isToday: i === values.length - 1,
+    }));
+  }
 
   /** Card header: 6-month total by default, or the tapped month's count once a bar is selected. */
   protected readonly workoutChartStat = computed((): MonthlyChartStatVm => {
@@ -188,17 +240,6 @@ export class ProfilePage implements ViewWillEnter {
 
   protected toggleCalorieMonth(i: number): void {
     this.selectedCalorieMonthIdx.update((cur) => (cur === i ? null : i));
-  }
-
-  private toBars(values: readonly number[], selectedIdx: number | null): MonthlyBarVm[] {
-    const max = Math.max(...values, 1);
-    const currentIdx = this.monthKeys.length - 1;
-    return values.map((v, i) => ({
-      heightPx: v <= 0 ? 4 : 8 + Math.round((v / max) * 44),
-      label: this.monthLabels[i] ?? '?',
-      isCurrent: i === currentIdx,
-      isSelected: i === selectedIdx,
-    }));
   }
 
   protected readonly goalRows = computed(() => {
@@ -268,6 +309,8 @@ export class ProfilePage implements ViewWillEnter {
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
     void this.loadAllTimeCounts();
     void this.coach.getLatest();
+    void this.loadTrend();
+    this.planService.getActivePlan().catch((err) => console.error('[ProfilePage] load active plan', err));
   }
 
   protected async checkProgress(): Promise<void> {
@@ -296,6 +339,89 @@ export class ProfilePage implements ViewWillEnter {
       this.allTimeCounts.set(await this.journal.getAllTimeCounts(uid));
     } catch (err) {
       console.error('[ProfilePage] all-time counts', err);
+    }
+  }
+
+  // ---- Badges ----
+  //
+  // Derived from live counts; there is no `user_badges` table, so a badge has
+  // no earned-at date and can un-earn if a streak lapses. See Deferred #3.
+
+  protected readonly badges = computed((): VoxEarnedBadge[] => {
+    const counts = this.allTimeCounts();
+    return this.badgeService.evaluate({
+      streakDays: this.journal.streak().days,
+      workouts: counts.workouts,
+      prs: counts.prs,
+    });
+  });
+
+  // ---- Sessions this week ----
+
+  protected readonly sessionsThisWeek = computed(() => {
+    const weekKeys = new Set(getCurrentWeekDayKeys());
+    return this.journal.activityRows().filter((s) => s.date && weekKeys.has(s.date)).length;
+  });
+
+  /**
+   * There is no user-set weekly session target — `user_profiles` has no such
+   * column. The active plan's day count is the closest real signal; five is
+   * the fallback. See Deferred #2.
+   */
+  protected readonly weeklySessionTarget = computed(
+    () => this.planService.activePlan()?.plan.days.length || DEFAULT_WEEKLY_TARGET,
+  );
+
+  protected readonly weeklyTargetCaption = computed(() => {
+    const left = this.weeklySessionTarget() - this.sessionsThisWeek();
+    if (left <= 0) return 'Target hit for the week 🎯';
+    if (left === 1) return 'One more and you hit the target 🎯';
+    return `${left} more to hit the target 🎯`;
+  });
+
+  // ---- Strength trend ----
+
+  protected readonly trendExercise = signal<string | null>(null);
+  protected readonly trendPoints = signal<VoxTrendPoint[]>([]);
+
+  protected readonly trendHeadline = computed(() => {
+    const points = this.trendPoints();
+    const best = points.reduce((max, p) => Math.max(max, p.value), 0);
+    return best > 0 ? `${best} kg` : '';
+  });
+
+  private async loadTrend(): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    try {
+      /*
+       * Walk the most-logged exercises until one yields a plottable series.
+       * The most frequent lift is often bodyweight (push-ups, pull-ups), which
+       * has no top-set weight — charting its title over an empty state reads
+       * as a bug rather than as missing data.
+       */
+      const top = await this.journal.listTopExercises(uid);
+      for (const candidate of top) {
+        const series = await this.journal.getExerciseTrend(uid, candidate);
+        if (series.length < 2) continue;
+        this.trendExercise.set(candidate);
+        this.trendPoints.set(
+          series.map((s, i) => ({
+            label: i === series.length - 1 ? 'NOW' : `W${i + 1}`,
+            value: s.topWeightKg,
+            isPr: s.isPr,
+          })),
+        );
+        return;
+      }
+      /* Nothing has enough history yet — the card hides itself entirely. */
+      this.trendExercise.set(null);
+      this.trendPoints.set([]);
+    } catch (err) {
+      /* A missing trend is not worth surfacing — the chart hides itself. */
+      console.error('[ProfilePage] load trend', err);
+      this.trendExercise.set(null);
+      this.trendPoints.set([]);
     }
   }
 

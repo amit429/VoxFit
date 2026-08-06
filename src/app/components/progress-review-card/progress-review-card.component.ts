@@ -1,6 +1,8 @@
 import { Component, input, output } from '@angular/core';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline } from 'ionicons/icons';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import type { ProgressReviewRow } from '@/app/models';
 
@@ -15,7 +17,7 @@ addIcons({ checkmarkOutline });
 @Component({
   selector: 'vox-progress-review-card',
   standalone: true,
-  imports: [VoxIconComponent],
+  imports: [VoxIconComponent, VoxCardComponent, VoxBadgeComponent],
   templateUrl: './progress-review-card.component.html',
   styleUrl: './progress-review-card.component.scss',
 })

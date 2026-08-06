@@ -2,83 +2,256 @@
   display: block;
 }
 
-/* Macro-stack segment tones (60%/30% of the accent) — Tailwind's bg-primary/60 slash-opacity
- * syntax doesn't compile in this project's Tailwind install (see vox-ui.scss for the full note). */
-.vx-bg-primary-60 {
-  background: color-mix(in oklab, var(--vox-primary) 60%, transparent);
+.fu-blob-1 {
+  width: 300px;
+  height: 240px;
+  top: -70px;
+  left: -50px;
+  background: rgba(232, 160, 85, 0.21);
 }
 
-.vx-bg-primary-30 {
-  background: color-mix(in oklab, var(--vox-primary) 30%, transparent);
+.fu-blob-2 {
+  width: 280px;
+  height: 230px;
+  top: 260px;
+  right: -100px;
+  background: rgba(63, 182, 143, 0.15);
 }
 
-/* Bottom sheet recipe modal */
-ion-modal.vox-diet-recipe-sheet {
-  --height: 88vh;
-  --max-height: 88vh;
-  --width: min(100%, 28rem);
-  --border-radius: 18px 18px 0 0;
-  --backdrop-opacity: 0.55;
-}
-
-ion-modal.vox-diet-recipe-sheet::part(content) {
-  overflow: hidden;
-  border-radius: 18px 18px 0 0;
-}
-
-.vox-recipe-sheet-head ion-toolbar {
-  --min-height: 52px;
-  --padding-top: max(6px, env(safe-area-inset-top, 0px));
-  --padding-bottom: 4px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-}
-
-.vox-recipe-sheet-head ion-title {
-  font-size: 0.9375rem !important;
-  font-weight: 600 !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-inline: 0.25rem;
-}
-
-.vox-recipe-sheet-body {
-  --padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.vox-recipe-meal-title {
-  margin: 0 0 0.35rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+.fu-title {
+  margin: 3px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.5625rem;
+  font-weight: var(--vox-weight-display);
+  line-height: 1.15;
+  letter-spacing: var(--vox-tracking-display);
   color: var(--vox-ink);
 }
 
-.vox-recipe-meal-meta {
-  margin: 0 0 1rem;
-  font-size: 0.8rem;
+/* ---- Calorie ring ---- */
+
+.fu-ring-fill {
+  transition: stroke-dashoffset var(--vox-dur-slow) var(--vox-ease);
+}
+
+.fu-ring-value {
+  fill: var(--vox-ink);
+  font-family: var(--vox-font-mono);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.fu-ring-target {
+  fill: rgba(255, 255, 255, 0.42);
+  font-family: var(--vox-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fu-headline {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.fu-subline {
+  margin: 4px 0 0;
+  font-size: 0.71875rem;
+  line-height: 1.45;
   color: var(--vox-ink-subtle);
 }
 
-.vox-recipe-kicker {
-  margin: 0 0 0.5rem;
-  font-size: 0.62rem;
+.fu-track-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.fu-track-figure {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-subtle);
+}
+
+/* ---- The two voice modes: equal weight, not a picker list ---- */
+
+.fu-mode {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: var(--vox-radius-card);
+  text-decoration: none;
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fu-mode:active {
+  transform: scale(0.98);
+}
+
+.fu-mode--jade {
+  background: linear-gradient(150deg, rgba(63, 182, 143, 0.24), rgba(63, 182, 143, 0.07));
+  border: 1px solid var(--vox-jade-border);
+}
+
+.fu-mode--apricot {
+  background: linear-gradient(150deg, rgba(232, 160, 85, 0.22), rgba(232, 160, 85, 0.06));
+  border: 1px solid var(--vox-apricot-border);
+}
+
+.fu-mode-emoji {
+  margin-bottom: 7px;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.fu-mode-title {
+  font-size: 0.84375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--vox-ink);
+}
+
+.fu-mode-hint {
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+/* ---- Date navigation ---- */
+
+.fu-nav-btn {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+.fu-range-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+/* The native date input is stretched invisibly over the label so the whole
+   thing is tappable without a custom picker. */
+.fu-date-pick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-top: 2px;
+  font-family: var(--vox-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  color: var(--vox-brand-text);
+  cursor: pointer;
+}
+
+.fu-date-pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.fu-chip-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fu-chip-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-pill);
+}
+
+.fu-section-title {
+  margin: 18px 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.fu-group-label {
+  margin: 14px 0 8px;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--vox-ink-tertiary);
 }
 
+.fu-day-heading {
+  margin: 20px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--vox-border-hairline);
+  font-family: var(--vox-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+/* ---- Recipe sheet ---- */
+
+.vox-recipe-meal-title {
+  margin: 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+.vox-recipe-meal-meta {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.vox-recipe-kicker {
+  margin: 20px 0 8px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vox-brand-text);
+}
+
 .vox-recipe-ol {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-left: 1.1rem;
 }
 
 .vox-recipe-li {
-  margin-bottom: 0.75rem;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  color: var(--vox-ink-subtle);
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vox-ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fu-ring-fill {
+    transition: none;
+  }
 }

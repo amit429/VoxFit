@@ -1,3 +1,130 @@
 :host {
   display: block;
 }
+
+/* Atmosphere — periwinkle top-left, jade mid-right, rose bottom-left.
+   Values from the reference mockup's `.atmo` block for screen 01. */
+.home-blob-1 {
+  width: 300px;
+  height: 300px;
+  top: -90px;
+  left: -70px;
+  background: rgba(139, 128, 240, 0.32);
+}
+
+.home-blob-2 {
+  width: 260px;
+  height: 260px;
+  top: 190px;
+  right: -100px;
+  background: rgba(63, 182, 143, 0.17);
+}
+
+.home-blob-3 {
+  width: 320px;
+  height: 220px;
+  bottom: -60px;
+  left: -40px;
+  background: rgba(217, 117, 103, 0.14);
+}
+
+.home-avatar {
+  display: flex;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* The one place all three accents meet — an identity mark, not data. */
+  background: linear-gradient(135deg, var(--vox-brand), var(--vox-jade));
+  color: var(--vox-canvas);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-greeting {
+  margin: 5px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.5625rem;
+  font-weight: var(--vox-weight-display);
+  line-height: 1.15;
+  letter-spacing: var(--vox-tracking-display);
+  color: var(--vox-ink);
+}
+
+/* The orb block is one tap target: sphere, title and hint together. */
+.home-orb-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-orb-title {
+  margin-top: -2px;
+  font-size: 1.03125rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.home-orb-hint {
+  margin-top: 3px;
+  font-size: 0.84375rem;
+  color: var(--vox-ink-subtle);
+}
+
+.home-macro-value {
+  margin: 0;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.home-macro-unit {
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.home-macro-label {
+  margin: 2px 0 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.home-session-mark {
+  display: flex;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: var(--vox-jade-dim);
+  font-size: 1.1875rem;
+}
+
+.home-session-title {
+  display: block;
+  overflow: hidden;
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-session-detail {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.71875rem;
+  color: var(--vox-ink-tertiary);
+}

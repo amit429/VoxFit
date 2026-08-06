@@ -6,7 +6,9 @@
     }
   </div>
 
-  @if (total()) {
+  <!-- The total is suppressed with no data: "0 kg" above an empty state reads
+       as a real measurement of zero rather than an absence of measurements. -->
+  @if (total() && hasData()) {
     <p class="vc-total">
       {{ total() }}<span class="vc-unit">{{ unit() }}</span>
     </p>

@@ -1,203 +1,155 @@
-<ion-content [fullscreen]="true" [scrollY]="true" class="vox-standalone-page [--background:var(--vox-canvas)]">
-  <div class="flex h-full w-full flex-col">
-    <header class="flex shrink-0 items-center gap-3 px-1 pb-4 pt-4">
-      <button
-        type="button"
-        (click)="goBack()"
-        class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle hover:bg-surface-2 transition-colors"
-        aria-label="Back to profile"
-      >
-        <vox-icon name="chevron-back-outline" size="md" />
+<ion-content [fullscreen]="true" [scrollY]="true" class="vox-standalone-page">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob st-blob-1"></span>
+    <span class="vx-blob st-blob-2"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <main class="vx-layer">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-4 pt-1">
+      <button type="button" (click)="goBack()" class="st-icon-btn" aria-label="Back to profile">
+        <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
       </button>
-      <span class="text-xl font-semibold tracking-tight text-ink">Settings</span>
+      <span class="st-header-title">Settings</span>
+      <span class="st-icon-spacer"></span>
     </header>
 
-    <main class="flex-1 space-y-6 px-2 pb-6">
-      <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6">
-        <!-- Profile info -->
-        <section class="space-y-2">
-          <h3 class="m-0 px-1 font-medium text-ink-muted">Profile info</h3>
-          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline mt-5">
-            <ion-input
-              formControlName="displayName"
-              type="text"
-              label="Display name"
-              labelPlacement="stacked"
-              fill="outline"
-              autocomplete="name"
-            />
-          </div>
-        </section>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <p class="vox-eyebrow mb-2.5">Your name</p>
+      <vox-card padding="sm">
+        <ion-input
+          formControlName="displayName"
+          type="text"
+          label="Display name"
+          labelPlacement="stacked"
+          fill="outline"
+          autocomplete="name"
+        />
+      </vox-card>
 
-        <!-- Preferences -->
-        <section class="space-y-2">
-          <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">Preferences</h3>
-          <div class="space-y-5 rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
-            <div>
-              <p class="m-0 mb-2 text-md text-ink-subtle">Focus</p>
-              <div class="flex flex-wrap gap-2">
-                @for (o of sportOptions; track o.value) {
-                  <div
-                    type="button"
-                    (click)="selectSport(o.value)"
-                    [attr.aria-pressed]="form.controls.sportType.value === o.value"
-                    class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
-                    [class.bg-primary]="form.controls.sportType.value === o.value"
-                    [class.text-white]="form.controls.sportType.value === o.value"
-                    [class.bg-surface-2]="form.controls.sportType.value !== o.value"
-                    [class.text-ink-subtle]="form.controls.sportType.value !== o.value"
-                    [class.ring-1]="form.controls.sportType.value !== o.value"
-                    [class.ring-hairline]="form.controls.sportType.value !== o.value"
-                  >
-                    {{ o.label }}
-                  </div>
-                }
-              </div>
-            </div>
-
-            <div>
-              <p class="m-0 mb-2 text-md text-ink-subtle">Goal</p>
-              <div class="flex flex-wrap gap-2">
-                @for (o of goalOptions; track o.value) {
-                  <div
-                    type="button"
-                    (click)="selectGoal(o.value)"
-                    [attr.aria-pressed]="form.controls.goal.value === o.value"
-                    class="rounded-full px-4 py-2 text-xs font-medium transition-colors mr-2 mt-2 mb-2"
-                    [class.bg-primary]="form.controls.goal.value === o.value"
-                    [class.text-white]="form.controls.goal.value === o.value"
-                    [class.bg-surface-2]="form.controls.goal.value !== o.value"
-                    [class.text-ink-subtle]="form.controls.goal.value !== o.value"
-                    [class.ring-1]="form.controls.goal.value !== o.value"
-                    [class.ring-hairline]="form.controls.goal.value !== o.value"
-                  >
-                    {{ o.label }}
-                  </div>
-                }
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <ion-input
-                formControlName="targetCalories"
-                type="number"
-                inputmode="numeric"
-                label="Daily calories"
-                labelPlacement="stacked"
-                fill="outline"
-              />
-              <ion-input
-                formControlName="targetProtein"
-                type="number"
-                inputmode="numeric"
-                label="Protein (g)"
-                labelPlacement="stacked"
-                fill="outline"
-              />
-              <ion-input
-                formControlName="targetCarbs"
-                type="number"
-                inputmode="numeric"
-                label="Carbs (g)"
-                labelPlacement="stacked"
-                fill="outline"
-              />
-              <ion-input
-                formControlName="targetFat"
-                type="number"
-                inputmode="numeric"
-                label="Fat (g)"
-                labelPlacement="stacked"
-                fill="outline"
-              />
-            </div>
-          </div>
-
-          <button type="submit" [disabled]="form.invalid || form.pristine || saving()" class="vox-btn-primary w-full mt-5 mb-4">
-            @if (saving()) {
-              Saving…
-            } @else {
-              Save preferences
-            }
+      <p class="vox-eyebrow mb-2.5 mt-5">Training style</p>
+      <div class="flex flex-wrap gap-1.5">
+        @for (o of sportOptions; track o.value) {
+          <button
+            type="button"
+            class="st-chip-btn"
+            (click)="selectSport(o.value)"
+            [attr.aria-pressed]="form.controls.sportType.value === o.value"
+          >
+            <vox-badge [tone]="form.controls.sportType.value === o.value ? 'jade' : 'neutral'">
+              {{ o.label }}
+            </vox-badge>
           </button>
-        </section>
-      </form>
-
-      <!-- About -->
-      <section class="space-y-2">
-        <h3 class="m-0 px-1 text-sm font-medium text-ink-muted">About</h3>
-        <div class="flex items-center justify-between rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline mt-6">
-          <span class="text-sm text-ink">Version</span>
-          <span class="font-mono text-xs text-ink-subtle">{{ appVersion }}</span>
-        </div>
-      </section>
-
-      <!-- Sign out -->
-      <button
-        type="button"
-        (click)="signOut()"
-        [disabled]="signingOut()"
-        [class.opacity-50]="signingOut()"
-        [attr.aria-busy]="signingOut()"
-        class="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-1 py-3 text-sm font-medium text-danger ring-1 ring-hairline transition-colors hover:bg-surface-2"
-      >
-        @if (signingOut()) {
-          Signing out…
-        } @else {
-          <vox-icon name="log-out-outline" tone="danger" size="sm" />
-          Sign out
         }
+      </div>
+
+      <p class="vox-eyebrow mb-2.5 mt-4">Goal</p>
+      <div class="flex flex-wrap gap-1.5">
+        @for (o of goalOptions; track o.value) {
+          <button
+            type="button"
+            class="st-chip-btn"
+            (click)="selectGoal(o.value)"
+            [attr.aria-pressed]="form.controls.goal.value === o.value"
+          >
+            <vox-badge [tone]="form.controls.goal.value === o.value ? 'jade' : 'neutral'">
+              {{ o.label }}
+            </vox-badge>
+          </button>
+        }
+      </div>
+
+      <p class="vox-eyebrow mb-2.5 mt-4">Daily targets</p>
+      <vox-card padding="sm">
+        @for (t of targetRows; track t.control) {
+          <vox-stepper-row
+            [label]="t.label"
+            [emoji]="t.emoji"
+            [iconTint]="t.tint"
+            [unit]="t.unit"
+            [step]="t.step"
+            [max]="t.max"
+            [value]="targetValue(t.control)"
+            (valueChange)="setTarget(t.control, $event)"
+          />
+        }
+      </vox-card>
+
+      <button
+        type="submit"
+        class="vox-btn-primary mt-5 w-full"
+        [disabled]="form.invalid || form.pristine || saving()"
+      >
+        {{ saving() ? 'Saving…' : 'Save preferences' }}
+      </button>
+    </form>
+
+    <p class="vox-eyebrow mb-2.5 mt-6">Account</p>
+    <vox-card padding="sm">
+      <button type="button" class="st-row" (click)="signOut()" [disabled]="signingOut()">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="log-out-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">{{ signingOut() ? 'Signing out…' : 'Sign out' }}</span>
+          <span class="st-row-desc">You can sign back in any time</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
       </button>
 
-      <!-- Delete account -->
-      @if (!confirmingDelete()) {
-        <button
-          type="button"
-          (click)="openDeleteConfirm()"
-          class="flex w-full items-center justify-center gap-2 rounded-xl bg-danger py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
-        >
-          <vox-icon name="trash-outline" size="sm" />
-          Delete account
-        </button>
-      } @else {
-        <div class="space-y-3 rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
-          <p class="m-0 text-sm text-ink">
-            This permanently deletes your account and all logged workouts and meals. This can't be undone.
-          </p>
-          <ion-input
-            [value]="deleteConfirmText()"
-            (ionInput)="onDeleteConfirmInput($any($event.target).value ?? '')"
-            type="text"
-            label="Type DELETE to confirm"
-            labelPlacement="stacked"
-            fill="outline"
-            autocapitalize="characters"
-          />
-          <div class="flex gap-3">
-            <button
-              type="button"
-              (click)="cancelDeleteConfirm()"
-              [disabled]="deletingAccount()"
-              class="flex-1 rounded-xl bg-surface-1 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-surface-2"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              (click)="confirmDeleteAccount()"
-              [disabled]="!deleteConfirmValid() || deletingAccount()"
-              [class.opacity-50]="!deleteConfirmValid() || deletingAccount()"
-              class="flex-1 rounded-xl bg-danger py-3 text-sm font-medium text-white transition-colors"
-            >
-              @if (deletingAccount()) {
-                Deleting…
-              } @else {
-                Delete permanently
-              }
-            </button>
-          </div>
+      <!--
+        Delete Account must stay present and reachable: Google Play requires an
+        in-app deletion path. Rose rather than alert red, per the palette roles.
+      -->
+      <button type="button" class="st-row" (click)="openDeleteConfirm()" [disabled]="confirmingDelete()">
+        <span class="st-row-icon st-row-icon--rose">
+          <vox-icon name="trash-outline" size="sm" tone="inherit" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name st-row-name--rose">Delete account</span>
+          <span class="st-row-desc">Permanent, can't be undone</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+    </vox-card>
+
+    @if (confirmingDelete()) {
+      <vox-card variant="rose" class="mt-3 block">
+        <p class="m-0 text-sm leading-relaxed text-ink">
+          This permanently deletes your account and every workout and meal you have logged.
+          It can't be undone.
+        </p>
+        <ion-input
+          class="mt-3"
+          [value]="deleteConfirmText()"
+          (ionInput)="onDeleteConfirmInput($any($event.target).value ?? '')"
+          type="text"
+          label="Type DELETE to confirm"
+          labelPlacement="stacked"
+          fill="outline"
+          autocapitalize="characters"
+        />
+        <div class="mt-3 flex gap-3">
+          <button
+            type="button"
+            class="st-btn st-btn--ghost"
+            (click)="cancelDeleteConfirm()"
+            [disabled]="deletingAccount()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="st-btn st-btn--destructive"
+            (click)="confirmDeleteAccount()"
+            [disabled]="!deleteConfirmValid() || deletingAccount()"
+          >
+            {{ deletingAccount() ? 'Deleting…' : 'Delete permanently' }}
+          </button>
         </div>
-      }
-    </main>
-  </div>
+      </vox-card>
+    }
+
+    <p class="st-footer">VoxFit v{{ appVersion }} · {{ email() }}</p>
+  </main>
 </ion-content>

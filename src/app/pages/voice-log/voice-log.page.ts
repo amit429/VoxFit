@@ -1,5 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonSpinner, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -11,6 +10,7 @@ import {
   refreshOutline,
   checkmarkOutline,
   chevronBackOutline,
+  micOutline,
 } from 'ionicons/icons';
 import type { VoiceDoneMock, WorkoutExerciseExtract, WorkoutExtractResult } from '@/app/models';
 import { VoiceSessionService } from '@/app/services/voice-session.service';
@@ -21,7 +21,12 @@ import { AuthService } from '@/app/services/auth.service';
 import { workoutExtractToVoiceDoneMock } from '@/app/utils/workout-extract-ui.mapper';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxVoiceOrbComponent } from '@/app/components/vox-voice-orb/vox-voice-orb.component';
+import { VoxStatTileComponent } from '@/app/components/vox-stat-tile/vox-stat-tile.component';
 import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
+import { exerciseStrengthVolumeKg } from '@/app/utils/workout-display.util';
 
 addIcons({
   sparklesOutline,
@@ -31,6 +36,7 @@ addIcons({
   refreshOutline,
   checkmarkOutline,
   chevronBackOutline,
+  micOutline,
   voxfitMic,
 });
 
@@ -45,9 +51,12 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
     RouterLink,
     IonContent,
     IonSpinner,
-    NgClass,
     SessionExerciseReviewCardComponent,
     VoxIconComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxVoiceOrbComponent,
+    VoxStatTileComponent,
   ],
 })
 export class VoiceLogPage {
@@ -70,18 +79,28 @@ export class VoiceLogPage {
 
   private pendingExtract: WorkoutExtractResult | null = null;
 
-  /** Mirrors Lovable's `Waveform` component formula (bars=28) for pixel parity. */
-  protected readonly waveformBars = Array.from({ length: 28 }, (_, i) => ({
-    height: 8 + ((i * 37) % 20),
-    delaySec: (i % 6) * 0.09,
-    durationSec: 0.9 + ((i * 13) % 7) / 10,
-    opacity: 0.5 + ((i * 17) % 5) / 10,
-  }));
+  /**
+   * Total strength volume across the extracted exercises, for the hero stat
+   * row. The unit lives in the tile's label, so the figure is bare here —
+   * `formatVolumeKg` would append a second "kg".
+   */
+  protected readonly volumeLabel = computed(() => {
+    const total = this.cardExercises().reduce(
+      (sum, ex) =>
+        sum +
+        exerciseStrengthVolumeKg({
+          exercise_type: ex.exercise_type,
+          sets: null,
+          reps: null,
+          weight_kg: null,
+          set_lines: ex.set_lines,
+        }),
+      0,
+    );
+    return total > 0 ? Math.round(total).toLocaleString() : '—';
+  });
 
-  /** Display-only: distinguishes the synthetic "no flags" checkmark from a real warning glyph. */
-  protected flagsOk(res: VoiceDoneMock): boolean {
-    return res.flagsEmoji !== '⚠️';
-  }
+  protected readonly prCount = computed(() => this.cardExercises().filter((ex) => ex.is_pr).length);
 
   private holdActive = false;
   private dotsInterval?: ReturnType<typeof setInterval>;

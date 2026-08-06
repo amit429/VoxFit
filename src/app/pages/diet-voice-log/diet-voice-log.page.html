@@ -1,23 +1,24 @@
-<ion-content
-  [fullscreen]="true"
-  [scrollY]="true"
-  class="vox-standalone-page [--background:var(--vox-canvas)]"
->
-  <div class="flex h-full w-full flex-col">
-    <header class="flex shrink-0 items-center justify-between px-1 pb-4 pt-4">
-      <div class="min-w-0 flex items-center gap-3">
-        <button
-          type="button"
-          class="grid h-10 w-10 shrink-0 place-items-center text-ink-subtle hover:bg-surface-2 rounded-full transition-colors"
-          [routerLink]="'/tabs/diet'"
-        >
-          <vox-icon name="chevron-back-outline" size="md" />
-        </button>
-        <div class="flex items-center gap-2">
-          <span class="m-0 text-xl font-semibold tracking-tight text-ink">Diet</span>
-          <span class="m-0 text-xl font-semibold tracking-tight text-ink">Voice</span>
-        </div>
-      </div>
+<ion-content [fullscreen]="true" [scrollY]="true" class="vox-standalone-page">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="dv-radial"></span>
+    <span class="vx-blob dv-blob-1"></span>
+    <span class="vx-blob dv-blob-2"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <div class="vx-layer flex h-full w-full flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-2 pt-1">
+      <button type="button" class="dv-icon-btn" [routerLink]="'/tabs/diet'" aria-label="Back to Fuel">
+        <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
+      </button>
+      @if (dietFlow() === 'recording') {
+        <vox-badge tone="jade">● listening</vox-badge>
+      } @else {
+        <span class="dv-header-title">
+          {{ mode() === 'log_eaten' ? 'What you ate' : mode() === 'suggest' ? 'What can I make' : 'Log a meal' }}
+        </span>
+      }
+      <span class="dv-icon-spacer"></span>
     </header>
     @if (dietFlow() !== 'results') {
       <div class="flex flex-1 w-full flex-col items-center justify-center gap-8 pb-16 pt-4 text-center">
@@ -30,29 +31,17 @@
                   What do you want to do?
                 </p>
               </div>
-              <div class="grid w-full grid-cols-1 gap-6">
-                <div
-                  type="button"
-                  (click)="chooseMode('suggest')"
-                  class="flex items-center gap-3 rounded-xl bg-primary px-4 py-4 text-left ring-1 ring-primary transition-all active:scale-95"
-                >
-                  <vox-icon name="sparkles-outline" tone="inherit" size="md" class="shrink-0 text-white" />
-                  <span class="flex-1">
-                    <span class="block text-sm font-semibold text-white">Suggest a meal</span>
-                    <span class="block text-xs text-white/80">Say what you have — we'll suggest meals to cook</span>
-                  </span>
-                </div>
-                <div
-                  type="button"
-                  (click)="chooseMode('log_eaten')"
-                  class="flex items-center gap-3 rounded-xl bg-surface-2 px-4 py-4 text-left ring-1 ring-hairline-strong transition-all active:scale-95"
-                >
-                  <vox-icon name="restaurant-outline" size="md" tone="ink-muted" class="shrink-0" />
-                  <span class="flex-1">
-                    <span class="block text-sm font-semibold text-ink-muted">Log what I ate</span>
-                    <span class="block text-xs text-ink-subtle">Say what you ate — we'll estimate calories &amp; macros</span>
-                  </span>
-                </div>
+              <div class="flex w-full gap-3">
+                <button type="button" class="dv-mode dv-mode--jade" (click)="chooseMode('suggest')">
+                  <span class="dv-mode-emoji">✨</span>
+                  <span class="dv-mode-title">What can<br />I make?</span>
+                  <span class="dv-mode-hint">say your pantry</span>
+                </button>
+                <button type="button" class="dv-mode dv-mode--apricot" (click)="chooseMode('log_eaten')">
+                  <span class="dv-mode-emoji">🍽️</span>
+                  <span class="dv-mode-title">I already<br />ate this</span>
+                  <span class="dv-mode-hint">say what you had</span>
+                </button>
               </div>
             </div>
           } @else {
@@ -77,70 +66,42 @@
                   }
                 </p>
               </div>
-              <button
-                type="button"
-                (click)="startListening()"
-                class="mic-pulse group relative grid h-32 w-32 place-items-center rounded-full bg-primary ring-1 ring-primary transition-transform active:scale-95"
-                aria-label="Tap to record"
-              >
-                <span class="absolute inset-0 rounded-full bg-primary-dim blur-2xl"></span>
-                <vox-icon name="voxfit-mic" tone="inherit" size="xl" class="relative text-white" />
+              <button type="button" (click)="startListening()" class="dv-orb-btn" aria-label="Tap to record">
+                <vox-voice-orb state="idle" size="md" />
               </button>
-              <p class="m-0 font-mono vx-text-11 uppercase vx-tracking-20 text-ink-subtle">Tap to record</p>
+              <p class="dv-hint">Tap and say it out loud</p>
             </div>
           }
         }
 
         @if (dietFlow() === 'recording') {
-          <div class="flex w-full flex-col items-center gap-8">
-            <div class="flex items-center gap-2">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-danger"></span>
-              <span class="font-mono vx-text-11 uppercase vx-tracking-20 text-danger">Listening{{ dots() }}</span>
-            </div>
-            <div class="flex w-full flex-col items-center gap-8">
-              <div class="flex h-16 w-full items-center justify-center vx-gap-3px">
-                @for (h of waveHeights; track $index) {
-                  <span
-                    class="vox-wave-bar block vx-wave-dot rounded-full bg-primary"
-                    [style.height.px]="h + 4"
-                    [style.opacity]="0.55 + ($index % 3) * 0.14"
-                    [style.animation-delay.ms]="$index * 45"
-                  ></span>
-                }
-              </div>
-              <p class="mx-auto max-w-xs text-sm italic leading-relaxed text-ink-subtle opacity-70">
+          <div class="flex w-full flex-col items-center">
+            <vox-voice-orb state="listening" size="lg" />
+
+            <p class="dv-eyebrow">Hearing you</p>
+
+            @if (voiceSession.transcriptPreview(); as heard) {
+              <p class="dv-transcript">{{ heard }}</p>
+            } @else {
+              <p class="dv-transcript dv-transcript--waiting">
                 @if (mode() === 'log_eaten') {
-                  Say what you ate — tap Stop when you're done.
+                  Say what you ate…
                 } @else {
-                  Say what you have at home and what you're craving — tap Stop when you're done.
+                  Say what's in your kitchen…
                 }
               </p>
-            </div>
+            }
 
-            <div class="flex">
-              <div
-                (click)="stopListeningAndPlan()"
-                class="flex flex-col items-center gap-2"
-                aria-label="Stop recording"
-              >
-                <span class="grid h-20 w-20 place-items-center rounded-full bg-primary outline outline-4 outline-primary-dim">
-                  <span class="h-6 w-6 rounded bg-white"></span>
-                </span>
-                <span class="font-mono vx-text-10 uppercase tracking-widest text-ink-subtle">Stop</span>
-              </div>
-            </div>
+            <button type="button" class="dv-stop-btn" (click)="stopListeningAndPlan()">
+              {{ mode() === 'log_eaten' ? 'Work it out' : 'Suggest meals' }}
+            </button>
           </div>
         }
 
         @if (dietFlow() === 'processing') {
-          <div class="flex flex-col items-center justify-center gap-6">
-            <div class="relative grid h-24 w-24 place-items-center">
-              <span class="absolute inset-0 animate-ping rounded-full bg-primary-dim"></span>
-              <span class="relative grid h-16 w-16 place-items-center rounded-full bg-primary-dim border border-primary-dim">
-                <vox-icon name="sparkles-outline" tone="accent" size="lg" />
-              </span>
-            </div>
-            <div>
+          <div class="flex flex-col items-center justify-center">
+            <vox-voice-orb state="processing" size="md" />
+            <div class="mt-2 text-center">
               @if (mode() === 'log_eaten') {
                 <p class="m-0 text-lg font-medium text-ink">Analyzing your meal{{ dots() }}</p>
                 <p class="m-0 mt-1 text-sm text-ink-subtle">Estimating calories &amp; macros</p>

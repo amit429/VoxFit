@@ -3,11 +3,21 @@ import { NgClass } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 
 export type VoxIconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+/**
+ * `brand` / `jade` / `apricot` / `rose` are the role names from the Dusk
+ * palette. `accent` / `success` / `warning` / `danger` are retained as
+ * aliases so existing call sites keep working; prefer the role names.
+ */
 export type VoxIconTone =
   | 'inherit'
   | 'ink'
   | 'ink-muted'
   | 'ink-subtle'
+  | 'ink-tertiary'
+  | 'brand'
+  | 'jade'
+  | 'apricot'
+  | 'rose'
   | 'accent'
   | 'success'
   | 'warning'

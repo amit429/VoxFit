@@ -152,7 +152,53 @@ gallery, unguarded, rendering static demo data only. Kept through Phase 3 as the
 to check primitives while migrating screens. **Delete it in Phase 5 before merge** — it is
 marked `TEMP` at the route.
 
-## Phase 3 — Screen migration ⏳ not started
+## Phase 3 — Screen migration ✅
+
+**Checkpoint 3 met.** `npm run build` ✅ · `npm run lint` ✅ · 33/33 tests ✅ · all 8 routes
+return 200 · Home / Voice / Train / Fuel / Profile / Settings verified in-browser at 390px.
+
+### Migrated
+
+| Route | Notes |
+|---|---|
+| `/tabs/home` | Orb is the hero. Streak pill → greeting → orb → fuel card → quick actions → last session. The old two CTAs folded into `vox-quick-action-grid`. Milestone modal wired via `StreakMilestoneService`. |
+| `/voice` | Radial violet atmosphere, orb at `lg`, live transcript from `voiceSession.transcriptPreview()`. **Hold-to-record unchanged.** Done state is the mockup's session-result layout. |
+| `/tabs/workout/:id` | Hero stat tiles, brand coach card, `.setrow` sets, rose "You mentioned" card. |
+| `/tabs/workout` | Plan banner, filter chips, `vox-volume-chart`, session rows, `vox-filter-sheet`. Month/date picker modals kept as-is, retinted. |
+| `/tabs/diet` | Renamed **Fuel** (label + title only). Calorie ring, two equal-weight voice mode cards, `vox-segmented`, `vox-meal-row`. |
+| `/log-diet` | Orb states, mode cards matching Fuel, live transcript. Accepts `?mode=suggest\|log_eaten` so the Fuel cards deep-link straight into a mode. |
+| `/tabs/profile` | One scroll: identity → check-in → stats → badges → heatmap → activity ring → trend → monthly charts → preferences. |
+| `/settings` | Chip pickers, `vox-stepper-row` targets, account rows. Delete Account present, rose, typed-DELETE confirm preserved. |
+| `/tabs/workout/plan` | Shell restyled; `vox-plan-review-card` moved onto `vox-card`. |
+| tab bar | Home / Train / **Fuel** / You, active state periwinkle. |
+| auth | Already correct from Phase 1 — no page-level changes needed. |
+
+### Pulled forward from Phase 4
+
+Profile's trend chart needed them, so they landed here rather than in the next phase:
+`WorkoutJournalService.getExerciseTrend()` and `.listTopExercises()`, bounded by
+`TREND_WINDOW_WEEKS` / `TREND_TOP_EXERCISES` constants in one place. `BadgeService` is wired
+into Profile. `vox-filter-sheet` is wired into Train.
+
+### Decisions worth carrying forward
+
+- **`flagsSummary()` was reworded at the source.** It returned "Physical Flags" / "No issues
+  noted"; it now returns "You mentioned" / "Nothing noted" plus a `hasFlags` boolean so the UI
+  can omit the card entirely. The old wording put free-text speech-recognition output into
+  clinical register, which the AI Coach PRD explicitly rules out. `WorkoutDetailMock` gained
+  `hasFlags`.
+- **`vox-icon` gained `ink-tertiary` plus the role tones** (`brand`/`jade`/`apricot`/`rose`),
+  with `accent`/`success`/`warning`/`danger` kept as aliases.
+- **`vox-meal-row` was extracted** because the Fuel screen rendered the same meal markup in
+  both day and week views and the two copies had already drifted.
+- **`vox-volume-chart` suppresses its total when there is no data** — "0 kg" above an empty
+  state reads as a measured zero rather than an absence of measurements.
+- **The trend chart walks the top-N exercises** until one yields ≥2 plottable points. The
+  most-logged lift is often bodyweight (push-ups), which has no top-set weight; showing its
+  title over an empty chart reads as a bug.
+- **`flatMap` is not available** — this tsconfig's lib predates it. Use `push` in loops.
+- Three more silently-dead arbitrary-value Tailwind classes found and fixed
+  (`[--background:...]` on four pages, `max-w-[250px]`, `text-[1rem]`).
 
 ## Phase 4 — Data-backed additions ⏳ not started
 
@@ -206,4 +252,10 @@ Nothing here blocks the redesign. Each is a real gap between the mockups and the
 
 11. **Plan session progress** (`09_my_plan` "8 of 24 sessions done") — `plan_nudges` carries
     `planned_sessions`/`completed_sessions` but only for its own week; whole-plan completion is
-    not tracked. Confirm against `WorkoutPlanService` before promising the 6-week bar.
+    not tracked.
+
+12. **Today's planned session** (`10_train` plan banner, `09_my_plan` day strip) — confirmed
+    during Phase 3: `workout_plans.plan` is `{ days: [{ day_label, focus, exercises }] }` with
+    no plan-day → weekday mapping, so "today's session" is not derivable. The banner names the
+    split instead. Needs either a weekday field per plan day, or a plan start-date anchor to
+    rotate days against.

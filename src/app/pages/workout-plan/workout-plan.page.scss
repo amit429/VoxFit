@@ -1,3 +1,75 @@
 :host {
   display: block;
 }
+
+.wp-blob-1 {
+  width: 330px;
+  height: 280px;
+  top: -80px;
+  left: -50px;
+  background: rgba(139, 128, 240, 0.34);
+}
+
+.wp-blob-2 {
+  width: 280px;
+  height: 220px;
+  top: 320px;
+  right: -110px;
+  background: rgba(63, 182, 143, 0.17);
+}
+
+.wp-icon-btn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+/* Balances the back button so the title stays optically centred. */
+.wp-icon-spacer {
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.wp-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.wp-day-btn {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-mono);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background var(--vox-dur-fast) var(--vox-ease),
+    color var(--vox-dur-fast) var(--vox-ease);
+}
+
+.wp-day-btn--on {
+  background: var(--vox-brand-dim);
+  border-color: var(--vox-brand-border);
+  color: var(--vox-brand-text);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wp-day-btn {
+    transition: none;
+  }
+}

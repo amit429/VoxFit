@@ -39,18 +39,28 @@
   color: var(--vox-ink-subtle);
 }
 
+.vox-icon--ink-tertiary {
+  color: var(--vox-ink-tertiary);
+}
+
+/* Role names, with the older semantic names kept as aliases. */
+
+.vox-icon--brand,
 .vox-icon--accent {
-  color: var(--vox-primary);
+  color: var(--vox-brand);
 }
 
+.vox-icon--jade,
 .vox-icon--success {
-  color: var(--vox-success);
+  color: var(--vox-jade);
 }
 
+.vox-icon--apricot,
 .vox-icon--warning {
-  color: var(--vox-warning);
+  color: var(--vox-apricot);
 }
 
+.vox-icon--rose,
 .vox-icon--danger {
-  color: var(--vox-danger);
+  color: var(--vox-rose-text);
 }

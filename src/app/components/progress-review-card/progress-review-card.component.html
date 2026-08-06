@@ -1,15 +1,21 @@
-<section class="rounded-2xl bg-surface-1 p-5 ring-1 ring-hairline">
+<vox-card variant="brand">
+  <div class="mb-4 flex items-center gap-3">
+    <span class="vox-ai-mark shrink-0">
+      <vox-icon name="sparkles-outline" size="sm" />
+    </span>
+    <p class="m-0 flex-1 vx-text-10 font-bold uppercase vx-tracking-16 text-brand-text">Your check-in</p>
+  </div>
+  <div class="prc-body">
   <div class="mb-4 flex items-center justify-between gap-3">
-    <h2 class="m-0 text-sm font-semibold text-ink">Coach Note</h2>
     @switch (review().headline_tone) {
       @case ('positive') {
-        <span class="rounded-full bg-surface-3 px-3 py-1 text-xs font-medium text-ink">On track</span>
+        <vox-badge tone="jade" size="xs">On track</vox-badge>
       }
       @case ('attention') {
-        <span class="rounded-full bg-surface-3 px-3 py-1 text-xs font-medium text-ink">Worth a look</span>
+        <vox-badge tone="rose" size="xs">Worth a look</vox-badge>
       }
       @default {
-        <span class="rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-ink-subtle">Steady</span>
+        <vox-badge size="xs">Steady</vox-badge>
       }
     }
   </div>
@@ -64,4 +70,5 @@
       Acknowledge
     </button>
   }
-</section>
+  </div>
+</vox-card>

@@ -99,10 +99,17 @@
   color: var(--vox-brand-text);
 }
 
+/*
+ * Single line with ellipsis. Real plan focuses are verbose ("Upper Body
+ * (Push Focus)"), and a three-line wrap turns the banner into a paragraph.
+ */
 .pb-title {
+  overflow: hidden;
   font-size: 0.90625rem;
   font-weight: 700;
   color: var(--vox-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pb-meta {

@@ -1,3 +1,120 @@
 :host {
   display: block;
 }
+
+.pr-blob-1 {
+  width: 320px;
+  height: 280px;
+  top: -80px;
+  left: -60px;
+  background: rgba(139, 128, 240, 0.32);
+}
+
+.pr-blob-2 {
+  width: 280px;
+  height: 220px;
+  top: 250px;
+  right: -110px;
+  background: rgba(63, 182, 143, 0.16);
+}
+
+.pr-blob-3 {
+  width: 300px;
+  height: 200px;
+  bottom: -40px;
+  left: -50px;
+  background: rgba(232, 160, 85, 0.11);
+}
+
+.pr-icon-btn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+/* Identity mark — the one element allowed all three accents at once. */
+.pr-avatar-ring {
+  display: block;
+  width: 66px;
+  height: 66px;
+  flex-shrink: 0;
+  padding: 2.5px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--vox-jade), var(--vox-brand), var(--vox-apricot));
+}
+
+.pr-avatar {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--vox-surface-solid-1);
+  color: var(--vox-ink);
+  font-family: var(--vox-font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.pr-name {
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--vox-font-display);
+  font-size: 1.3125rem;
+  font-weight: var(--vox-weight-display);
+  color: var(--vox-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pr-section-title {
+  margin: 18px 0 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.pr-pref-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pr-pref-row:last-child {
+  border-bottom: none;
+}
+
+.pr-pref-icon {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: var(--vox-surface-2);
+}
+
+.pr-pref-value {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--vox-ink-subtle);
+}
+
+.pr-footer {
+  margin: 16px 0 0;
+  font-size: 0.6875rem;
+  text-align: center;
+  color: var(--vox-ink-tertiary);
+}

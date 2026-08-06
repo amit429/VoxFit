@@ -4,34 +4,57 @@ import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent, IonRouterLinkWithHref } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  flameOutline,
   micOutline,
   restaurantOutline,
   statsChartOutline,
-  flashOutline,
-  sparklesOutline,
+  listOutline,
   barbellOutline,
+  chevronForwardOutline,
+  sparklesOutline,
+  trendingUpOutline,
+  chatbubbleEllipsesOutline,
+  closeOutline,
+  checkmarkOutline,
 } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
-import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+import { StreakMilestoneService } from '@/app/services/streak-milestone.service';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
-import { CoachPointerCardComponent } from '@/app/components/coach-pointer-card/coach-pointer-card.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxVoiceOrbComponent } from '@/app/components/vox-voice-orb/vox-voice-orb.component';
+import { VoxStreakPillComponent } from '@/app/components/vox-streak-pill/vox-streak-pill.component';
+import { VoxQuickActionGridComponent } from '@/app/components/vox-quick-action-grid/vox-quick-action-grid.component';
+import { VoxProgressNudgeComponent } from '@/app/components/vox-progress-nudge/vox-progress-nudge.component';
+import { VoxStreakCelebrationComponent } from '@/app/components/vox-streak-celebration/vox-streak-celebration.component';
 import { voxfitMic } from '@/app/components/vox-icon/voxfit-icons';
+import { sessionTotalVolumeKg, formatVolumeKg, formatSessionDateLabel } from '@/app/utils/workout-display.util';
+import type { VoxQuickAction } from '@/app/models';
 
 addIcons({
-  flameOutline,
   micOutline,
   restaurantOutline,
   statsChartOutline,
-  flashOutline,
-  sparklesOutline,
+  listOutline,
   barbellOutline,
+  chevronForwardOutline,
+  sparklesOutline,
+  trendingUpOutline,
+  chatbubbleEllipsesOutline,
+  closeOutline,
+  checkmarkOutline,
   voxfitMic,
 });
+
+/** Macro tiles under the orb. Colour is by series, matching the fuel screen. */
+const MACRO_TRACK_TONES: Record<string, string> = {
+  Protein: 'linear-gradient(90deg, #3fb68f, #2e8f70)',
+  Carbs: 'linear-gradient(90deg, #6b92d6, #557ab8)',
+  Fat: 'linear-gradient(90deg, #e8a055, #d9834a)',
+};
 
 @Component({
   selector: 'app-home',
@@ -42,9 +65,14 @@ addIcons({
     IonContent,
     RouterLink,
     IonRouterLinkWithHref,
-    VoxIconComponent,
     VoxSkeletonComponent,
-    CoachPointerCardComponent,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxVoiceOrbComponent,
+    VoxStreakPillComponent,
+    VoxQuickActionGridComponent,
+    VoxProgressNudgeComponent,
+    VoxStreakCelebrationComponent,
   ],
 })
 export class HomePage implements ViewWillEnter {
@@ -52,29 +80,59 @@ export class HomePage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly nutrition = inject(NutritionDashboardService);
   protected readonly coach = inject(ProgressCoachService);
+  private readonly milestones = inject(StreakMilestoneService);
 
   protected readonly showSkeleton = computed(
     () => !this.journal.activityLoaded() || !this.journal.weekSessionsLoaded() || !this.nutrition.hasLoadedOnce(),
   );
 
+  protected readonly quickActions: readonly VoxQuickAction[] = [
+    { icon: 'barbell-outline', label: ['log', 'workout'], link: '/voice', tone: 'jade' },
+    { icon: 'restaurant-outline', label: ['log', 'meal'], link: '/log-diet', tone: 'apricot' },
+    { icon: 'list-outline', label: ['my', 'plan'], link: '/tabs/workout/plan', tone: 'brand' },
+    { icon: 'stats-chart-outline', label: ['my', 'progress'], link: '/tabs/profile', tone: 'slate' },
+  ];
+
   protected readonly macros = computed(() => this.nutrition.macros());
 
   protected readonly caloriesRow = computed(() => this.macros().rows.find((r) => r.label === 'Calories') ?? null);
 
-  protected readonly macroTiles = computed(() => {
-    const rows = this.macros().rows;
-    const cal = rows.find((r) => r.label === 'Calories');
-    const remaining = cal ? Math.max(0, cal.target - cal.current) : 0;
-    return [
-      ...rows
-        .filter((r) => r.label !== 'Calories')
-        .map((r) => ({ label: r.label, value: r.current, unit: 'g', accent: false })),
-      { label: 'Rem', value: remaining, unit: '', accent: true },
-    ];
+  /** Protein / carbs / fat with a fill width, for the three-column fuel card. */
+  protected readonly macroColumns = computed(() =>
+    this.macros()
+      .rows.filter((r) => r.label !== 'Calories')
+      .map((r) => ({
+        label: r.label,
+        current: r.current,
+        pct: r.target > 0 ? Math.min(100, Math.round((r.current / r.target) * 100)) : 0,
+        track: MACRO_TRACK_TONES[r.label] ?? 'linear-gradient(90deg, #8b80f0, #6559c8)',
+      })),
+  );
+
+  /**
+   * Most recent session in the loaded week, today's included. The mockup's
+   * "last session" strip — a glance at what you did, not a full journal row.
+   */
+  protected readonly lastSession = computed(() => {
+    const sessions = [...this.journal.weekSessions()].sort((a, b) =>
+      (b.date ?? '').localeCompare(a.date ?? '') || (b.created_at ?? '').localeCompare(a.created_at ?? ''),
+    );
+    const latest = sessions[0];
+    if (!latest) return null;
+
+    const exercises = latest.exercises_logged ?? [];
+    const prCount = exercises.filter((e) => e.is_pr).length;
+    return {
+      id: latest.id,
+      title: latest.session_label?.trim() || 'Workout',
+      dateLabel: latest.date ? formatSessionDateLabel(latest.date) : '—',
+      detail: `${exercises.length} exercise${exercises.length === 1 ? '' : 's'} · ${formatVolumeKg(sessionTotalVolumeKg(exercises))}`,
+      prCount,
+    };
   });
 
   protected readonly todayLabel = signal(
-    new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }),
+    new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase(),
   );
 
   protected readonly firstName = computed(() => {
@@ -83,7 +141,7 @@ export class HomePage implements ViewWillEnter {
     return DUMMY_PROFILE_DISPLAY.name.split(/\s+/)[0] ?? 'Athlete';
   });
 
-  protected readonly greeting = computed(() => `${this.pickGreeting()}, ${this.firstName()}`);
+  protected readonly greeting = computed(() => this.pickGreeting());
 
   protected readonly showReviewPointer = computed(() => {
     const r = this.coach.latestReview();
@@ -101,12 +159,26 @@ export class HomePage implements ViewWillEnter {
     return DUMMY_PROFILE_DISPLAY.initial;
   });
 
+  /** Milestone modal. Opened from ionViewWillEnter once the streak is known. */
+  protected readonly celebratingMilestone = signal<number | null>(null);
+
   ionViewWillEnter(): void {
-    void this.journal.refreshActivitySummary();
+    void this.journal.refreshActivitySummary().then(() => this.maybeCelebrate());
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
     void this.coach.getLatest();
+  }
+
+  protected dismissCelebration(): void {
+    const milestone = this.celebratingMilestone();
+    if (milestone !== null) this.milestones.markCelebrated(milestone);
+    this.celebratingMilestone.set(null);
+  }
+
+  private maybeCelebrate(): void {
+    const pending = this.milestones.pendingMilestone(this.journal.streak().days);
+    if (pending !== null) this.celebratingMilestone.set(pending);
   }
 
   private pickGreeting(): string {

@@ -1,8 +1,16 @@
 import { PlanNudgeCardComponent } from '@/app/components/plan-nudge-card/plan-nudge-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
+import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
+import { VoxPlanBannerComponent } from '@/app/components/vox-plan-banner/vox-plan-banner.component';
+import { VoxVolumeChartComponent } from '@/app/components/vox-volume-chart/vox-volume-chart.component';
+import {
+  VoxFilterSheetComponent,
+  EMPTY_SESSION_FILTERS,
+} from '@/app/components/vox-filter-sheet/vox-filter-sheet.component';
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -15,8 +23,14 @@ import {
 } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline } from 'ionicons/icons';
-import type { WorkoutSessionListMock, WorkoutSessionListRow, WorkoutSessionRow } from '@/app/models';
+import { chevronBackOutline, chevronForwardOutline, trophyOutline, optionsOutline } from 'ionicons/icons';
+import type {
+  VoxSessionFilters,
+  VoxVolumeBar,
+  WorkoutSessionListMock,
+  WorkoutSessionListRow,
+  WorkoutSessionRow,
+} from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
@@ -24,12 +38,13 @@ import { WorkoutPlanService } from '@/app/services/workout-plan.service';
 import {
   formatSessionDateLabel,
   getCurrentWeekDayKeys,
+  moodEmoji,
   parseLocalDateKey,
   parseIsoDateLocal,
   sessionTotalVolumeKg,
 } from '@/app/utils/workout-display.util';
 
-addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutline });
+addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, optionsOutline });
 
 @Component({
   selector: 'app-workout',
@@ -40,7 +55,11 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, warningOutl
     PlanNudgeCardComponent,
     VoxIconComponent,
     VoxSkeletonComponent,
-    RouterLink,
+    VoxCardComponent,
+    VoxBadgeComponent,
+    VoxPlanBannerComponent,
+    VoxVolumeChartComponent,
+    VoxFilterSheetComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -203,21 +222,72 @@ export class WorkoutPage implements ViewWillEnter {
     return Math.round(((thisWeekTotal - prevWeekTotal) / prevWeekTotal) * 100);
   });
 
-  protected readonly skeletonBarHeights = [18, 34, 24, 44, 30, 40, 20];
-
-  protected readonly weeklyBars = computed(() => {
+  protected readonly volumeBars = computed((): VoxVolumeBar[] => {
     const w = this.journal.weeklyVolume();
     const keys = getCurrentWeekDayKeys();
     const todayKey = parseLocalDateKey(new Date());
-    const max = Math.max(...w.values, 1);
-    const sel = this.selectedDayIdx();
-    return w.values.map((v, i) => ({
-      heightPx: v <= 0 ? 4 : 8 + Math.round((v / max) * 44),
+    return w.values.map((value, i) => ({
       label: w.dayLabels[i] ?? '?',
+      value,
       isToday: keys[i] === todayKey,
-      isSelected: i === sel,
     }));
   });
+
+  // ---- Plan banner ----
+
+  /**
+   * The mockup shows *today's* planned session here. `workout_plans.plan`
+   * has no plan-day → weekday mapping, so which day is "today" isn't
+   * derivable — the banner names the split instead, which is true of the
+   * plan as a whole. See Deferred #12.
+   */
+  protected readonly planBannerTitle = computed(() => {
+    const plan = this.planService.activePlan();
+    if (!plan) return '';
+    const focuses = plan.plan.days.map((d) => d.focus?.trim()).filter((f): f is string => !!f);
+    return focuses.length > 0 ? focuses.slice(0, 3).join(' · ') : 'Your plan';
+  });
+
+  protected readonly planBannerMeta = computed(() => {
+    const plan = this.planService.activePlan();
+    if (!plan) return '';
+    const dayCount = plan.plan.days.length;
+    return `${dayCount} day${dayCount === 1 ? '' : 's'} a week`;
+  });
+
+  protected goToPlan(): void {
+    void this.router.navigate(['/tabs/workout/plan']);
+  }
+
+  // ---- Session filters ----
+  //
+  // Applied client-side over the already-loaded list. Session type and
+  // min-volume are absent by design: neither can be answered from the lean
+  // paginated query (no session_type column; volume lives in set_lines,
+  // which that query omits for cost). See Deferred #7.
+
+  protected readonly filterSheetOpen = signal(false);
+  protected readonly sessionFilters = signal<VoxSessionFilters>(EMPTY_SESSION_FILTERS);
+
+  protected readonly hasActiveFilters = computed(() => {
+    const f = this.sessionFilters();
+    return f.moods.length > 0 || f.prsOnly || f.notesOnly;
+  });
+
+  protected readonly visibleSessions = computed(() => {
+    const f = this.sessionFilters();
+    return this.sessionList().filter((s) => {
+      if (f.prsOnly && !s.hasPr) return false;
+      if (f.notesOnly && !s.hasFlag) return false;
+      if (f.moods.length > 0 && !f.moods.some((m) => s.moodEmoji === moodEmoji(m))) return false;
+      return true;
+    });
+  });
+
+  protected onApplyFilters(next: VoxSessionFilters): void {
+    this.sessionFilters.set(next);
+    this.filterSheetOpen.set(false);
+  }
 
   ionViewWillEnter(): void {
     // The weekly volume chart is always current-week data, independent of the list filter below it.

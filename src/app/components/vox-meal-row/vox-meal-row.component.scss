@@ -1,0 +1,93 @@
+:host {
+  display: block;
+}
+
+.mr {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-rim-light), var(--vox-surface-1);
+  cursor: pointer;
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mr:active {
+  transform: scale(0.99);
+}
+
+.mr-emoji {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: linear-gradient(140deg, rgba(232, 160, 85, 0.3), rgba(217, 117, 103, 0.2));
+  font-size: 1.375rem;
+}
+
+.mr-time {
+  display: block;
+  font-family: var(--vox-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.mr-name {
+  display: block;
+  overflow: hidden;
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mr-macros {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.mr-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 8px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-pill);
+  background: var(--vox-surface-2);
+  font-family: var(--vox-font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--vox-ink-subtle);
+}
+
+.mr-kcal {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* Apricot is the assigned accent for calories, matching the fuel ring. */
+.mr-kcal-value {
+  display: block;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-apricot);
+}
+
+.mr-kcal-unit {
+  display: block;
+  font-size: 0.625rem;
+  color: var(--vox-ink-tertiary);
+}

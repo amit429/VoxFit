@@ -1,31 +1,34 @@
-<ion-content [fullscreen]="true" class="tab-page-content [--background:var(--vox-canvas)]">
-  <div class="flex min-h-full flex-col">
-    <header class="flex shrink-0 items-center gap-3 px-2 pb-4 pt-2">
-      <button
-        type="button"
-        [routerLink]="'/tabs/workout'"
-        class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-subtle transition-colors hover:bg-surface-2"
-        aria-label="Back to Train"
-      >
-        <vox-icon name="chevron-back-outline" size="md" />
+<ion-content [fullscreen]="true" class="tab-page-content">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob wp-blob-1"></span>
+    <span class="vx-blob wp-blob-2"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <div class="vx-layer flex min-h-full flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-4 pt-1">
+      <button type="button" [routerLink]="'/tabs/workout'" class="wp-icon-btn" aria-label="Back to Train">
+        <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
       </button>
-      <div class="min-w-0">
-        <p class="m-0 font-mono uppercase vx-tracking-18 text-ink-subtle">Training</p>
-        <span class="m-0 mt-1 block truncate text-xl font-semibold tracking-tight text-ink">Your Plan</span>
-      </div>
+      <span class="wp-header-title">My Plan</span>
+      <span class="wp-icon-spacer"></span>
     </header>
 
-    <main class="flex flex-1 flex-col px-2 pb-6">
+    <main class="flex flex-1 flex-col pb-6">
       <div class="my-auto w-full space-y-4">
         @if (error(); as err) {
-          <p class="m-0 rounded-md border border-hairline bg-danger-dim px-3 py-3 text-sm text-danger">{{ err }}</p>
+          <vox-card variant="rose" padding="sm">
+            <p class="m-0 text-sm text-rose-text">{{ err }}</p>
+          </vox-card>
         }
 
         @if (generating()) {
-          <section class="rounded-2xl bg-surface-1 p-8 text-center ring-1 ring-hairline">
-            <ion-spinner name="crescent" style="--color: var(--vox-primary); width: 22px; height: 22px" />
-            <p class="m-0 mt-3 text-sm text-ink-subtle">Building your {{ daysPerWeek() }}-day plan…</p>
-          </section>
+          <vox-card padding="lg">
+            <div class="py-6 text-center">
+              <ion-spinner name="crescent" style="--color: var(--vox-brand); width: 22px; height: 22px" />
+              <p class="m-0 mt-3 text-sm text-ink-subtle">Building your {{ daysPerWeek() }}-day plan…</p>
+            </div>
+          </vox-card>
         } @else if (review(); as r) {
           <p class="mb-4 text-center text-sm text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
           <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
@@ -39,7 +42,7 @@
           </p>
           <vox-plan-review-card [plan]="active.plan" [rationale]="active.ai_rationale ?? ''" />
 
-          <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
+          <vox-card>
             <p class="m-0 mb-3 text-center text-xs text-ink-subtle">Want a fresh plan? Pick your weekly frequency.</p>
             <div class="mb-4 flex items-center justify-center gap-2">
               <span class="text-xs text-ink-subtle">Days / week</span>
@@ -47,21 +50,17 @@
                 <button
                   type="button"
                   (click)="daysPerWeek.set(d)"
-                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors cursor-pointer"
-                  [class.bg-surface-3]="daysPerWeek() === d"
-                  [class.text-ink]="daysPerWeek() === d"
-                  [class.bg-surface-2]="daysPerWeek() !== d"
-                  [class.text-ink-subtle]="daysPerWeek() !== d"
-                  [class.hover:bg-surface-3]="daysPerWeek() !== d"
+                  class="wp-day-btn"
+                  [class.wp-day-btn--on]="daysPerWeek() === d"
                 >
                   {{ d }}
                 </button>
               }
             </div>
             <button type="button" class="vox-btn-secondary w-full transition-opacity hover:opacity-90" (click)="generate()">Regenerate</button>
-          </div>
+          </vox-card>
         } @else if (!loadingActive()) {
-          <section class="rounded-2xl bg-surface-1 p-6 text-center ring-1 ring-hairline">
+          <vox-card padding="lg" class="block text-center">
             <p class="m-0 text-sm leading-relaxed text-ink">Create your training plan</p>
             <p class="m-0 mt-2 text-xs leading-relaxed text-ink-subtle">
               I'll design a day-by-day plan around your goal and sport — using your recent sessions when you have them, and
@@ -74,12 +73,8 @@
                 <button
                   type="button"
                   (click)="daysPerWeek.set(d)"
-                  class="h-9 w-9 rounded-md font-mono text-sm ring-1 ring-hairline transition-colors cursor-pointer"
-                  [class.bg-surface-3]="daysPerWeek() === d"
-                  [class.text-ink]="daysPerWeek() === d"
-                  [class.bg-surface-2]="daysPerWeek() !== d"
-                  [class.text-ink-subtle]="daysPerWeek() !== d"
-                  [class.hover:bg-surface-3]="daysPerWeek() !== d"
+                  class="wp-day-btn"
+                  [class.wp-day-btn--on]="daysPerWeek() === d"
                 >
                   {{ d }}
                 </button>
@@ -87,7 +82,7 @@
             </div>
 
             <button type="button" class="vox-btn-primary mt-5 w-full" (click)="generate()">Generate my plan</button>
-          </section>
+          </vox-card>
         }
       </div>
     </main>

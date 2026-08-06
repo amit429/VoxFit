@@ -275,10 +275,23 @@ export function computeWorkoutStreakDays(sessionDates: Set<string>): number {
   return streak;
 }
 
-export function flagsSummary(flags: string[] | null | undefined): { title: string; body: string } {
+/**
+ * Physical notes the user said out loud mid-session.
+ *
+ * Wording is deliberately observational — "You mentioned", not "Physical
+ * Flags". The underlying data is free text captured by unreliable speech
+ * recognition; presenting it in clinical register implies an assessment the
+ * data cannot support. This framing is a product-safety decision recorded in
+ * the AI Coach PRD, not a copy preference.
+ */
+export function flagsSummary(
+  flags: string[] | null | undefined,
+): { title: string; body: string; hasFlags: boolean } {
   const f = flags?.filter((x) => x.trim().length > 0) ?? [];
-  if (f.length === 0) return { title: 'Physical Flags', body: 'No issues noted for this session.' };
-  return { title: 'Physical Flags', body: f.join(' · ') };
+  if (f.length === 0) {
+    return { title: 'You mentioned', body: 'Nothing noted for this session.', hasFlags: false };
+  }
+  return { title: 'You mentioned', body: f.join(' · '), hasFlags: true };
 }
 
 /** Monday–Sunday (local week) containing `dateKey` (`YYYY-MM-DD`). */
