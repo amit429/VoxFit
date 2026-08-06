@@ -86,7 +86,7 @@ export class HomePage implements ViewWillEnter {
     { icon: 'barbell-outline', label: ['log', 'workout'], link: '/voice', tone: 'jade' },
     { icon: 'restaurant-outline', label: ['log', 'meal'], link: '/log-diet', tone: 'apricot' },
     { icon: 'list-outline', label: ['my', 'plan'], link: '/tabs/workout/plan', tone: 'brand' },
-    { icon: 'stats-chart-outline', label: ['my', 'progress'], link: '/tabs/profile', tone: 'slate' },
+    { icon: 'stats-chart-outline', label: ['my', 'progress'], link: '/progress', tone: 'slate' },
   ];
 
   protected readonly macros = computed(() => this.nutrition.macros());

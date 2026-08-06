@@ -77,6 +77,11 @@ export const routes: Routes = [
     loadComponent: () => import('@/app/pages/settings/settings.page').then((m) => m.SettingsPage),
   },
   {
+    path: 'progress',
+    canActivate: [authGuard, onboardingCompleteGuard],
+    loadComponent: () => import('@/app/pages/progress/progress.page').then((m) => m.ProgressPage),
+  },
+  {
     path: 'streak',
     canActivate: [authGuard, onboardingCompleteGuard],
     loadComponent: () => import('@/app/pages/streak/streak.page').then((m) => m.StreakPage),

@@ -105,3 +105,31 @@
   text-align: center;
   color: var(--vox-ink-tertiary);
 }
+
+/* ---- "My progress" link card ---- */
+
+.pr-link-mark {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--vox-slate-dim);
+  color: var(--vox-slate);
+}
+
+.pr-link-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.pr-link-detail {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.71875rem;
+  color: var(--vox-ink-subtle);
+}

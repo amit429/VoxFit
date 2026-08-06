@@ -1,11 +1,10 @@
-<vox-card variant="brand">
-  <div class="mb-4 flex items-center gap-3">
-    <span class="vox-ai-mark shrink-0">
-      <vox-icon name="sparkles-outline" size="sm" />
-    </span>
-    <p class="m-0 flex-1 vx-text-10 font-bold uppercase vx-tracking-16 text-brand-text">Your check-in</p>
-  </div>
-  <div class="prc-body">
+<!--
+  Body only — no card, no title. The only consumer is `vox-checkin-modal`,
+  which already supplies the dialog surface and the "Your coach / Progress
+  check-in" heading; repeating either here nested a card inside a card and
+  showed the same label twice.
+-->
+<div class="prc">
   <div class="mb-4 flex items-center justify-between gap-3">
     @switch (review().headline_tone) {
       @case ('positive') {
@@ -70,5 +69,4 @@
       Acknowledge
     </button>
   }
-  </div>
-</vox-card>
+</div>

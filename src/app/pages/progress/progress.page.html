@@ -1,0 +1,96 @@
+<ion-content [fullscreen]="true" class="vox-standalone-page">
+  <div class="vx-atmo" aria-hidden="true">
+    <span class="vx-blob pg-blob-1"></span>
+    <span class="vx-blob pg-blob-2"></span>
+  </div>
+  <div class="vx-grain" aria-hidden="true"></div>
+
+  <main class="vx-layer vx-stack">
+    <header class="flex shrink-0 items-center gap-3 pb-1 pt-1">
+      <button type="button" class="vx-icon-btn" (click)="goBack()" aria-label="Back to profile">
+        <vox-icon name="chevron-back-outline" size="sm" tone="ink" />
+      </button>
+      <div class="min-w-0">
+        <p class="vox-eyebrow m-0">This week</p>
+        <h1 class="pg-title">Your progress</h1>
+      </div>
+    </header>
+
+    @if (showSkeleton()) {
+      <div class="flex gap-2.5">
+        @for (i of [0, 1, 2]; track i) {
+          <vox-skeleton height="72px" radius="xl" class="block flex-1" />
+        }
+      </div>
+      <vox-skeleton height="170px" radius="xl" class="block" />
+      <vox-skeleton height="190px" radius="xl" class="block" />
+    } @else {
+      <!-- All-time hero stats -->
+      <div class="flex gap-2.5">
+        @for (s of heroStats(); track s.label; let i = $index) {
+          <vox-stat-tile [value]="s.value" [label]="s.label" [tone]="statTones[i]" />
+        }
+      </div>
+
+      <!-- Sessions this week -->
+      <vox-card padding="lg">
+        <vox-activity-ring
+          [done]="sessionsThisWeek()"
+          [target]="weeklySessionTarget()"
+          [caption]="weeklyTargetCaption()"
+        />
+      </vox-card>
+
+      <!-- This week's volume -->
+      <vox-card>
+        <vox-volume-chart
+          [bars]="weeklyVolumeBars()"
+          eyebrow="Weekly volume"
+          [total]="weeklyVolumeTotal()"
+        />
+      </vox-card>
+
+      <!-- Strength trend -->
+      @if (trendExercise(); as exercise) {
+        <vox-card>
+          <vox-trend-chart
+            gradientId="progress-trend-fill"
+            [points]="trendPoints()"
+            [title]="exercise"
+            [subtitle]="'Top set · last ' + trendWeeks + ' weeks'"
+            [headline]="trendHeadline()"
+          />
+        </vox-card>
+      }
+
+      <!-- Activity heatmap -->
+      <vox-card>
+        <vox-heatmap [cells]="heatmapCells()" [weeks]="heatmapWeeks" />
+      </vox-card>
+
+      <!-- Monthly workouts -->
+      <vox-card>
+        <vox-volume-chart
+          [bars]="monthlyWorkoutVolumeBars()"
+          [eyebrow]="workoutChartStat().caption"
+          [total]="workoutChartStat().value.toString()"
+          [unit]="workoutChartStat().unit"
+          [selectedIndex]="selectedWorkoutMonthIdx()"
+          (barClick)="toggleWorkoutMonth($event)"
+        />
+      </vox-card>
+
+      <!-- Monthly calorie intake -->
+      <vox-card>
+        <vox-volume-chart
+          [bars]="monthlyCalorieVolumeBars()"
+          [eyebrow]="calorieChartStat().caption"
+          [total]="calorieChartStat().value.toString()"
+          [unit]="calorieChartStat().unit"
+          [selectedIndex]="selectedCalorieMonthIdx()"
+          (barClick)="toggleCalorieMonth($event)"
+        />
+      </vox-card>
+    }
+  </main>
+</ion-content>

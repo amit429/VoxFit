@@ -290,6 +290,28 @@ ion-modal.vox-sheet-auto {
   align-items: flex-end;
 }
 
+/*
+ * Centred dialog — for content to read rather than controls to operate.
+ * Height is capped rather than fixed so a short review makes a short dialog,
+ * while a long one scrolls internally instead of overflowing the viewport.
+ */
+ion-modal.vox-centre-modal {
+  --width: calc(100% - 2.5rem);
+  --max-width: 26rem;
+  --height: auto;
+  --max-height: 80vh;
+  --border-radius: var(--vox-radius-2xl);
+  --box-shadow: var(--vox-shadow-lift);
+  --backdrop-opacity: 0.6;
+
+  align-items: center;
+  justify-content: center;
+}
+
+ion-modal.vox-centre-modal::part(content) {
+  border: 1px solid var(--vox-border-hairline-strong);
+}
+
 /* Horizontally-scrolling chip rows (filters, meal-type tabs) — keep the
    scroll, hide the browser's default scrollbar track underneath it. */
 .vox-chip-row {

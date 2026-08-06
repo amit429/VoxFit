@@ -1,0 +1,22 @@
+<ion-modal class="vox-centre-modal" [isOpen]="isOpen()" (ionModalDidDismiss)="dismissed.emit()">
+  <ng-template>
+    <div class="cm">
+      <header class="cm-head">
+        <div class="min-w-0">
+          <p class="vox-eyebrow m-0">Your coach</p>
+          <h2 class="cm-title">Progress check-in</h2>
+        </div>
+        <button type="button" class="vx-icon-btn" (click)="dismissed.emit()" aria-label="Close">
+          <vox-icon name="close-outline" size="sm" tone="ink" />
+        </button>
+      </header>
+
+      <!-- Only the body scrolls, so the header and close stay reachable. -->
+      <div class="cm-body">
+        @if (review(); as r) {
+          <vox-progress-review-card [review]="r" (acknowledge)="acknowledge.emit($event)" />
+        }
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

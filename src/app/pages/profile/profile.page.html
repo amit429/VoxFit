@@ -7,7 +7,7 @@
   <div class="vx-grain" aria-hidden="true"></div>
 
   <main class="vx-layer vx-stack">
-    <header class="flex shrink-0 items-center justify-between gap-3 pb-3.5 pt-1">
+    <header class="flex shrink-0 items-center justify-between gap-3 pb-1 pt-1">
       <p class="vox-eyebrow m-0">Profile</p>
       <button type="button" (click)="goToSettings()" class="vx-icon-btn" aria-label="Settings">
         <vox-icon name="settings-outline" size="sm" tone="ink" />
@@ -28,112 +28,70 @@
       </div>
     </div>
 
-    <!-- Progress check-in -->
-    @if (coach.latestReview(); as r) {
-      <vox-progress-review-card class="block" [review]="r" (acknowledge)="onAcknowledge($event)" />
-    } @else {
-      <vox-progress-nudge
-        class="block"
-        state="check-in-ready"
-        title="Get your progress check-in"
-        detail="A read on how your training and nutrition have been trending"
-        [ctaLabel]="generating() ? 'Reviewing…' : 'Check my progress'"
-        (action)="checkProgress()"
-      />
-      @if (error(); as err) {
-        <vox-card variant="rose" padding="sm" class="block">
-          <p class="m-0 text-sm text-rose-text">{{ err }}</p>
-        </vox-card>
-      }
+    <!--
+      Compact nudge only. The full review opens in a dialog — inlined it ran to
+      several hundred words and pushed everything below it off the screen.
+    -->
+    <vox-progress-nudge
+      state="check-in-ready"
+      [title]="checkinTitle()"
+      [detail]="checkinDetail()"
+      [ctaLabel]="generating() ? 'Reading your data…' : 'See my check-in'"
+      (action)="openCheckin()"
+    />
+
+    @if (error(); as err) {
+      <vox-card variant="rose" padding="sm">
+        <p class="m-0 text-sm text-rose-text">{{ err }}</p>
+      </vox-card>
     }
+
+    <!-- Everything chart-shaped lives on its own screen -->
+    <a routerLink="/progress" routerDirection="forward" class="block no-underline">
+      <vox-card [interactive]="true">
+        <div class="flex items-center gap-3">
+          <span class="pr-link-mark">
+            <vox-icon name="stats-chart-outline" size="md" tone="inherit" />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="pr-link-title">My progress</span>
+            <span class="pr-link-detail">Charts, streak, volume and trends</span>
+          </span>
+          <vox-icon name="chevron-forward-outline" size="sm" tone="ink-tertiary" />
+        </div>
+      </vox-card>
+    </a>
 
     @if (showSkeleton()) {
-      <div class="flex gap-2.5">
-        @for (i of [0, 1, 2]; track i) {
-          <vox-skeleton height="72px" radius="xl" class="block flex-1" />
-        }
-      </div>
       <vox-skeleton height="120px" radius="xl" class="block" />
-      <vox-skeleton height="150px" radius="xl" class="block" />
     } @else {
-      <!-- Hero stats -->
-      <div class="flex gap-2.5">
-        @for (s of heroStats(); track s.label; let i = $index) {
-          <vox-stat-tile [value]="s.value" [label]="s.label" [tone]="statTones[i]" />
-        }
-      </div>
-
-      <!-- Badges -->
-      <vox-card class="block">
+      <vox-card>
         <vox-badge-shelf [badges]="badges()" />
-      </vox-card>
-
-      <!-- Activity heatmap -->
-      <vox-card class="block">
-        <vox-heatmap [cells]="heatmapCells()" [weeks]="heatmapWeeks" />
-      </vox-card>
-
-      <!-- Sessions this week -->
-      <vox-card padding="lg" class="block">
-        <vox-activity-ring
-          [done]="sessionsThisWeek()"
-          [target]="weeklySessionTarget()"
-          [caption]="weeklyTargetCaption()"
-        />
-      </vox-card>
-
-      <!-- Strength trend -->
-      @if (trendExercise(); as exercise) {
-        <vox-card class="block">
-          <vox-trend-chart
-            gradientId="profile-trend-fill"
-            [points]="trendPoints()"
-            [title]="exercise"
-            [subtitle]="'Top set · last ' + trendWeeks + ' weeks'"
-            [headline]="trendHeadline()"
-          />
-        </vox-card>
-      }
-
-      <!-- Monthly workouts -->
-      <vox-card class="block">
-        <vox-volume-chart
-          [bars]="monthlyWorkoutVolumeBars()"
-          [eyebrow]="workoutChartStat().caption"
-          [total]="workoutChartStat().value.toString()"
-          [unit]="workoutChartStat().unit"
-          [selectedIndex]="selectedWorkoutMonthIdx()"
-          (barClick)="toggleWorkoutMonth($event)"
-        />
-      </vox-card>
-
-      <!-- Monthly calorie intake -->
-      <vox-card class="block">
-        <vox-volume-chart
-          [bars]="monthlyCalorieVolumeBars()"
-          [eyebrow]="calorieChartStat().caption"
-          [total]="calorieChartStat().value.toString()"
-          [unit]="calorieChartStat().unit"
-          [selectedIndex]="selectedCalorieMonthIdx()"
-          (barClick)="toggleCalorieMonth($event)"
-        />
       </vox-card>
     }
 
-    <!-- Preferences -->
-    <h2 class="pr-section-title">Preferences</h2>
-    <vox-card padding="sm">
-      @for (g of goalRows(); track g.label) {
-        <div class="pr-pref-row">
-          <span class="pr-pref-icon">
-            <vox-icon [name]="g.icon" tone="ink-subtle" size="sm" />
-          </span>
-          <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
-          <span class="pr-pref-value">{{ g.value }}</span>
-        </div>
-      }
-    </vox-card>
+    <section>
+      <h2 class="pr-section-title">Preferences</h2>
+      <vox-card padding="sm">
+        @for (g of goalRows(); track g.label) {
+          <div class="pr-pref-row">
+            <span class="pr-pref-icon">
+              <vox-icon [name]="g.icon" tone="ink-subtle" size="sm" />
+            </span>
+            <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
+            <span class="pr-pref-value">{{ g.value }}</span>
+          </div>
+        }
+      </vox-card>
+    </section>
 
     <p class="pr-footer">{{ email() }}</p>
   </main>
 </ion-content>
+
+<vox-checkin-modal
+  [isOpen]="checkinOpen()"
+  [review]="coach.latestReview()"
+  (dismissed)="checkinOpen.set(false)"
+  (acknowledge)="onAcknowledge($event)"
+/>

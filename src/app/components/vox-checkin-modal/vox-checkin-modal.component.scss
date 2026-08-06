@@ -1,0 +1,43 @@
+/*
+ * Layout lives here rather than in vox-ui.scss because global selectors
+ * cannot pierce ion-modal's shadow boundary — only the host-level modal
+ * variables (`ion-modal.vox-centre-modal`) can be set globally.
+ */
+
+.cm {
+  display: flex;
+  max-height: 100%;
+  flex-direction: column;
+  padding: var(--vox-space-md) var(--vox-space-md) var(--vox-space-xs);
+  background: linear-gradient(170deg, #1d1637, #141126);
+}
+
+.cm-head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  padding-bottom: var(--vox-space-sm);
+}
+
+.cm-title {
+  margin: 2px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.125rem;
+  font-weight: var(--vox-weight-display);
+  color: var(--vox-ink);
+}
+
+/*
+ * The review body is unbounded — highlights, trends, notes and suggestions
+ * all vary in length — so it scrolls inside the dialog rather than growing
+ * the dialog past the viewport.
+ */
+.cm-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--vox-space-sm);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}

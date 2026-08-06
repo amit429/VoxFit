@@ -296,6 +296,34 @@ isn't over) and returns 0 if neither today nor yesterday has a session. Five reg
 
 ---
 
+## Phase 6 — Progress page split + check-in dialog ✅
+
+**Verified.** `npm run build` ✅ · `npm run lint` ✅ · 66/66 tests ✅ · all 10 routes 200.
+
+Profile had grown to a dozen stacked cards — identity, badges and preferences competing with
+six charts and an inline AI review several hundred words long. Split three ways:
+
+- **New `/progress` page** (`04_progress` in the mockups): all-time stat tiles, sessions-this-week
+  ring, weekly volume, strength trend, activity heatmap, and both monthly charts. Standalone
+  route with a back button, matching how `/settings` already works. Home's "my progress" quick
+  action now points here instead of at the profile tab.
+- **Profile keeps** identity, the compact check-in nudge, a "My progress" link card, badges and
+  preferences.
+- **New `vox-checkin-modal`**: the full review in a centred dialog (`vox-centre-modal`), capped
+  at 80vh with only the body scrolling so the header and close stay reachable. Centred rather
+  than a bottom sheet because this is content to read, not a control to operate.
+
+The CTA carries the loading state rather than opening an empty dialog and spinning inside it:
+when there is no review yet, "See my check-in" becomes "Reading your data…", generation runs,
+and the dialog opens only once there is something to read. A modal that appears and then fills
+in reads as broken.
+
+`progress-review-card` lost its own card wrapper and title. Its only consumer is now the modal,
+which supplies both — keeping them nested a card inside a card and printed "Your check-in"
+twice.
+
+---
+
 ## Deferred features — mockup UI with no data behind it
 
 Nothing here blocks the redesign. Each is a real gap between the mockups and the schema.
@@ -308,7 +336,8 @@ Nothing here blocks the redesign. Each is a real gap between the mockups and the
    extended to return `primary_muscle` constrained to a fixed enum
    (`chest|back|legs|glutes|shoulders|arms|core|cardio|other`), validated app-side against the
    enum with `other` as fallback — never trust the model's string; a backfill of existing rows.
-   **Omitted from this pass by decision.**
+   **Omitted from this pass by decision.** Its home when built is `/progress`, between the
+   sessions ring and the weekly volume chart, per mockup `04_progress`.
 
 2. **Weekly session target** (`04_progress` activity ring "4/5") — `user_profiles` has no target
    column. Interim: read sessions-per-week off the active `workout_plans` row, else default 5.
