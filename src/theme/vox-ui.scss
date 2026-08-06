@@ -63,6 +63,75 @@
   animation: vox-wave 0.45s ease-in-out infinite alternate;
 }
 
+/* ==================================================================
+ * CANVAS + ATMOSPHERE (Dusk system)
+ *
+ * Depth comes from three stacked layers rather than from shadows:
+ *   z-0  the canvas gradient (set on ion-content in variables.scss)
+ *   z-0  `.vx-atmo` — blurred, low-opacity accent blobs
+ *   z-3  `.vx-grain` — fine noise, stops the gradient reading as flat wash
+ *   z-2  page content
+ *
+ * Per-screen blob placement is deliberately NOT centralised: each screen
+ * gets its own arrangement so screens feel distinct while staying related.
+ * Screens declare blobs as `.vx-blob` children of `.vx-atmo` with inline
+ * width/height/position, matching the reference mockups.
+ * ================================================================== */
+
+.vx-canvas {
+  background: var(--vox-canvas-gradient);
+}
+
+.vx-atmo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.vx-blob {
+  position: absolute;
+  border-radius: 50%;
+  /* 70px rather than the mockups' 92px: the mockups render at a fixed
+     390px shell, while real viewports are wider and a larger radius
+     washes the accent out entirely on tablets. */
+  filter: blur(70px);
+}
+
+.vx-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.055;
+  background-image: var(--vox-grain);
+}
+
+/* Page content sits above atmosphere but below grain. */
+.vx-layer {
+  position: relative;
+  z-index: 2;
+}
+
+/*
+ * Top rim-light. This is what separates a glass surface from the canvas —
+ * not a glow. Applied via ::before so it inherits the host's border-radius
+ * and never interferes with the element's own background.
+ */
+.vx-rim {
+  position: relative;
+}
+
+.vx-rim::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--vox-rim-light);
+}
+
 /** Host-only variables for sheet modal; inner layout is in `exercise-editor-modal.component.scss`
  *  (global selectors cannot pierce ion-modal shadow for `.vbs-shell`, etc.). No box-shadow per the
  *  Linear-inspired system — hierarchy comes from a subtle top hairline border instead. */

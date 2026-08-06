@@ -3,11 +3,14 @@
  * Capacitor WebView). Only the weights actually used are imported.
  */
 
-/* Inter — display + body voice (500/600/700 per Linear's weight ceiling) */
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
+/* Poppins — display + body voice. Display headings sit at 600, not 700:
+   the lighter weight is what keeps this out of mass-market fitness register. */
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
 
-/* JetBrains Mono — numeric/stat display (reps, weights, macros) */
+/* JetBrains Mono — numeric/stat display (reps, weights, macros).
+   Retained deliberately from the previous system: it is VoxFit's data DNA. */
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";

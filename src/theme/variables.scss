@@ -1,51 +1,150 @@
 /**
- * VoxFit design tokens — Linear-inspired dark system.
- * Canvas + 4-step surface ladder, single scarce lavender-blue accent,
- * hairline borders instead of shadows. See DESIGN-linear.app.md for source.
+ * VoxFit design tokens — "Dusk" system (v2 redesign).
+ *
+ * Replaces the Linear-inspired flat system. Three structural changes:
+ *   1. Depth instead of flatness — gradient canvas + blurred colour blobs
+ *      + a fine grain overlay.
+ *   2. Role-assigned accents — periwinkle = brand/voice/action,
+ *      jade = affirmative, apricot = streak, rose = notes.
+ *      An accent is never chosen because it looks nice in that spot.
+ *   3. Glass surfaces with a top rim-light, not opaque greys.
+ *
+ * Restraint is deliberate. Accents are desaturated, glows are faint, and a
+ * rim-light does the work a neon halo would. The product is a personal
+ * instrument used mid-set, not a marketplace competing for attention — it
+ * should feel closer to Whoop or Oura than to a gym-class app.
+ *
+ * The legacy alias block near the bottom is load-bearing: existing screens
+ * consume those names. Keep it until every page is migrated.
  * https://ionicframework.com/docs/theming/
  */
 
 :root {
-  /* ---- Canvas + surface ladder ---- */
-  --vox-canvas: #0a0a0c;
-  --vox-surface-1: #101113;
-  --vox-surface-2: #16171a;
-  --vox-surface-3: #1b1c1f;
-  --vox-surface-4: #212226;
+  /* ================================================================
+   * CANVAS — deep plum-ink. Warmer and darker than a blue-indigo.
+   * ================================================================ */
+  --vox-canvas: #0c0a14;
+  --vox-canvas-deep: #0c0a14;
+  --vox-canvas-mid: #151024;
+  --vox-canvas-violet: #1e1735;
 
-  --vox-border-hairline: #26272c;
-  --vox-border-hairline-strong: #35363c;
-  --vox-border-hairline-tertiary: #3f4046;
+  /* Default page gradient. Pages may retune the stops but must keep the
+     same three-stop structure so screens feel related. */
+  /* stylelint-disable-next-line -- kept on one line: Sass preserves newlines
+     inside custom-property values, which some WebView versions reject. */
+  --vox-canvas-gradient: linear-gradient(180deg, #17122c 0%, #121020 40%, #0c0a14 70%, #150f22 100%);
 
-  /* ---- Ink scale ---- */
-  --vox-ink: #f7f8f8;
-  --vox-ink-muted: #d0d6e0;
-  --vox-ink-subtle: #8a8f98;
-  --vox-ink-tertiary: #62666d;
+  /* ================================================================
+   * SURFACES — glass, not opaque greys
+   * ================================================================ */
+  --vox-surface-1: rgba(255, 255, 255, 0.07);
+  --vox-surface-2: rgba(255, 255, 255, 0.11);
+  --vox-surface-3: rgba(255, 255, 255, 0.15);
+  --vox-surface-4: rgba(255, 255, 255, 0.19);
 
-  /* ---- Accent — scarce lavender-blue. CTA / focus ring / active tab / brand only. ---- */
-  --vox-primary: #5e6ad2;
-  --vox-primary-hover: #828fff;
-  --vox-primary-focus: #5e69d1;
-  --vox-primary-dim: rgba(94, 106, 210, 0.16);
+  /* Opaque fallbacks — where stacking translucency goes muddy
+     (nested cards, sticky headers over scrolling content). */
+  --vox-surface-solid-1: #151024;
+  --vox-surface-solid-2: #1c1734;
+  --vox-surface-solid-3: #241c4e;
 
-  /* ---- Semantic (muted so they never compete with the single accent) ---- */
-  --vox-success: #27a644;
-  --vox-success-dim: rgba(39, 166, 68, 0.14);
-  --vox-warning: #d4a72c;
-  --vox-warning-dim: rgba(212, 167, 44, 0.14);
-  --vox-danger: #e5484d;
-  --vox-danger-dim: rgba(229, 72, 77, 0.14);
+  --vox-border-hairline: rgba(255, 255, 255, 0.1);
+  --vox-border-hairline-strong: rgba(255, 255, 255, 0.16);
+  --vox-border-hairline-tertiary: rgba(255, 255, 255, 0.22);
 
-  /* ---- Radii ---- */
-  --vox-radius-xs: 4px;
-  --vox-radius-sm: 6px;
-  --vox-radius-md: 8px;
-  --vox-radius-lg: 12px;
-  --vox-radius-xl: 16px;
+  /* Top rim-light on cards. Same job a glow would do — separating a surface
+     from the canvas — done quietly. */
+  --vox-rim-light: linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 42%);
+
+  /* Fine grain overlay. Breaks the flat-gradient look; apply at ~0.055
+     opacity over the canvas, below content. */
+  --vox-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+
+  /* ================================================================
+   * INK
+   * ================================================================ */
+  --vox-ink: #ffffff;
+  --vox-ink-muted: rgba(255, 255, 255, 0.78);
+  --vox-ink-subtle: rgba(255, 255, 255, 0.62);
+  --vox-ink-tertiary: rgba(255, 255, 255, 0.38);
+
+  /* ================================================================
+   * ACCENTS — each has ONE job.
+   * ================================================================ */
+
+  /* PERIWINKLE — the brand. Voice orb, primary CTA, active tab, AI output.
+     This is the original VoxFit lavender, brightened — identity reclaimed
+     rather than borrowed. */
+  --vox-brand: #8b80f0;
+  --vox-brand-bright: #9a8ff5;
+  --vox-brand-deep: #6559c8;
+  --vox-brand-text: #a79ef5;
+  --vox-brand-dim: rgba(139, 128, 240, 0.18);
+  --vox-brand-border: rgba(139, 128, 240, 0.42);
+  --vox-brand-gradient: linear-gradient(90deg, #7c6fe8, #6355d4);
+  --vox-brand-gradient-orb: linear-gradient(150deg, #9a8ff5 0%, #7c6fe8 45%, #5a4cc4 100%);
+  --vox-on-brand: #ffffff;
+
+  /* JADE — affirmative: selected, completed, positive delta, success,
+     current-best markers. Desaturated on purpose — a quiet confirmation
+     colour, not a highlighter. */
+  --vox-jade: #3fb68f;
+  --vox-jade-bright: #55c9a2;
+  --vox-jade-deep: #2e8f70;
+  --vox-jade-text: #5fc7a2;
+  --vox-jade-dim: rgba(63, 182, 143, 0.16);
+  --vox-jade-border: rgba(63, 182, 143, 0.38);
+  --vox-jade-gradient: linear-gradient(90deg, #55c9a2, #3fb68f);
+  --vox-on-jade: #08251c;
+
+  /* APRICOT — streak, calories, PRs, gentle urgency. */
+  --vox-apricot: #e8a055;
+  --vox-apricot-bright: #f0b26b;
+  --vox-apricot-text: #edbe8a;
+  --vox-apricot-dim: rgba(232, 160, 85, 0.2);
+  --vox-apricot-border: rgba(232, 160, 85, 0.45);
+  --vox-apricot-gradient: linear-gradient(90deg, #f0b26b, #d98a4a);
+  --vox-on-apricot: #2e1b06;
+
+  /* ROSE — physical notes, destructive actions.
+     NOTE: rose is deliberately NOT an alert red. Physical-flag UI must stay
+     observational per the AI Coach PRD framing. */
+  --vox-rose: #d97567;
+  --vox-rose-text: #e08d80;
+  --vox-rose-dim: rgba(217, 117, 103, 0.16);
+  --vox-rose-border: rgba(217, 117, 103, 0.3);
+
+  /* SLATE BLUE — secondary data series (carbs, comparison bars). */
+  --vox-slate: #6b92d6;
+  --vox-slate-deep: #557ab8;
+  --vox-slate-dim: rgba(107, 146, 214, 0.16);
+
+  /* ================================================================
+   * SEMANTIC — mapped onto the accent roles above
+   * ================================================================ */
+  --vox-success: var(--vox-jade);
+  --vox-success-dim: var(--vox-jade-dim);
+  --vox-warning: var(--vox-apricot);
+  --vox-warning-dim: var(--vox-apricot-dim);
+  --vox-danger: var(--vox-rose);
+  --vox-danger-dim: var(--vox-rose-dim);
+
+  /* ================================================================
+   * RADII
+   * ================================================================ */
+  --vox-radius-xs: 6px;
+  --vox-radius-sm: 10px;
+  --vox-radius-md: 14px;
+  --vox-radius-lg: 17px;
+  --vox-radius-xl: 18px;
+  --vox-radius-2xl: 22px;
+  --vox-radius-card: 18px;
+  --vox-radius-tile: 17px;
   --vox-radius-pill: 9999px;
 
-  /* ---- Spacing (4px base unit) ---- */
+  /* ================================================================
+   * SPACING (4px base — unchanged)
+   * ================================================================ */
   --vox-space-xxs: 4px;
   --vox-space-xs: 8px;
   --vox-space-sm: 12px;
@@ -55,80 +154,126 @@
   --vox-space-xxl: 48px;
   --vox-space-section: 96px;
 
-  /* ---- Typography ---- */
-  --vox-font-display: 'Inter', -apple-system, system-ui, sans-serif;
-  --vox-font-text: 'Inter', -apple-system, system-ui, sans-serif;
-  --vox-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* ================================================================
+   * ELEVATION — restrained. The rim-light separates surfaces; shadows only
+   * lift genuinely floating elements. Coloured glows are faint.
+   * ================================================================ */
+  --vox-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --vox-shadow-brand: 0 6px 18px rgba(139, 128, 240, 0.18);
+  --vox-shadow-jade: 0 6px 16px rgba(63, 182, 143, 0.14);
+  --vox-shadow-apricot: 0 6px 16px rgba(232, 160, 85, 0.16);
+  /* The single permitted halo — orb only. */
+  --vox-glow-orb: 0 0 0 6px rgba(139, 128, 240, 0.07), 0 0 26px rgba(139, 128, 240, 0.25);
 
-  /* ---------------------------------------------------------------------
-   * Legacy aliases — kept so existing screens keep rendering correctly
-   * while Phase 2 migrates each page to the new tokens/components one by
-   * one. Remove once every consumer below has been migrated.
-   * ------------------------------------------------------------------- */
+  /* ================================================================
+   * TYPOGRAPHY
+   * Poppins replaces Inter for display/UI. Headlines sit at 600, not 700 —
+   * the lighter weight is what separates this from the shouty register of
+   * mass-market fitness apps. JetBrains Mono is RETAINED for all numerics:
+   * VoxFit's data DNA and the one thing kept from the old system.
+   * ================================================================ */
+  --vox-font-display: 'Poppins', -apple-system, system-ui, sans-serif;
+  --vox-font-text: 'Poppins', -apple-system, system-ui, sans-serif;
+  --vox-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --vox-weight-display: 600;
+  --vox-weight-numeric: 700;
+  --vox-tracking-display: -0.014em;
+
+  /* ================================================================
+   * MOTION
+   * ================================================================ */
+  --vox-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --vox-dur-fast: 150ms;
+  --vox-dur: 260ms;
+  --vox-dur-slow: 420ms;
+
+  /* ================================================================
+   * LEGACY ALIASES — load-bearing. Existing screens consume these. They
+   * resolve to the new palette so unmigrated pages pick up the new colours
+   * instead of looking half-updated. Delete an alias only after grepping
+   * that nothing references it.
+   * ================================================================ */
   --vox-bg-tertiary: var(--vox-canvas);
-  --vox-bg-secondary: var(--vox-surface-1);
-  --vox-bg-primary: var(--vox-surface-2);
-  --vox-surface: var(--vox-surface-3);
+  --vox-bg-secondary: var(--vox-surface-solid-1);
+  --vox-bg-primary: var(--vox-surface-solid-2);
+  --vox-surface: var(--vox-surface-1);
   --vox-border-subtle: var(--vox-border-hairline);
   --vox-border-medium: var(--vox-border-hairline-strong);
 
-  --vox-accent: var(--vox-primary);
-  --vox-accent-dim: var(--vox-primary-dim);
-  --vox-green: var(--vox-success);
-  --vox-green-dim: var(--vox-success-dim);
-  --vox-orange: var(--vox-warning);
-  --vox-orange-dim: var(--vox-warning-dim);
-  --vox-rose: var(--vox-danger);
-  --vox-rose-dim: var(--vox-danger-dim);
+  --vox-primary: var(--vox-brand);
+  --vox-primary-hover: var(--vox-brand-bright);
+  --vox-primary-focus: var(--vox-brand-deep);
+  --vox-primary-dim: var(--vox-brand-dim);
+
+  --vox-accent: var(--vox-brand);
+  --vox-accent-dim: var(--vox-brand-dim);
+  --vox-green: var(--vox-jade);
+  --vox-green-dim: var(--vox-jade-dim);
+  --vox-orange: var(--vox-apricot);
+  --vox-orange-dim: var(--vox-apricot-dim);
 
   --vox-text-muted: var(--vox-ink-muted);
   --vox-text-hint: var(--vox-ink-tertiary);
-
-  /* ---- Ionic mapping ---- */
-  --ion-background-color: var(--vox-canvas);
-  --ion-background-color-rgb: 10, 10, 12;
-  --ion-text-color: var(--vox-ink);
-  --ion-text-color-rgb: 247, 248, 248;
-  --ion-toolbar-background: var(--vox-surface-1);
-  --ion-item-background: var(--vox-surface-2);
-  --ion-card-background: var(--vox-surface-3);
-  --ion-border-color: var(--vox-border-hairline);
-
-  --ion-color-primary: var(--vox-primary);
-  --ion-color-primary-rgb: 94, 106, 210;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: var(--vox-primary-focus);
-  --ion-color-primary-tint: var(--vox-primary-hover);
-
-  --ion-color-secondary: #64748b;
-  --ion-color-secondary-rgb: 100, 116, 139;
-
-  --ion-color-medium: var(--vox-ink-subtle);
-  --ion-color-medium-rgb: 138, 143, 152;
-
-  --ion-color-success: var(--vox-success);
-  --ion-color-success-rgb: 39, 166, 68;
-
-  --ion-color-warning: var(--vox-warning);
-  --ion-color-warning-rgb: 212, 167, 44;
-
-  --ion-color-danger: var(--vox-danger);
-  --ion-color-danger-rgb: 229, 72, 77;
 }
 
+/* ==================================================================
+ * IONIC BRIDGE — Ionic components read --ion-* vars. Without these,
+ * ion-content/ion-toolbar keep painting the old flat background.
+ *
+ * The handoff token file only carried the primary/background/text set.
+ * The rest below are retained from the previous system because they are
+ * still consumed: `--ion-color-medium` by global.scss's input placeholder
+ * rule and a `color="medium"` template binding, `--ion-color-danger` by a
+ * `color="danger"` binding, and the remainder by Ionic component internals.
+ * ================================================================== */
+:root {
+  --ion-background-color: #0c0a14;
+  --ion-background-color-rgb: 12, 10, 20;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+
+  --ion-color-primary: #8b80f0;
+  --ion-color-primary-rgb: 139, 128, 240;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #6559c8;
+  --ion-color-primary-tint: #9a8ff5;
+
+  --ion-toolbar-background: transparent;
+  --ion-item-background: transparent;
+  --ion-card-background: var(--vox-surface-solid-2);
+  --ion-border-color: var(--vox-border-hairline);
+
+  --ion-color-secondary: #6b92d6;
+  --ion-color-secondary-rgb: 107, 146, 214;
+
+  --ion-color-medium: rgba(255, 255, 255, 0.62);
+  --ion-color-medium-rgb: 255, 255, 255;
+
+  --ion-color-success: #3fb68f;
+  --ion-color-success-rgb: 63, 182, 143;
+
+  --ion-color-warning: #e8a055;
+  --ion-color-warning-rgb: 232, 160, 85;
+
+  --ion-color-danger: #d97567;
+  --ion-color-danger-rgb: 217, 117, 103;
+}
+
+/* `dark.always.css` is imported in global.scss, so this palette class is
+   always active and must be retargeted alongside :root. */
 .ion-palette-dark,
 .ion-palette-dark.ios,
 .ion-palette-dark.md {
   --ion-background-color: var(--vox-canvas);
   --ion-text-color: var(--vox-ink);
-  --ion-toolbar-background: var(--vox-surface-1);
-  --ion-item-background: var(--vox-surface-2);
-  --ion-card-background: var(--vox-surface-3);
+  --ion-toolbar-background: transparent;
+  --ion-item-background: transparent;
+  --ion-card-background: var(--vox-surface-solid-2);
 }
 
 ion-tab-bar {
-  --background: rgba(16, 17, 19, 0.94);
+  --background: rgba(12, 10, 20, 0.92);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--vox-border-hairline);
   /*
@@ -140,6 +285,21 @@ ion-tab-bar {
   will-change: transform;
 }
 
+/*
+ * The canvas gradient lives on `ion-app` (see global.scss) so it spans the
+ * whole viewport including the toolbar strip — painting it on ion-content
+ * instead restarts the gradient below the header and cuts a visible seam.
+ * ion-content is therefore transparent by default; pages layer their own
+ * `.vx-atmo` blobs over the shared gradient.
+ */
 ion-content {
-  --background: var(--vox-canvas);
+  --background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vox-dur-fast: 1ms;
+    --vox-dur: 1ms;
+    --vox-dur-slow: 1ms;
+  }
 }

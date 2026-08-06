@@ -26,15 +26,20 @@
     opacity 0.15s ease;
 }
 
+/*
+ * The primary fill uses the deeper `--vox-brand-gradient` (#7c6fe8 → #6355d4),
+ * not the lighter orb gradient: white text only clears contrast on the
+ * deeper ramp. See the contrast note in variables.scss.
+ */
 .vox-btn-primary {
   min-height: 3rem;
   padding: 0.875rem 1.25rem;
-  background: var(--vox-primary);
-  color: #ffffff;
+  background: var(--vox-brand-gradient);
+  color: var(--vox-on-brand);
 }
 
 .vox-btn-primary:active {
-  background: var(--vox-primary-focus);
+  background: var(--vox-brand-deep);
 }
 
 .vox-btn-primary[disabled],

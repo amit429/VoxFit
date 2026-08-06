@@ -45,6 +45,25 @@
   --color-primary-focus: var(--vox-primary-focus);
   --color-primary-dim: var(--vox-primary-dim);
 
+  /* Role-assigned accents (Dusk system). Periwinkle = brand/voice/action,
+     jade = affirmative, apricot = streak/PR, rose = notes/destructive,
+     slate = secondary data series. Never pick one because it looks nice. */
+  --color-brand: var(--vox-brand);
+  --color-brand-bright: var(--vox-brand-bright);
+  --color-brand-text: var(--vox-brand-text);
+  --color-brand-dim: var(--vox-brand-dim);
+  --color-jade: var(--vox-jade);
+  --color-jade-text: var(--vox-jade-text);
+  --color-jade-dim: var(--vox-jade-dim);
+  --color-apricot: var(--vox-apricot);
+  --color-apricot-text: var(--vox-apricot-text);
+  --color-apricot-dim: var(--vox-apricot-dim);
+  --color-rose: var(--vox-rose);
+  --color-rose-text: var(--vox-rose-text);
+  --color-rose-dim: var(--vox-rose-dim);
+  --color-slate: var(--vox-slate);
+  --color-slate-dim: var(--vox-slate-dim);
+
   --color-success: var(--vox-success);
   --color-success-dim: var(--vox-success-dim);
   --color-warning: var(--vox-warning);
@@ -57,6 +76,9 @@
   --radius-md: var(--vox-radius-md);
   --radius-lg: var(--vox-radius-lg);
   --radius-xl: var(--vox-radius-xl);
+  --radius-2xl: var(--vox-radius-2xl);
+  --radius-card: var(--vox-radius-card);
+  --radius-tile: var(--vox-radius-tile);
   --radius-pill: var(--vox-radius-pill);
 
   --font-display: var(--vox-font-display);
@@ -141,8 +163,17 @@ app-root {
   height: 100%;
 }
 
+/*
+ * The canvas gradient is painted once, here, on the app shell — so it spans
+ * the full viewport including the toolbar and tab-bar strips. ion-content is
+ * transparent (variables.scss) and pages layer `.vx-atmo` blobs on top.
+ * Painting it per-ion-content instead restarts the ramp below each header
+ * and leaves a visible seam.
+ */
 ion-app {
   height: 100%;
+  background: var(--vox-canvas-gradient);
+  background-attachment: fixed;
 }
 
 /* Stacked labels + dark theme: keep control text readable inside shadow parts */

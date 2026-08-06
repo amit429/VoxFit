@@ -6,7 +6,7 @@
  */
 
 .auth-flow {
-  --background: var(--vox-canvas);
+  --background: transparent;
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
@@ -31,12 +31,12 @@
   padding-top: 1.25rem;
 }
 
-/* Toolbar: subtle surface tier + hairline so it reads as a distinct band
-   above the canvas, without a shadow. */
+/* Toolbar sits directly on the canvas gradient — no band, no hairline. In the
+   Dusk system the gradient itself is the backdrop; a surface tier here would
+   cut a visible seam across it. */
 .auth-toolbar {
-  --background: var(--vox-surface-1);
-  --border-width: 0 0 1px 0;
-  --border-color: var(--vox-border-hairline);
+  --background: transparent;
+  --border-width: 0;
   padding-top: max(0.25rem, env(safe-area-inset-top));
 }
 

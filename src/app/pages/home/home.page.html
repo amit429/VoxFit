@@ -100,7 +100,7 @@
         <div class="grid grid-cols-2 gap-3">
           @for (tile of macroTiles(); track tile.label) {
             <div class="rounded-lg bg-surface-2 p-4 ring-1 ring-hairline">
-              <p class="m-0 vx-text-6 uppercase tracking-wide text-ink-subtle">{{ tile.label }}</p>
+              <p class="m-0 vx-text-9 uppercase tracking-wide text-ink-subtle">{{ tile.label }}</p>
               <p class="m-0 mt-2 font-mono text-sm" [class.text-primary]="tile.accent" [class.text-ink]="!tile.accent">
                 {{ tile.value }}
                 @if (tile.unit) {
