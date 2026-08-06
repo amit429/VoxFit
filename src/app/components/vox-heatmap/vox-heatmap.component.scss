@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.hm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  margin-bottom: 12px;
+}
+
+.hm-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.hm-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.59375rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.hm-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.hm-grid {
+  display: flex;
+  gap: 2.5px;
+}
+
+.hm-col {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2.5px;
+}
+
+.hm-cell {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 2px;
+}
+
+/* Today gets a ring rather than a different fill, so it stays readable at
+   whatever intensity the day has actually reached. */
+.hm-cell--today {
+  box-shadow: 0 0 0 1.5px var(--vox-brand-border);
+}

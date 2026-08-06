@@ -1,0 +1,27 @@
+<div class="sr">
+  @if (emoji()) {
+    <span class="sr-icon" [style.background]="iconTint()" aria-hidden="true">{{ emoji() }}</span>
+  }
+  <span class="sr-label">{{ label() }}</span>
+  <div class="sr-controls">
+    <button
+      type="button"
+      class="sr-btn"
+      [disabled]="atMin()"
+      (click)="bump(-1)"
+      [attr.aria-label]="'Decrease ' + label()"
+    >
+      −
+    </button>
+    <span class="sr-value">{{ value() }}<span class="sr-unit">{{ unit() }}</span></span>
+    <button
+      type="button"
+      class="sr-btn sr-btn--add"
+      [disabled]="atMax()"
+      (click)="bump(1)"
+      [attr.aria-label]="'Increase ' + label()"
+    >
+      +
+    </button>
+  </div>
+</div>

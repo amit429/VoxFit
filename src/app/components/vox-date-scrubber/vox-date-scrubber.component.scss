@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.ds {
+  display: flex;
+  gap: 6px;
+}
+
+.ds-day {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 9px 0;
+  border: 1px solid transparent;
+  border-radius: var(--vox-radius-md);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--vox-dur-fast) var(--vox-ease);
+}
+
+.ds-weekday {
+  font-size: 0.59375rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.ds-num {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  color: var(--vox-ink-subtle);
+}
+
+/* Selected: brand tint + border. Today, when not selected, gets the same
+   treatment at lower weight so both states can be read at once. */
+.ds-day--today {
+  background: var(--vox-brand-dim);
+  border-color: var(--vox-brand-border);
+}
+
+.ds-day--today .ds-weekday {
+  color: var(--vox-brand-text);
+}
+
+.ds-day--today .ds-num {
+  color: var(--vox-ink);
+}
+
+.ds-day--sel {
+  background: linear-gradient(150deg, #7c6fe8, #5a4cc4);
+  border-color: transparent;
+}
+
+.ds-day--sel .ds-weekday,
+.ds-day--sel .ds-num {
+  color: var(--vox-on-brand);
+  font-weight: 700;
+}
+
+.ds-day--future {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ds-day:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-day {
+    transition: none;
+  }
+}

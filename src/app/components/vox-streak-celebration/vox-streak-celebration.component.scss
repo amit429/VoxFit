@@ -1,0 +1,174 @@
+/*
+ * Full-bleed celebration. Layout lives in this component file rather than
+ * vox-ui.scss because global selectors cannot pierce ion-modal's shadow root.
+ */
+
+.sc {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #201735 0%, #18122c 35%, #1d1428 70%, #241a2c 100%);
+}
+
+.sc-atmo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+}
+
+.sc-blob--1 {
+  width: 340px;
+  height: 340px;
+  top: 60px;
+  left: 20px;
+  background: rgba(232, 160, 85, 0.27);
+}
+
+.sc-blob--2 {
+  width: 300px;
+  height: 240px;
+  top: 280px;
+  right: -90px;
+  background: rgba(217, 117, 103, 0.23);
+}
+
+.sc-blob--3 {
+  width: 260px;
+  height: 200px;
+  bottom: -30px;
+  left: -70px;
+  background: rgba(139, 128, 240, 0.21);
+}
+
+.sc-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: max(12px, env(safe-area-inset-top)) 20px calc(26px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+}
+
+.sc-close-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sc-close {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: var(--vox-surface-1);
+  cursor: pointer;
+}
+
+.sc-hero {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sc-flame {
+  margin: 0;
+  font-size: 5.625rem;
+  line-height: 1;
+}
+
+.sc-count {
+  margin: 14px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.018em;
+  color: var(--vox-ink);
+  /* The one text glow in the system, and only on this moment. */
+  text-shadow: 0 0 25px rgba(232, 160, 85, 0.25);
+}
+
+.sc-unit {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--vox-apricot-text);
+}
+
+.sc-headline {
+  margin: 26px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.4375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--vox-ink);
+  white-space: pre-line;
+}
+
+.sc-sub {
+  max-width: 280px;
+  margin: 11px 0 0;
+  font-size: 0.84375rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}
+
+.sc-dots {
+  display: flex;
+  gap: 9px;
+  margin-top: 30px;
+}
+
+.sc-dot {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sc-dot--done {
+  border: 0;
+  background: linear-gradient(140deg, var(--vox-apricot), #d9834a);
+  /* White on apricot fails contrast; this is the assigned ink. */
+  color: var(--vox-on-apricot);
+}
+
+/* The most recent completed day reads jade — today's confirmation. */
+.sc-dot--today {
+  background: linear-gradient(140deg, var(--vox-jade-bright), var(--vox-jade-deep));
+  color: var(--vox-on-jade);
+}
+
+.sc-cta {
+  width: 100%;
+  min-height: 48px;
+  padding: 16px;
+  border: 0;
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-apricot-gradient);
+  color: var(--vox-on-apricot);
+  font-family: var(--vox-font-text);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}

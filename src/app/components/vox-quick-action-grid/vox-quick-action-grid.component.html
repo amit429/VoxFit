@@ -1,0 +1,10 @@
+<nav class="qa">
+  @for (action of actions(); track action.link) {
+    <a class="qa-item" [routerLink]="action.link" routerDirection="forward">
+      <span class="qa-tile" [class]="'qa-tile--' + action.tone">
+        <vox-icon [name]="action.icon" size="lg" tone="inherit" />
+      </span>
+      <span class="qa-label">{{ action.label[0] }}<br />{{ action.label[1] }}</span>
+    </a>
+  }
+</nav>

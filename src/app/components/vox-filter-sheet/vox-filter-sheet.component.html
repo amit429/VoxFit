@@ -1,0 +1,44 @@
+<ion-modal
+  class="vox-bottom-sheet"
+  [isOpen]="isOpen()"
+  [breakpoints]="[0, 1]"
+  [initialBreakpoint]="1"
+  (ionModalDidDismiss)="onDismiss()"
+>
+  <ng-template>
+    <div class="fs">
+      <span class="fs-grabber" aria-hidden="true"></span>
+
+      <div class="fs-head">
+        <h2 class="fs-title">Filter sessions</h2>
+        <button type="button" class="fs-reset" [disabled]="!isDirty()" (click)="reset()">
+          Reset
+        </button>
+      </div>
+
+      <p class="vox-eyebrow fs-eyebrow">Mood</p>
+      <div class="fs-chips">
+        @for (mood of moodOptions; track mood.id) {
+          <button type="button" class="fs-chip" (click)="toggleMood(mood.id)">
+            <vox-badge [tone]="isMoodOn(mood.id) ? 'jade' : 'neutral'">{{ mood.label }}</vox-badge>
+          </button>
+        }
+      </div>
+
+      <p class="vox-eyebrow fs-eyebrow">Has</p>
+      <div class="fs-chips">
+        <button type="button" class="fs-chip" (click)="togglePrs()">
+          <vox-badge [tone]="current().prsOnly ? 'apricot' : 'neutral'">🏆 PRs only</vox-badge>
+        </button>
+        <button type="button" class="fs-chip" (click)="toggleNotes()">
+          <vox-badge [tone]="current().notesOnly ? 'rose' : 'neutral'">Notes</vox-badge>
+        </button>
+      </div>
+
+      <div class="fs-actions">
+        <button type="button" class="fs-cancel" (click)="onDismiss()">Cancel</button>
+        <button type="button" class="fs-apply" (click)="onApply()">{{ ctaLabel() }}</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

@@ -77,6 +77,11 @@ export const routes: Routes = [
     loadComponent: () => import('@/app/pages/settings/settings.page').then((m) => m.SettingsPage),
   },
   {
+    // TEMP: component gallery for the UI revamp. Remove before merge.
+    path: 'gallery',
+    loadComponent: () => import('@/app/pages/gallery/gallery.page').then((m) => m.GalleryPage),
+  },
+  {
     path: 'tabs',
     loadComponent: () => import('@/app/pages/tabs/tabs.page').then((m) => m.TabsPage),
     canActivate: [authGuard, onboardingCompleteGuard],

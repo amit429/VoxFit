@@ -1,0 +1,22 @@
+<div
+  class="orb-wrap"
+  [ngClass]="['orb-wrap--' + size(), 'orb-wrap--' + state()]"
+  role="img"
+  [attr.aria-label]="label()"
+>
+  <span class="orb-ring orb-ring--3" aria-hidden="true"></span>
+  <span class="orb-ring orb-ring--2" aria-hidden="true"></span>
+  <span class="orb-ring orb-ring--1" aria-hidden="true"></span>
+
+  <span class="orb" aria-hidden="true">
+    @if (state() === 'listening') {
+      <span class="orb-wave">
+        @for (bar of waveBars; track $index) {
+          <i [style.height.px]="bar.height" [style.animationDelay]="bar.delay"></i>
+        }
+      </span>
+    } @else {
+      <vox-icon name="mic-outline" [size]="size() === 'lg' ? 'xl' : 'lg'" tone="inherit" />
+    }
+  </span>
+</div>

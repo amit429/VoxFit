@@ -132,6 +132,68 @@
   background: var(--vox-rim-light);
 }
 
+/* ==================================================================
+ * SHARED PATTERNS
+ * Small recurring pieces that appear across several components. They live
+ * here rather than being duplicated per component, but each is deliberately
+ * a single visual idea — not a kitchen-sink utility layer.
+ * ================================================================== */
+
+/*
+ * The AI mark: a periwinkle gradient tile behind a sparkle glyph, used
+ * wherever content is model-authored (coach note, plan rationale, nudge).
+ * Periwinkle here is doing its assigned job of flagging AI output.
+ */
+.vox-ai-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(140deg, var(--vox-brand), var(--vox-brand-deep));
+  color: var(--vox-on-brand);
+}
+
+.vox-ai-mark--lg {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+}
+
+.vox-ai-mark--sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+}
+
+/* Small uppercase tracked label sitting above a title. */
+.vox-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+/*
+ * Thin progress track — macros, plan completion, muscle share. The fill is a
+ * child element so callers set width and colour inline from live data.
+ */
+.vox-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.vox-track > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--vox-dur) var(--vox-ease);
+}
+
 /** Host-only variables for sheet modal; inner layout is in `exercise-editor-modal.component.scss`
  *  (global selectors cannot pierce ion-modal shadow for `.vbs-shell`, etc.). No box-shadow per the
  *  Linear-inspired system — hierarchy comes from a subtle top hairline border instead. */
@@ -143,6 +205,14 @@ ion-modal.vox-bottom-sheet {
 
 ion-modal.vox-bottom-sheet::part(content) {
   border-top: 1px solid var(--vox-border-hairline-strong);
+}
+
+/* Full-screen celebration modal — no rounding, no backdrop tint to fight the
+   gradient underneath. Inner layout is in the component's own stylesheet. */
+ion-modal.vox-streak-modal {
+  --border-radius: 0;
+  --box-shadow: none;
+  --backdrop-opacity: 0.6;
 }
 
 /* Horizontally-scrolling chip rows (filters, meal-type tabs) — keep the

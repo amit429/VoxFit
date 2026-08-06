@@ -1,0 +1,108 @@
+:host {
+  display: block;
+}
+
+.tc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  margin-bottom: 12px;
+}
+
+.tc-title {
+  margin: 0;
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.tc-sub {
+  margin: 1px 0 0;
+  font-size: 0.65625rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.tc-headline {
+  flex-shrink: 0;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--vox-jade);
+}
+
+.tc-svg {
+  display: block;
+  width: 100%;
+  height: 104px;
+}
+
+.tc-grid {
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/*
+ * Dots are stroked in the canvas colour rather than given a halo — it punches
+ * them out of the line without adding a glow the system doesn't allow.
+ */
+.tc-dot {
+  stroke: var(--vox-canvas);
+}
+
+.tc-dot--pr {
+  fill: var(--vox-apricot);
+  stroke-width: 2;
+}
+
+.tc-dot--best {
+  fill: var(--vox-jade);
+  stroke-width: 2.5;
+}
+
+.tc-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.59375rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.tc-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 11px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.tc-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tc-key {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tc-key--pr {
+  background: var(--vox-apricot);
+}
+
+.tc-key--best {
+  background: var(--vox-jade);
+}
+
+.tc-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}

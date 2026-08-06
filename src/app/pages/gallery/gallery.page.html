@@ -1,0 +1,146 @@
+<ion-content class="vox-standalone-page">
+  <div class="vx-atmo">
+    <span class="vx-blob" style="width: 300px; height: 300px; background: rgba(139,128,240,.3); top: -90px; left: -70px"></span>
+    <span class="vx-blob" style="width: 260px; height: 260px; background: rgba(63,182,143,.16); top: 400px; right: -100px"></span>
+  </div>
+  <div class="vx-grain"></div>
+
+  <main class="vx-layer space-y-8 pb-16 pt-4">
+    <p class="vox-eyebrow">Voice orb — idle / listening</p>
+    <div class="flex items-center gap-4">
+      <vox-voice-orb state="idle" />
+      <vox-voice-orb state="listening" />
+    </div>
+
+    <p class="vox-eyebrow">Streak pill — active / dormant / at-risk</p>
+    <div class="space-y-2">
+      <vox-streak-pill [days]="14" />
+      <vox-streak-pill [days]="0" />
+      <vox-streak-pill [days]="1" state="at-risk" />
+    </div>
+
+    <p class="vox-eyebrow">Stat tiles</p>
+    <div class="flex gap-2">
+      <vox-stat-tile value="4,120" label="Volume kg" tone="jade" />
+      <vox-stat-tile value="6" label="Exercises" />
+      <vox-stat-tile value="2" label="New PRs" tone="apricot" />
+    </div>
+
+    <p class="vox-eyebrow">Quick actions</p>
+    <vox-quick-action-grid [actions]="quickActions" />
+
+    <p class="vox-eyebrow">Cards — glass / brand / jade / apricot / rose</p>
+    <div class="space-y-2">
+      <vox-card><span class="text-sm text-ink">Glass (default)</span></vox-card>
+      <vox-card variant="brand"><span class="text-sm text-ink">Brand — AI output</span></vox-card>
+      <vox-card variant="jade"><span class="text-sm text-ink">Jade — affirmative</span></vox-card>
+      <vox-card variant="apricot"><span class="text-sm text-ink">Apricot — streak / PR</span></vox-card>
+      <vox-card variant="rose"><span class="text-sm text-ink">Rose — physical notes</span></vox-card>
+    </div>
+
+    <p class="vox-eyebrow">Chips</p>
+    <div class="flex flex-wrap gap-2">
+      <vox-badge>Neutral</vox-badge>
+      <vox-badge tone="jade">Selected</vox-badge>
+      <vox-badge tone="brand">AI generated</vox-badge>
+      <vox-badge tone="apricot">🏆 PR</vox-badge>
+      <vox-badge tone="rose">Note</vox-badge>
+      <vox-badge tone="apricot" size="xs">🏆 2</vox-badge>
+    </div>
+
+    <p class="vox-eyebrow">Plan banner — active / rest / none</p>
+    <div class="space-y-2">
+      <vox-plan-banner state="active" title="Leg Day · 3 exercises" meta="Week 2 of 6 · ~52 min" />
+      <vox-plan-banner state="rest-day" meta="Next: Pull Day tomorrow" />
+      <vox-plan-banner state="no-plan" meta="Build one from your last 8 weeks" />
+    </div>
+
+    <p class="vox-eyebrow">Progress nudge — three states</p>
+    <div class="space-y-2">
+      <vox-progress-nudge
+        state="check-in-ready"
+        title="Your 30-day check-in is ready"
+        detail="Volume up 18% · 3 notes worth a look"
+        ctaLabel="See my check-in"
+      />
+      <vox-progress-nudge
+        state="trending-up"
+        title="You're trending up"
+        detail="Best 4-week stretch since you started"
+        stat="+18%"
+      />
+      <vox-progress-nudge
+        state="recurring-note"
+        title="Knee came up 4 times"
+        detail="In your last 6 sessions — worth a look"
+      />
+    </div>
+
+    <p class="vox-eyebrow">Macro rings</p>
+    <vox-card>
+      <div class="flex justify-around">
+        <vox-macro-ring [value]="92" [target]="160" label="Protein" unit="g" tone="jade" />
+        <vox-macro-ring [value]="148" [target]="250" label="Carbs" unit="g" tone="slate" />
+        <vox-macro-ring [value]="41" [target]="65" label="Fat" unit="g" tone="apricot" />
+      </div>
+    </vox-card>
+
+    <p class="vox-eyebrow">Activity ring</p>
+    <vox-card padding="lg">
+      <vox-activity-ring [done]="4" [target]="5" caption="One more and you hit the target 🎯" />
+    </vox-card>
+
+    <p class="vox-eyebrow">Volume chart</p>
+    <vox-card>
+      <vox-volume-chart [bars]="volumeBars" total="12,480" [deltaPct]="18" />
+    </vox-card>
+
+    <p class="vox-eyebrow">Volume chart — empty</p>
+    <vox-card>
+      <vox-volume-chart [bars]="[]" />
+    </vox-card>
+
+    <p class="vox-eyebrow">Trend chart</p>
+    <vox-card>
+      <vox-trend-chart
+        [points]="trendPoints"
+        title="Barbell Squat"
+        subtitle="Top set · last 8 weeks"
+        headline="80 kg"
+      />
+    </vox-card>
+
+    <p class="vox-eyebrow">Heatmap</p>
+    <vox-card>
+      <vox-heatmap [cells]="heatCells" />
+    </vox-card>
+
+    <p class="vox-eyebrow">Badge shelf</p>
+    <vox-card>
+      <vox-badge-shelf [badges]="badges" />
+    </vox-card>
+
+    <p class="vox-eyebrow">Segmented + date scrubber</p>
+    <vox-segmented [segments]="segments" [value]="segment()" (valueChange)="segment.set($event)" />
+    <vox-card>
+      <vox-date-scrubber
+        [dayKeys]="weekKeys"
+        [selected]="scrubDay()"
+        (selectedChange)="scrubDay.set($event)"
+      />
+    </vox-card>
+
+    <p class="vox-eyebrow">Stepper rows</p>
+    <vox-card>
+      <vox-stepper-row
+        label="Calories"
+        emoji="🔥"
+        iconTint="rgba(232,160,85,.15)"
+        [value]="calories()"
+        [step]="50"
+        [max]="6000"
+        (valueChange)="calories.set($event)"
+      />
+    </vox-card>
+  </main>
+</ion-content>

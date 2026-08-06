@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+.ring {
+  text-align: center;
+}
+
+.ring-fill {
+  transition: stroke-dashoffset var(--vox-dur-slow) var(--vox-ease);
+}
+
+/* The percentage sits inside the ring, so it stays in the display face
+   rather than mono — it reads as a label, not a logged figure. */
+.ring-pct {
+  fill: var(--vox-ink);
+  font-family: var(--vox-font-display);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ring-label {
+  margin: 5px 0 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+/* The actual logged numbers stay mono — this is data. */
+.ring-figures {
+  margin: 2px 0 0;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-subtle);
+}
+
+.ring-unit {
+  color: var(--vox-ink-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill {
+    transition: none;
+  }
+}

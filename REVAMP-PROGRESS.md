@@ -99,7 +99,58 @@ and lint clean, and inherit the recolour through the legacy aliases. Verify at C
 
 ---
 
-## Phase 2 — Component primitives ⏳ not started
+## Phase 2 — Component primitives ✅
+
+**Checkpoint 2 met.** `npm run build` ✅ · `npm run lint` ✅ · 33/33 tests ✅ · every primitive
+eyeballed in isolation at 390px via the temporary `/gallery` route.
+
+### Updated
+
+| Component | Change |
+|---|---|
+| `vox-card` | Glass, 18px radius, rim-light. Variants `glass`\|`brand`\|`jade`\|`apricot`\|`rose`, plus an `interactive` input. Old `resting`/`raised`/`interactive` variants retired — call sites updated. |
+| `vox-badge` | Now the chip: pill by default, 30px, role-assigned tones. `success`/`warning`/`danger`/`accent` retained as aliases so existing call sites keep working. New `size` input (`md`\|`xs`). |
+| `vox-skeleton` | Shimmer over glass instead of an opacity pulse. |
+| `exercise-sets-preview-table` | Table → the mockup's `.setrow` pill list. Drops the horizontal scroller it needed at 390px; PR row highlights apricot. |
+| `session-exercise-review-card` | Coach note is now a `brand` card with the shared AI mark; stale `vox-card` variants and a broken `text-[1rem]` class fixed. |
+
+`vox-page-header` was left alone — it is auth-only per the convention in CLAUDE.md, and the
+auth screens already recolour correctly through the tokens.
+
+### New (17)
+
+`vox-voice-orb`, `vox-streak-pill`, `vox-stat-tile`, `vox-quick-action-grid`, `vox-plan-banner`,
+`vox-progress-nudge`, `vox-macro-ring`, `vox-activity-ring`, `vox-volume-chart`,
+`vox-trend-chart`, `vox-heatmap`, `vox-badge-shelf`, `vox-segmented`, `vox-date-scrubber`,
+`vox-filter-sheet`, `vox-stepper-row`, `vox-streak-celebration`.
+
+Plus two services: `badge.service.ts` (derives the shelf from live counts) and
+`streak-milestone.service.ts` (localStorage bookkeeping so a milestone celebrates once).
+
+Not built: `vox-muscle-map`, `vox-muscle-split` — Deferred #1.
+
+### Decisions worth carrying forward
+
+- **The card rim-light is a background layer, not a `::before`.** A positioned pseudo-element
+  paints above static content, and card content arrives through `ng-content` — it belongs to
+  the parent component, so emulated encapsulation gives no selector to lift it back on top.
+  As a background layer it is behind content by construction.
+- **Data-shaped interfaces went to `src/app/models/`** (`VoxQuickAction`, `VoxVolumeBar`,
+  `VoxTrendPoint`, `VoxSegment`, `VoxEarnedBadge`, `VoxSessionFilters`), re-exported through
+  the barrel, per the convention in CLAUDE.md. Component *variant unions* stay co-located,
+  matching how `VoxCardVariant` and `VoxIconTone` already work.
+- **Tap targets are grown with padding, not size.** `vox-stepper-row`'s buttons stay 26px
+  visually with `content-box` padding + negative margin to reach 44px; `vox-filter-sheet`'s
+  chips wrap `vox-badge` in a 44px-tall button.
+- **`--vox-on-jade` / `--vox-on-apricot` are used everywhere those fills appear** — segmented
+  control, plan-banner CTA, streak dots. White on either fails contrast badly.
+
+### Temporary
+
+`/gallery` (`src/app/pages/gallery/*` + its route in `app.routes.ts`) is a dev-only component
+gallery, unguarded, rendering static demo data only. Kept through Phase 3 as the fastest way
+to check primitives while migrating screens. **Delete it in Phase 5 before merge** — it is
+marked `TEMP` at the route.
 
 ## Phase 3 — Screen migration ⏳ not started
 

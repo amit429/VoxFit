@@ -62,3 +62,10 @@ export * from './progress-review-row.model';
 export * from './plan-nudge-content.model';
 export * from './plan-nudge-row.model';
 export * from './checkin-generate-result.model';
+
+export * from './vox-quick-action.model';
+export * from './vox-volume-bar.model';
+export * from './vox-trend-point.model';
+export * from './vox-segment.model';
+export * from './vox-earned-badge.model';
+export * from './vox-session-filters.model';

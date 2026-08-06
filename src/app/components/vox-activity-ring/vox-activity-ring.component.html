@@ -1,0 +1,32 @@
+<div class="ar">
+  <svg
+    width="160"
+    height="98"
+    viewBox="0 0 160 98"
+    role="img"
+    [attr.aria-label]="done() + ' of ' + target() + ' sessions this week'"
+  >
+    <path
+      [attr.d]="trackPath"
+      fill="none"
+      stroke="rgba(255,255,255,.13)"
+      stroke-width="11"
+      stroke-linecap="round"
+    />
+    <path
+      class="ar-fill"
+      [attr.d]="trackPath"
+      fill="none"
+      stroke="var(--vox-jade)"
+      stroke-width="11"
+      stroke-linecap="round"
+      [attr.stroke-dasharray]="arcLength"
+      [attr.stroke-dashoffset]="dashOffset()"
+    />
+    <text x="80" y="76" text-anchor="middle" class="ar-value">{{ done() }}/{{ target() }}</text>
+  </svg>
+  <p class="ar-label">Sessions this week</p>
+  @if (caption()) {
+    <p class="ar-caption">{{ caption() }}</p>
+  }
+</div>

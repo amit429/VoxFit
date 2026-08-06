@@ -1,0 +1,66 @@
+<div class="tc">
+  @if (title() || headline()) {
+    <div class="tc-head">
+      <div class="min-w-0">
+        <p class="tc-title">{{ title() }}</p>
+        @if (subtitle()) {
+          <p class="tc-sub">{{ subtitle() }}</p>
+        }
+      </div>
+      @if (headline()) {
+        <span class="tc-headline">{{ headline() }}</span>
+      }
+    </div>
+  }
+
+  @if (hasData()) {
+    <svg
+      class="tc-svg"
+      [attr.viewBox]="'0 0 ' + vbWidth + ' ' + vbHeight"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient [attr.id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--vox-jade)" stop-opacity=".34" />
+          <stop offset="100%" stop-color="var(--vox-jade)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+
+      @for (y of gridLines; track y) {
+        <line x1="0" [attr.y1]="y" [attr.x2]="vbWidth" [attr.y2]="y" class="tc-grid" />
+      }
+
+      <path [attr.d]="areaPath()" [attr.fill]="'url(#' + gradientId() + ')'" />
+      <path
+        [attr.d]="linePath()"
+        fill="none"
+        stroke="var(--vox-jade)"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        vector-effect="non-scaling-stroke"
+      />
+
+      @for (dot of prDots(); track $index) {
+        <circle [attr.cx]="dot.x" [attr.cy]="dot.y" r="4.5" class="tc-dot tc-dot--pr" />
+      }
+      @if (bestDot(); as best) {
+        <circle [attr.cx]="best.x" [attr.cy]="best.y" r="5.5" class="tc-dot tc-dot--best" />
+      }
+    </svg>
+
+    <div class="tc-axis">
+      @for (label of axisLabels(); track $index) {
+        <span>{{ label }}</span>
+      }
+    </div>
+
+    <div class="tc-legend">
+      <span><i class="tc-key tc-key--pr"></i>PR hit</span>
+      <span><i class="tc-key tc-key--best"></i>Current best</span>
+    </div>
+  } @else {
+    <p class="tc-empty">Log this lift a few more times and its trend will show up here.</p>
+  }
+</div>

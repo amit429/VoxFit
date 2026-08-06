@@ -1,0 +1,30 @@
+<div class="pn" [ngClass]="'pn--' + state()">
+  <div class="pn-row">
+    <span class="pn-mark" [ngClass]="'pn-mark--' + state()">
+      @switch (state()) {
+        @case ('check-in-ready') {
+          <vox-icon name="sparkles-outline" size="md" tone="inherit" />
+        }
+        @case ('trending-up') {
+          <vox-icon name="trending-up-outline" size="md" tone="inherit" />
+        }
+        @case ('recurring-note') {
+          <vox-icon name="chatbubble-ellipses-outline" size="md" tone="inherit" />
+        }
+      }
+    </span>
+    <span class="pn-body">
+      <span class="pn-title">{{ title() }}</span>
+      @if (detail()) {
+        <span class="pn-detail">{{ detail() }}</span>
+      }
+    </span>
+    @if (stat()) {
+      <span class="pn-stat">{{ stat() }}</span>
+    }
+  </div>
+
+  @if (ctaLabel()) {
+    <button type="button" class="pn-cta" (click)="action.emit()">{{ ctaLabel() }}</button>
+  }
+</div>

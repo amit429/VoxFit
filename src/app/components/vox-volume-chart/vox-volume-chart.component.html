@@ -1,0 +1,37 @@
+<div class="vc">
+  <div class="vc-head">
+    <span class="vc-eyebrow">{{ eyebrow() }}</span>
+    @if (deltaLabel(); as delta) {
+      <span class="vc-delta" [class.vc-delta--down]="(deltaPct() ?? 0) < 0">{{ delta }}</span>
+    }
+  </div>
+
+  @if (total()) {
+    <p class="vc-total">
+      {{ total() }}<span class="vc-unit">{{ unit() }}</span>
+    </p>
+  }
+
+  @if (hasData()) {
+    <div class="vc-bars">
+      @for (row of rows(); track $index; let i = $index) {
+        <button
+          type="button"
+          class="vc-bar-hit"
+          [class.vc-bar-hit--sel]="selectedIndex() === i"
+          (click)="onBarClick(i)"
+          [attr.aria-label]="row.label + ': ' + row.value"
+        >
+          <span class="vc-bar" [class]="'vc-bar--' + row.tone" [style.height.%]="row.heightPct"></span>
+        </button>
+      }
+    </div>
+    <div class="vc-labels">
+      @for (row of rows(); track $index) {
+        <span>{{ row.label }}</span>
+      }
+    </div>
+  } @else {
+    <p class="vc-empty">Log a workout to see your volume build across the week.</p>
+  }
+</div>

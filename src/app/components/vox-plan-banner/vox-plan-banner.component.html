@@ -1,0 +1,49 @@
+@switch (state()) {
+  @case ('active') {
+    <button type="button" class="pb pb--active" (click)="open.emit()">
+      <span class="pb-mark pb-mark--brand">
+        <vox-icon name="list-outline" size="md" tone="inherit" />
+      </span>
+      <span class="pb-body">
+        <span class="pb-eyebrow pb-eyebrow--brand">Today's plan</span>
+        <span class="pb-title">{{ title() }}</span>
+        @if (meta()) {
+          <span class="pb-meta">{{ meta() }}</span>
+        }
+      </span>
+      <vox-icon name="chevron-forward-outline" size="sm" tone="ink-subtle" />
+    </button>
+  }
+
+  @case ('rest-day') {
+    <div class="pb pb--rest">
+      <span class="pb-mark pb-mark--dashed">
+        <vox-icon name="moon-outline" size="md" tone="ink-subtle" />
+      </span>
+      <span class="pb-body">
+        <span class="pb-eyebrow">Today</span>
+        <span class="pb-title">Rest day</span>
+        @if (meta()) {
+          <span class="pb-meta">{{ meta() }}</span>
+        }
+      </span>
+    </div>
+  }
+
+  @case ('no-plan') {
+    <div class="pb-stack">
+      <div class="pb pb--none">
+        <span class="pb-mark pb-mark--apricot">
+          <vox-icon name="sparkles-outline" size="md" tone="inherit" />
+        </span>
+        <span class="pb-body">
+          <span class="pb-title">No plan yet</span>
+          <span class="pb-meta">{{ meta() || 'Build one from your recent training' }}</span>
+        </span>
+      </div>
+      <button type="button" class="pb-cta" (click)="generate.emit()" [disabled]="generating()">
+        {{ generating() ? 'Building your plan…' : 'Generate my plan' }}
+      </button>
+    </div>
+  }
+}

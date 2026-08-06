@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.tile {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 14px 10px;
+  text-align: center;
+  border-radius: var(--vox-radius-card);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-rim-light), var(--vox-surface-1);
+}
+
+.tile-value {
+  margin: 0;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--vox-ink);
+}
+
+.tile-label {
+  margin: 3px 0 0;
+  font-size: 0.59375rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.tile-value--jade {
+  color: var(--vox-jade);
+}
+
+.tile-value--apricot {
+  color: var(--vox-apricot);
+}
+
+.tile-value--brand {
+  color: var(--vox-brand-text);
+}
+
+.tile-value--rose {
+  color: var(--vox-rose-text);
+}

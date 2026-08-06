@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+.orb-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-wrap--md {
+  height: 168px;
+}
+
+.orb-wrap--lg {
+  height: 250px;
+}
+
+/* ---- Concentric rings ---- */
+
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(139, 128, 240, 0.28);
+  pointer-events: none;
+}
+
+.orb-wrap--md .orb-ring--1 {
+  width: 122px;
+  height: 122px;
+  opacity: 0.8;
+}
+
+.orb-wrap--md .orb-ring--2 {
+  width: 142px;
+  height: 142px;
+  opacity: 0.55;
+}
+
+.orb-wrap--md .orb-ring--3 {
+  width: 168px;
+  height: 168px;
+  opacity: 0.3;
+}
+
+.orb-wrap--lg .orb-ring {
+  border-width: 2px;
+}
+
+.orb-wrap--lg .orb-ring--1 {
+  width: 166px;
+  height: 166px;
+  opacity: 0.6;
+}
+
+.orb-wrap--lg .orb-ring--2 {
+  width: 206px;
+  height: 206px;
+  opacity: 0.34;
+}
+
+.orb-wrap--lg .orb-ring--3 {
+  width: 250px;
+  height: 250px;
+  opacity: 0.18;
+}
+
+/* ---- The sphere ---- */
+
+.orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--vox-brand-gradient-orb);
+  color: var(--vox-on-brand);
+  /* The single permitted halo in the whole system. */
+  box-shadow: var(--vox-glow-orb), 0 14px 34px rgba(0, 0, 0, 0.5);
+}
+
+.orb-wrap--md .orb {
+  width: 98px;
+  height: 98px;
+}
+
+.orb-wrap--lg .orb {
+  width: 132px;
+  height: 132px;
+}
+
+/* While listening the whole sphere breathes; the rings hold still so the
+   motion reads as one object rather than a ripple effect. */
+.orb-wrap--listening .orb {
+  animation: vox-orb-breathe 2.4s var(--vox-ease) infinite;
+}
+
+.orb-wrap--processing .orb {
+  animation: vox-orb-breathe 1.2s var(--vox-ease) infinite;
+}
+
+@keyframes vox-orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+/* ---- Waveform ----
+ * Bars are white, never tinted toward the orb fill — a periwinkle bar on a
+ * periwinkle sphere disappears entirely.
+ */
+
+.orb-wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 46px;
+}
+
+.orb-wave i {
+  display: block;
+  width: 4px;
+  border-radius: 2px;
+  background: #ffffff;
+  opacity: 0.9;
+  transform-origin: center;
+  animation: vox-orb-wave 0.55s ease-in-out infinite alternate;
+}
+
+@keyframes vox-orb-wave {
+  from {
+    transform: scaleY(0.45);
+  }
+
+  to {
+    transform: scaleY(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-wrap--listening .orb,
+  .orb-wrap--processing .orb,
+  .orb-wave i {
+    animation: none;
+  }
+}

@@ -3,21 +3,37 @@
   line-height: 0;
 }
 
+/*
+ * Shimmer over glass rather than a pulsing grey block. The moving highlight is
+ * a background layer on top of the surface tint, so the placeholder reads as
+ * the same material as the card it will become.
+ */
 .vox-skeleton {
   display: block;
-  animation: vox-skeleton-pulse 1.4s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 45%,
+    rgba(255, 255, 255, 0.07) 55%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: vox-skeleton-shimmer 1.6s var(--vox-ease) infinite;
 }
 
 .vox-skeleton--surface-2 {
-  background: var(--vox-surface-2);
+  background-color: var(--vox-surface-1);
 }
 
 .vox-skeleton--surface-3 {
-  background: var(--vox-surface-3);
+  background-color: var(--vox-surface-2);
 }
 
 .vox-skeleton--surface-4 {
-  background: var(--vox-surface-4);
+  background-color: var(--vox-surface-3);
 }
 
 .vox-skeleton--circle,
@@ -29,20 +45,19 @@
   border-radius: var(--vox-radius-xs);
 }
 
-@keyframes vox-skeleton-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
+@keyframes vox-skeleton-shimmer {
+  from {
+    background-position: 140% 0;
   }
 
-  50% {
-    opacity: 1;
+  to {
+    background-position: -40% 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .vox-skeleton {
     animation: none;
-    opacity: 0.7;
+    background-image: none;
   }
 }

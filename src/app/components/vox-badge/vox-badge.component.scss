@@ -5,44 +5,70 @@
 .vox-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 5px;
   font-family: var(--vox-font-text);
-  font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1.3;
-  padding: 0.125rem 0.5rem;
+  line-height: 1;
   white-space: nowrap;
+  border: 1px solid var(--vox-border-hairline);
+}
+
+/* ---- Size ---- */
+
+.vox-badge--size-md {
+  height: 30px;
+  padding: 0 14px;
+  font-size: 0.75rem;
+}
+
+.vox-badge--size-xs {
+  height: 22px;
+  padding: 0 9px;
+  font-size: 0.625rem;
+}
+
+/* ---- Shape. Pill is the default chip; `sm` is the squarer inline tag. ---- */
+
+.vox-badge--pill {
+  border-radius: var(--vox-radius-pill);
 }
 
 .vox-badge--sm {
   border-radius: var(--vox-radius-sm);
 }
 
-.vox-badge--pill {
-  border-radius: var(--vox-radius-pill);
-}
+/* ---- Role-assigned tones ---- */
 
 .vox-badge--neutral {
-  background: var(--vox-surface-4);
+  background: var(--vox-surface-2);
   color: var(--vox-ink-subtle);
 }
 
-.vox-badge--accent {
-  background: var(--vox-primary-dim);
-  color: var(--vox-primary-hover);
-}
-
+.vox-badge--jade,
 .vox-badge--success {
-  background: var(--vox-success-dim);
-  color: var(--vox-success);
+  background: var(--vox-jade-dim);
+  border-color: var(--vox-jade-border);
+  color: var(--vox-jade-text);
 }
 
+.vox-badge--brand,
+.vox-badge--accent {
+  background: var(--vox-brand-dim);
+  border-color: var(--vox-brand-border);
+  color: var(--vox-brand-text);
+}
+
+/* PR / streak chips carry a warm two-stop wash rather than a flat dim. */
+.vox-badge--apricot,
 .vox-badge--warning {
-  background: var(--vox-warning-dim);
-  color: var(--vox-warning);
+  background: linear-gradient(90deg, rgba(232, 160, 85, 0.25), rgba(217, 117, 103, 0.2));
+  border-color: var(--vox-apricot-border);
+  color: var(--vox-apricot-text);
 }
 
+.vox-badge--rose,
 .vox-badge--danger {
-  background: var(--vox-danger-dim);
-  color: var(--vox-danger);
+  background: var(--vox-rose-dim);
+  border-color: var(--vox-rose-border);
+  color: var(--vox-rose-text);
 }

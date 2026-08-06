@@ -1,0 +1,114 @@
+/*
+ * Layout lives here rather than in vox-ui.scss because global selectors
+ * cannot pierce ion-modal's shadow boundary — only the host-level modal
+ * variables (`ion-modal.vox-bottom-sheet`) can be set globally.
+ */
+
+.fs {
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(170deg, #191430, #141126);
+  min-height: 100%;
+}
+
+.fs-grabber {
+  display: block;
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.fs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  margin-bottom: 16px;
+}
+
+.fs-title {
+  margin: 0;
+  font-family: var(--vox-font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.fs-reset {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--vox-brand-text);
+  font-family: var(--vox-font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fs-reset:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.fs-eyebrow {
+  margin: 0 0 9px;
+}
+
+.fs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+/* The chip visual is vox-badge; this button only supplies the tap target. */
+.fs-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fs-chip:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-pill);
+}
+
+.fs-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.fs-cancel,
+.fs-apply {
+  min-height: 48px;
+  padding: 14px;
+  border-radius: var(--vox-radius-card);
+  font-family: var(--vox-font-text);
+  font-size: 0.84375rem;
+  cursor: pointer;
+}
+
+.fs-cancel {
+  flex: 1;
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-weight: 600;
+}
+
+.fs-apply {
+  flex: 1.5;
+  border: 0;
+  background: var(--vox-brand-gradient);
+  color: var(--vox-on-brand);
+  font-weight: 700;
+}

@@ -2,24 +2,55 @@
   display: block;
 }
 
+/*
+ * The rim-light is layered into `background` rather than drawn as a ::before.
+ * A positioned pseudo-element paints above static content, and the content
+ * here arrives through ng-content — it belongs to the parent component, so
+ * emulated encapsulation gives us no selector to lift it back above the
+ * overlay. As a background layer the rim is always behind content by
+ * construction, with no z-index bookkeeping.
+ */
 .vox-card {
   box-sizing: border-box;
-  border-radius: var(--vox-radius-lg);
+  border-radius: var(--vox-radius-card);
   border: 1px solid var(--vox-border-hairline);
-  background: var(--vox-surface-2);
+  background: var(--vox-rim-light), var(--vox-surface-1);
 }
 
-.vox-card--raised {
-  background: var(--vox-surface-3);
-  border-color: var(--vox-border-hairline-strong);
+/* ---- Role-assigned accent variants ---- */
+
+.vox-card--brand {
+  background:
+    var(--vox-rim-light),
+    linear-gradient(160deg, rgba(139, 128, 240, 0.2), rgba(139, 128, 240, 0.06));
+  border-color: var(--vox-brand-border);
 }
 
-.vox-card--interactive {
-  transition: background-color 0.15s ease;
+.vox-card--jade {
+  background:
+    var(--vox-rim-light),
+    linear-gradient(160deg, rgba(63, 182, 143, 0.2), rgba(63, 182, 143, 0.06));
+  border-color: var(--vox-jade-border);
 }
 
-.vox-card--interactive:active {
-  background: var(--vox-surface-4);
+.vox-card--apricot {
+  background:
+    var(--vox-rim-light),
+    linear-gradient(160deg, rgba(232, 160, 85, 0.2), rgba(232, 160, 85, 0.06));
+  border-color: var(--vox-apricot-border);
+}
+
+.vox-card--rose {
+  background:
+    var(--vox-rim-light),
+    linear-gradient(160deg, rgba(217, 117, 103, 0.16), rgba(217, 117, 103, 0.05));
+  border-color: var(--vox-rose-border);
+}
+
+/* ---- Padding scale ---- */
+
+.vox-card--pad-lg {
+  padding: var(--vox-space-lg);
 }
 
 .vox-card--pad-md {
@@ -32,4 +63,15 @@
 
 .vox-card--pad-none {
   padding: 0;
+}
+
+/* ---- Press feedback ---- */
+
+.vox-card--interactive {
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+  cursor: pointer;
+}
+
+.vox-card--interactive:active {
+  transform: scale(0.985);
 }

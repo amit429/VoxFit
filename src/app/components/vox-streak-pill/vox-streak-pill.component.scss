@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.streak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: var(--vox-radius-pill);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.streak-count {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.streak-text {
+  font-weight: 500;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.streak--active {
+  background: linear-gradient(90deg, rgba(232, 160, 85, 0.22), rgba(217, 117, 103, 0.18));
+  border: 1.5px solid var(--vox-apricot-border);
+}
+
+.streak--dormant {
+  background: var(--vox-surface-1);
+  border: 1px solid var(--vox-border-hairline);
+  color: var(--vox-ink-subtle);
+}
+
+.streak--dormant .streak-text {
+  opacity: 1;
+}
+
+/*
+ * At risk stays in the rose family, not an alert red. A streak about to lapse
+ * is a nudge, not a failure state.
+ */
+.streak--at-risk {
+  background: var(--vox-rose-dim);
+  border: 1.5px solid var(--vox-rose-border);
+  color: var(--vox-rose-text);
+}
+
+.streak--at-risk .streak-text {
+  opacity: 0.8;
+}

@@ -1,0 +1,100 @@
+:host {
+  display: block;
+}
+
+.sr {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:host(:last-of-type) .sr {
+  border-bottom: none;
+}
+
+.sr-icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
+.sr-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+.sr-controls {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+/*
+ * The visual button is 26px per the mockup, but the tap target has to clear
+ * 44px. Padding grows the hit area without growing the visual — negative
+ * margin keeps the row from stretching.
+ */
+.sr-btn {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px;
+  margin: -9px;
+  box-sizing: content-box;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--vox-surface-2);
+  background-clip: padding-box;
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sr-btn--add {
+  background: var(--vox-jade-dim);
+  border-color: var(--vox-jade-border);
+  color: var(--vox-jade);
+}
+
+.sr-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.sr-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 0;
+}
+
+.sr-value {
+  min-width: 52px;
+  text-align: center;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.sr-unit {
+  color: var(--vox-ink-tertiary);
+  font-weight: 500;
+}

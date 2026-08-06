@@ -1,0 +1,16 @@
+<div class="ds">
+  @for (day of days(); track day.key) {
+    <button
+      type="button"
+      class="ds-day"
+      [class.ds-day--sel]="day.key === selected()"
+      [class.ds-day--today]="day.isToday"
+      [class.ds-day--future]="day.isFuture"
+      [disabled]="day.isFuture"
+      (click)="onPick(day.key, day.isFuture)"
+    >
+      <span class="ds-weekday">{{ day.weekday }}</span>
+      <span class="ds-num">{{ day.dayOfMonth }}</span>
+    </button>
+  }
+</div>

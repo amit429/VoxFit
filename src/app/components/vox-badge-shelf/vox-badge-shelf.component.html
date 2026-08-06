@@ -1,0 +1,22 @@
+<div class="bs">
+  <div class="bs-head">
+    <span class="bs-title">Badges</span>
+    <span class="bs-count">{{ earnedCount() }} of {{ totalCount() }}</span>
+  </div>
+
+  <div class="bs-row">
+    @for (badge of shown(); track badge.key) {
+      <div class="bs-item">
+        <span
+          class="bs-tile"
+          [class]="badge.earned ? 'bs-tile--' + badge.tone : 'bs-tile--locked'"
+          [attr.aria-label]="badge.label + (badge.earned ? ' — earned' : ' — locked')"
+          role="img"
+        >
+          {{ badge.earned ? badge.emoji : '🔒' }}
+        </span>
+        <span class="bs-label">{{ badge.label }}</span>
+      </div>
+    }
+  </div>
+</div>

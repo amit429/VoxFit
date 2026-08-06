@@ -1,0 +1,131 @@
+:host {
+  display: block;
+}
+
+.pb {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+  border-radius: var(--vox-radius-card);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pb--rest,
+.pb--none {
+  cursor: default;
+}
+
+/* Active carries the brand→jade wash: an AI-authored plan, on track. */
+.pb--active {
+  background: linear-gradient(120deg, rgba(139, 128, 240, 0.3), rgba(63, 182, 143, 0.16));
+  border-color: var(--vox-brand-border);
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+}
+
+.pb--active:active {
+  transform: scale(0.99);
+}
+
+.pb--none {
+  background: linear-gradient(135deg, rgba(232, 160, 85, 0.24), rgba(217, 117, 103, 0.16));
+  border-color: var(--vox-apricot-border);
+}
+
+.pb-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--vox-radius-card);
+  border: 1px solid var(--vox-apricot-border);
+  background: linear-gradient(135deg, rgba(232, 160, 85, 0.24), rgba(217, 117, 103, 0.16));
+}
+
+/* The inner banner inside the stack contributes no chrome of its own. */
+.pb-stack .pb--none {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.pb-mark {
+  display: flex;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+}
+
+.pb-mark--brand {
+  background: linear-gradient(140deg, var(--vox-brand), var(--vox-brand-deep));
+  color: var(--vox-on-brand);
+}
+
+.pb-mark--apricot {
+  background: linear-gradient(140deg, var(--vox-apricot-bright), #d9834a);
+  color: var(--vox-on-apricot);
+}
+
+.pb-mark--dashed {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+}
+
+.pb-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pb-eyebrow {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.pb-eyebrow--brand {
+  color: var(--vox-brand-text);
+}
+
+.pb-title {
+  font-size: 0.90625rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.pb-meta {
+  font-size: 0.6875rem;
+  color: var(--vox-ink-subtle);
+}
+
+.pb-cta {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--vox-apricot-gradient);
+  /* White on apricot fails contrast badly — this is the assigned ink. */
+  color: var(--vox-on-apricot);
+  font-family: var(--vox-font-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pb-cta:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

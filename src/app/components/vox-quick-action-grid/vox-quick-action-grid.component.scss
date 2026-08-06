@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.qa {
+  display: flex;
+  gap: 9px;
+}
+
+.qa-item {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qa-tile {
+  display: flex;
+  width: 100%;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--vox-radius-tile);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+  transition: transform var(--vox-dur-fast) var(--vox-ease);
+}
+
+.qa-item:active .qa-tile {
+  transform: scale(0.94);
+}
+
+.qa-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--vox-ink-subtle);
+}
+
+/* Each destination keeps its own accent so the row is scannable by colour. */
+
+.qa-tile--jade {
+  background: rgba(63, 182, 143, 0.13);
+  border-color: rgba(63, 182, 143, 0.28);
+  color: var(--vox-jade);
+}
+
+.qa-tile--apricot {
+  background: rgba(232, 160, 85, 0.13);
+  border-color: rgba(232, 160, 85, 0.28);
+  color: var(--vox-apricot);
+}
+
+.qa-tile--brand {
+  background: rgba(139, 128, 240, 0.13);
+  border-color: rgba(139, 128, 240, 0.28);
+  color: var(--vox-brand);
+}
+
+.qa-tile--slate {
+  background: rgba(107, 146, 214, 0.13);
+  border-color: rgba(107, 146, 214, 0.28);
+  color: var(--vox-slate);
+}

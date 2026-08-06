@@ -1,63 +1,91 @@
-.est-wrap {
-  overflow-x: auto;
-  border-radius: var(--vox-radius-lg);
-  border: 1px solid var(--vox-border-hairline);
-  background: var(--vox-surface-2);
-}
+/*
+ * Set rows follow the `.setrow` pattern from the redesign mockups: a soft
+ * pill per set, label left, figures right in mono. The previous table markup
+ * needed a horizontal scroller on narrow phones; this reads at 390px without
+ * one.
+ */
 
-.est-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.8125rem;
-}
-
-.est-table th,
-.est-table td {
-  padding: 0.75rem 0.85rem;
-  text-align: left;
-  border-bottom: 1px solid var(--vox-border-hairline);
-}
-
-.est-table th {
-  font-weight: 600;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--vox-ink-subtle);
-  background: var(--vox-surface-3);
-}
-
-.est-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.est-table td {
-  color: var(--vox-ink);
-}
-
-.est-mono {
-  font-family: var(--vox-font-mono);
-  font-variant-numeric: tabular-nums;
+.est-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .est-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  /* 44px min keeps the tap target legal even though the visual is shorter. */
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.est-row:hover {
-  background: var(--vox-surface-3);
+  text-align: left;
+  transition: background-color var(--vox-dur-fast) var(--vox-ease);
 }
 
 .est-row:active {
-  background: var(--vox-surface-4);
+  background: var(--vox-surface-3);
 }
 
+/*
+ * The highlighted row is the one the AI flagged as the top/PR set. Apricot
+ * is the assigned accent for PRs — not a generic "selected" colour.
+ */
 .est-row--hi {
-  background: var(--vox-primary-dim);
+  background: var(--vox-apricot-dim);
+  border-color: var(--vox-apricot-border);
+}
+
+.est-row--hi .est-label,
+.est-row--hi .est-value {
+  color: var(--vox-apricot-text);
 }
 
 .est-row:focus-visible {
-  outline: 2px solid var(--vox-primary);
-  outline-offset: -2px;
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+.est-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--vox-ink-tertiary);
+  text-transform: uppercase;
+}
+
+.est-value {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+  white-space: nowrap;
+}
+
+.est-unit,
+.est-times,
+.est-multi {
+  color: var(--vox-ink-tertiary);
+  font-weight: 500;
+}
+
+.est-unit {
+  margin-left: 2px;
+}
+
+.est-times {
+  margin: 0 3px;
+}
+
+.est-multi {
+  margin-right: 4px;
 }

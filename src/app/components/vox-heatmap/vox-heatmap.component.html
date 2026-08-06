@@ -1,0 +1,26 @@
+<div class="hm">
+  <div class="hm-head">
+    <span class="hm-title">Activity</span>
+    <div class="hm-legend">
+      <span>less</span>
+      @for (bg of legendBackgrounds; track $index) {
+        <i [style.background]="bg"></i>
+      }
+      <span>more</span>
+    </div>
+  </div>
+
+  <div class="hm-grid">
+    @for (col of columns(); track $index) {
+      <div class="hm-col">
+        @for (cell of col; track $index) {
+          <span
+            class="hm-cell"
+            [class.hm-cell--today]="cell?.isToday"
+            [style.background]="background(cell)"
+          ></span>
+        }
+      </div>
+    }
+  </div>
+</div>

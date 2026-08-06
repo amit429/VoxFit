@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.vc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+}
+
+.vc-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.vc-delta {
+  display: inline-flex;
+  align-items: center;
+  height: 23px;
+  padding: 0 9px;
+  border-radius: var(--vox-radius-pill);
+  border: 1px solid var(--vox-jade-border);
+  background: var(--vox-jade-dim);
+  color: var(--vox-jade-text);
+  font-size: 0.65625rem;
+  font-weight: 600;
+}
+
+/* A negative week is reported in rose, not red — it is information, not an
+   error, and the framing stays observational. */
+.vc-delta--down {
+  border-color: var(--vox-rose-border);
+  background: var(--vox-rose-dim);
+  color: var(--vox-rose-text);
+}
+
+.vc-total {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 3px 0 14px;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.vc-unit {
+  font-family: var(--vox-font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.vc-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  height: 70px;
+}
+
+/*
+ * The button is the tap target and spans the full column height, so a short
+ * bar is still comfortably tappable; the coloured span inside is the visual.
+ */
+.vc-bar-hit {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  align-items: flex-end;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vc-bar {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.13);
+  transition: height var(--vox-dur) var(--vox-ease);
+}
+
+.vc-bar--empty {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vc-bar--today {
+  background: linear-gradient(180deg, var(--vox-brand), var(--vox-brand-deep));
+}
+
+.vc-bar--best {
+  background: linear-gradient(180deg, var(--vox-jade-bright), var(--vox-jade-deep));
+}
+
+.vc-bar-hit--sel .vc-bar {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+.vc-bar-hit:focus-visible .vc-bar {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+.vc-labels {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+  font-size: 0.59375rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.vc-labels span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.vc-empty {
+  margin: 12px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-bar {
+    transition: none;
+  }
+}

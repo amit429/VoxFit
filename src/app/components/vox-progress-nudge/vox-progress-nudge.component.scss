@@ -1,0 +1,115 @@
+:host {
+  display: block;
+}
+
+.pn {
+  padding: 15px 16px;
+  border-radius: var(--vox-radius-card);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+}
+
+.pn-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pn-mark {
+  display: flex;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+.pn-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pn-title {
+  font-size: 0.90625rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.pn-detail {
+  font-size: 0.71875rem;
+  line-height: 1.4;
+  color: var(--vox-ink-subtle);
+}
+
+.pn-stat {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--vox-radius-pill);
+  border: 1px solid var(--vox-jade-border);
+  background: var(--vox-jade-dim);
+  color: var(--vox-jade-text);
+  font-family: var(--vox-font-mono);
+  font-size: 0.65625rem;
+  font-weight: 700;
+}
+
+.pn-cta {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 13px;
+  padding: 11px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--vox-brand-gradient);
+  color: var(--vox-on-brand);
+  font-family: var(--vox-font-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- States ---- */
+
+/* A new AI check-in: brand periwinkle, because the content is model-authored. */
+.pn--check-in-ready {
+  background: linear-gradient(135deg, rgba(139, 128, 240, 0.28), rgba(63, 182, 143, 0.14));
+  border-color: var(--vox-brand-border);
+}
+
+.pn-mark--check-in-ready {
+  background: linear-gradient(140deg, var(--vox-brand), var(--vox-brand-deep));
+  color: var(--vox-on-brand);
+}
+
+/* Trending up: jade, the affirmative accent. */
+.pn--trending-up {
+  background: linear-gradient(120deg, rgba(63, 182, 143, 0.2), rgba(63, 182, 143, 0.06));
+  border-color: var(--vox-jade-border);
+}
+
+.pn-mark--trending-up {
+  background: rgba(63, 182, 143, 0.2);
+  color: var(--vox-jade);
+}
+
+/*
+ * Recurring physical note. Rose, calm, observational — no alert red, no
+ * warning glyph. See the class comment in the component for why this is
+ * fixed rather than a styling choice.
+ */
+.pn--recurring-note {
+  background: linear-gradient(120deg, rgba(217, 117, 103, 0.2), rgba(217, 117, 103, 0.06));
+  border-color: var(--vox-rose-border);
+}
+
+.pn-mark--recurring-note {
+  background: rgba(217, 117, 103, 0.2);
+  color: var(--vox-rose-text);
+}

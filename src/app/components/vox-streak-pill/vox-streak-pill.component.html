@@ -1,0 +1,7 @@
+<div class="streak" [ngClass]="'streak--' + resolvedState()">
+  <span aria-hidden="true">{{ emoji() }}</span>
+  @if (showCount()) {
+    <span class="streak-count">{{ days() }}</span>
+  }
+  <span class="streak-text">{{ text() }}</span>
+</div>

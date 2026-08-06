@@ -1,3 +1,6 @@
-<span class="vox-badge" [ngClass]="['vox-badge--' + tone(), 'vox-badge--' + shape()]">
+<span
+  class="vox-badge"
+  [ngClass]="['vox-badge--' + tone(), 'vox-badge--' + shape(), 'vox-badge--size-' + size()]"
+>
   <ng-content></ng-content>
 </span>

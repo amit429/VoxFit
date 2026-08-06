@@ -6,7 +6,7 @@
   (saved)="onEditorSaved($event)"
 />
 
-<vox-card variant="raised" padding="md" class="block">
+<vox-card padding="md" class="block">
   <div class="mb-4 flex items-center justify-between gap-3">
     <p class="m-0 text-base font-semibold tracking-tight text-ink">{{ sessionTitle() }}</p>
     @if (saving()) {
@@ -18,18 +18,22 @@
   </div>
 
   @if (coachSummary()) {
-    <div class="mb-6 flex gap-2 rounded-md border-l-2 border-primary bg-surface-3 px-3 py-3">
-      <vox-icon name="sparkles-outline" tone="accent" size="sm" class="mt-0.5 shrink-0" />
-      <div class="min-w-0">
-        <p class="m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-primary">Coach</p>
-        <p class="m-0 text-sm leading-relaxed text-ink-subtle">{{ coachSummary() }}</p>
+    <vox-card variant="brand" padding="sm" class="mb-6 block">
+      <div class="flex gap-3">
+        <span class="vox-ai-mark shrink-0">
+          <vox-icon name="sparkles-outline" size="sm" />
+        </span>
+        <div class="min-w-0">
+          <p class="m-0 vx-text-10 font-bold uppercase vx-tracking-16 text-brand-text">Your coach</p>
+          <p class="m-0 mt-1.5 text-sm leading-relaxed text-ink-muted">{{ coachSummary() }}</p>
+        </div>
       </div>
-    </div>
+    </vox-card>
   }
 
   <div class="flex flex-col gap-4" [class.opacity-50]="saving()" [class.pointer-events-none]="saving()" [attr.aria-busy]="saving()">
     @for (ex of voiceExerciseRows(); track $index; let i = $index) {
-      <vox-card [variant]="isExerciseExpanded(i) ? 'interactive' : 'resting'" padding="none" class="block">
+      <vox-card padding="none" class="block">
         <div class="overflow-hidden rounded-lg">
           <div class="flex items-stretch">
             <button
@@ -41,15 +45,15 @@
               [id]="'vox-exercise-trigger-' + i"
             >
               <span class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                <span class="text-[1rem] font-semibold text-ink">{{ ex.name }}</span>
+                <span class="text-base font-semibold text-ink">{{ ex.name }}</span>
                 @if (ex.isPr) {
-                  <vox-badge tone="warning" shape="sm">
-                    <vox-icon name="trophy-outline" size="xs" tone="warning" />
+                  <vox-badge tone="apricot" size="xs">
+                    <vox-icon name="trophy-outline" size="xs" tone="inherit" />
                     PR
                   </vox-badge>
                 }
                 @if (ex.exerciseType === 'cardio') {
-                  <vox-badge tone="neutral" shape="sm">Cardio</vox-badge>
+                  <vox-badge tone="neutral" size="xs">Cardio</vox-badge>
                 }
               </span>
               <vox-icon

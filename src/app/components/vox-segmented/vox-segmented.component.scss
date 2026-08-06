@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+.seg {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  border-radius: var(--vox-radius-md);
+  border: 1px solid var(--vox-border-hairline);
+  background: var(--vox-surface-1);
+}
+
+.seg-item {
+  flex: 1;
+  min-width: 0;
+  /* 40px + the 4px track padding clears the 44px minimum tap target. */
+  min-height: 40px;
+  padding: 9px;
+  border: 0;
+  border-radius: var(--vox-radius-sm);
+  background: none;
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-text);
+  font-size: 0.78125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--vox-dur-fast) var(--vox-ease),
+    color var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.seg-item--on {
+  background: var(--vox-jade-gradient);
+  /* White on jade fails contrast — this is the assigned ink for jade fills. */
+  color: var(--vox-on-jade);
+  font-weight: 700;
+}
+
+.seg-item:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg-item {
+    transition: none;
+  }
+}
