@@ -1,0 +1,258 @@
+/*
+ * Layout lives here rather than in vox-ui.scss because global selectors cannot
+ * pierce ion-modal's shadow boundary — only the host-level modal variables
+ * (`ion-modal.vox-centre-modal`) can be set globally.
+ */
+
+.rm {
+  display: flex;
+  /* Matches ion-modal's own cap; see the note on .vox-centre-modal. A
+     percentage would resolve against an indefinite height and do nothing. */
+  max-height: var(--vox-centre-modal-max-h, 80vh);
+  flex-direction: column;
+  background: linear-gradient(170deg, #1d1637, #141126);
+}
+
+/* ---- Hero ---- */
+
+.rm-hero {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  height: 132px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Tinted by meal type — warm morning through to cool evening. */
+.rm-hero--apricot {
+  background: linear-gradient(160deg, rgba(248, 164, 76, 0.28), rgba(248, 164, 76, 0.05));
+}
+
+.rm-hero--jade {
+  background: linear-gradient(160deg, rgba(51, 201, 152, 0.26), rgba(51, 201, 152, 0.05));
+}
+
+.rm-hero--brand {
+  background: linear-gradient(160deg, rgba(136, 123, 252, 0.28), rgba(136, 123, 252, 0.05));
+}
+
+.rm-hero--slate {
+  background: linear-gradient(160deg, rgba(102, 147, 227, 0.26), rgba(102, 147, 227, 0.05));
+}
+
+/* The soft light behind the emoji, matching the pages' atmosphere blobs. */
+.rm-hero-blob {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 220px;
+  height: 160px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  filter: blur(46px);
+  pointer-events: none;
+}
+
+.rm-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.rm-emoji {
+  position: relative;
+  font-size: 3.75rem;
+  line-height: 1;
+  /* Grounds the glyph against the wash so it doesn't float. */
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+}
+
+.rm-hero-meta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vox-ink-muted);
+}
+
+.rm-prep {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rm-dot {
+  color: var(--vox-ink-tertiary);
+}
+
+/* ---- Body ---- */
+
+.rm-body {
+  flex: 1;
+  /*
+   * `min-height: 0` is load-bearing. A flex item defaults to `min-height: auto`,
+   * which floors it at its content height — so `overflow-y: auto` never gets a
+   * constrained box to scroll, and the content is clipped by the modal instead.
+   */
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--vox-space-md) var(--vox-space-md) var(--vox-space-lg);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.rm-title {
+  margin: 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.1875rem;
+  font-weight: var(--vox-weight-display);
+  line-height: 1.25;
+  letter-spacing: var(--vox-tracking-display);
+  color: var(--vox-ink);
+}
+
+.rm-date {
+  margin: 4px 0 0;
+  font-size: 0.71875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+/* ---- Macro strip ---- */
+
+.rm-macros {
+  display: flex;
+  gap: 7px;
+  margin-top: var(--vox-space-sm);
+}
+
+.rm-macro {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 6px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
+  text-align: center;
+}
+
+.rm-macro-value {
+  display: block;
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.rm-macro-unit {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--vox-ink-tertiary);
+}
+
+.rm-macro-label {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+/* Series colours, matching the macro rings so the same nutrient reads the same
+   everywhere in the app. */
+.rm-macro--kcal .rm-macro-value {
+  color: var(--vox-apricot);
+}
+
+.rm-macro--jade .rm-macro-value {
+  color: var(--vox-jade-text);
+}
+
+.rm-macro--slate .rm-macro-value {
+  color: var(--vox-slate);
+}
+
+.rm-macro--apricot .rm-macro-value {
+  color: var(--vox-apricot-text);
+}
+
+/* ---- Steps ---- */
+
+.rm-steps-head {
+  margin: var(--vox-space-lg) 0 var(--vox-space-sm);
+}
+
+.rm-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.rm-step {
+  display: flex;
+  gap: 12px;
+  padding: 12px 13px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
+}
+
+/*
+ * A real numeral rather than an <ol> marker: the markers rendered outside the
+ * tile and were easy to lose against the list, and cooking is a step-count task
+ * where "which one am I on" is the whole question.
+ */
+.rm-step-num {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--vox-brand-dim);
+  border: 1px solid var(--vox-brand-border);
+  color: var(--vox-brand-text);
+  font-family: var(--vox-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.rm-step-text {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--vox-ink-muted);
+}
+
+.rm-no-steps {
+  margin: var(--vox-space-lg) 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}

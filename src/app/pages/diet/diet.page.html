@@ -180,34 +180,8 @@
   </main>
 </ion-content>
 
-<ion-modal
-  [isOpen]="recipeModalLog() !== null"
-  (didDismiss)="closeRecipe()"
-  [handle]="true"
-  [initialBreakpoint]="1"
-  [breakpoints]="[0, 1]"
-  class="vox-diet-recipe-sheet"
->
-  <ng-template>
-    @if (recipeModalLog(); as meal) {
-      <ion-header class="ion-no-border vox-recipe-sheet-head">
-        <ion-toolbar>
-          <ion-title>Recipe</ion-title>
-          <ion-buttons slot="end">
-            <ion-button fill="clear" (click)="closeRecipe()">Done</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding vox-recipe-sheet-body">
-        <h2 class="vox-recipe-meal-title">{{ meal.meal_name }}</h2>
-        <p class="vox-recipe-meal-meta">{{ dateLineForLog(meal) }}</p>
-        <p class="vox-recipe-kicker">Steps</p>
-        <ol class="vox-recipe-ol">
-          @for (line of recipeLines(meal); track $index) {
-            <li class="vox-recipe-li">{{ line }}</li>
-          }
-        </ol>
-      </ion-content>
-    }
-  </ng-template>
-</ion-modal>
+<vox-recipe-modal
+  [log]="recipeModalLog()"
+  [dateLine]="recipeModalLog() ? dateLineForLog(recipeModalLog()!) : ''"
+  (dismissed)="closeRecipe()"
+/>

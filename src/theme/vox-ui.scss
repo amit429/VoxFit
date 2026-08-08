@@ -296,10 +296,18 @@ ion-modal.vox-sheet-auto {
  * while a long one scrolls internally instead of overflowing the viewport.
  */
 ion-modal.vox-centre-modal {
+  /*
+   * Exposed as its own property so the dialog's inner shell can cap itself at
+   * the same value. `--height: auto` leaves the host's height indefinite, so a
+   * `max-height: 100%` inside resolves to `none` and the body never becomes a
+   * scroll container — the content just gets clipped. Custom properties cross
+   * the shadow boundary, so both sides can share this one number.
+   */
+  --vox-centre-modal-max-h: 80vh;
   --width: calc(100% - 2.5rem);
   --max-width: 26rem;
   --height: auto;
-  --max-height: 80vh;
+  --max-height: var(--vox-centre-modal-max-h);
   --border-radius: var(--vox-radius-2xl);
   --box-shadow: var(--vox-shadow-lift);
   --backdrop-opacity: 0.6;

@@ -1,0 +1,79 @@
+<ion-modal class="vox-centre-modal" [isOpen]="isOpen()" (ionModalDidDismiss)="dismissed.emit()">
+  <ng-template>
+    @if (log(); as meal) {
+      <div class="rm">
+        <!-- Hero. The emoji sits on a wash tinted by meal type, with a blurred
+             blob behind it — the same atmosphere language as the pages. -->
+        <header class="rm-hero" [class]="'rm-hero--' + tone()">
+          <span class="rm-hero-blob" aria-hidden="true"></span>
+
+          <button type="button" class="rm-close" (click)="dismissed.emit()" aria-label="Close">
+            <vox-icon name="close-outline" size="sm" tone="ink" />
+          </button>
+
+          <span class="rm-emoji" aria-hidden="true">{{ emoji() }}</span>
+
+          <div class="rm-hero-meta">
+            <span class="rm-type">{{ typeLabel() }}</span>
+            @if (prepLabel(); as prep) {
+              <span class="rm-dot" aria-hidden="true">·</span>
+              <span class="rm-prep">
+                <vox-icon name="time-outline" size="xs" tone="inherit" />
+                {{ prep }}
+              </span>
+            }
+          </div>
+        </header>
+
+        <div class="rm-body">
+          <h2 class="rm-title">{{ meal.meal_name }}</h2>
+          <p class="rm-date">{{ dateLine() }}</p>
+
+          <!-- Macros: on the row already, and the first thing you want to know. -->
+          <div class="rm-macros">
+            <div class="rm-macro rm-macro--kcal">
+              <span class="rm-macro-value">{{ meal.calories }}</span>
+              <span class="rm-macro-label">kcal</span>
+            </div>
+            @for (m of macros(); track m.label) {
+              <div class="rm-macro" [class]="'rm-macro--' + m.tone">
+                <span class="rm-macro-value">{{ m.value | number: '1.0-0' }}<span class="rm-macro-unit">g</span></span>
+                <span class="rm-macro-label">{{ m.label }}</span>
+              </div>
+            }
+          </div>
+
+          @if (meal.rationale) {
+            <vox-card variant="brand" padding="sm" class="mt-4 block">
+              <div class="flex gap-3">
+                <span class="vox-ai-mark vox-ai-mark--sm shrink-0">
+                  <vox-icon name="sparkles-outline" size="xs" />
+                </span>
+                <div class="min-w-0">
+                  <p class="m-0 vx-text-10 font-bold uppercase vx-tracking-16 text-brand-text">Why this meal</p>
+                  <p class="m-0 mt-1 text-xs leading-relaxed text-ink-muted">{{ meal.rationale }}</p>
+                </div>
+              </div>
+            </vox-card>
+          }
+
+          @if (steps().length) {
+            <p class="vox-eyebrow rm-steps-head">Steps</p>
+            <ol class="rm-steps">
+              @for (step of steps(); track $index) {
+                <li class="rm-step">
+                  <span class="rm-step-num">{{ $index + 1 }}</span>
+                  <span class="rm-step-text">{{ step }}</span>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="rm-no-steps">
+              No method was saved for this one — it was logged as eaten rather than cooked.
+            </p>
+          }
+        </div>
+      </div>
+    }
+  </ng-template>
+</ion-modal>

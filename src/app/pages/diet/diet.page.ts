@@ -4,18 +4,13 @@ import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxSegmentedComponent } from '@/app/components/vox-segmented/vox-segmented.component';
 import { VoxMealRowComponent } from '@/app/components/vox-meal-row/vox-meal-row.component';
+import { VoxRecipeModalComponent } from '@/app/components/vox-recipe-modal/vox-recipe-modal.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonRouterLinkWithHref,
-  IonButtons,
-  IonModal,
-  IonButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -64,15 +59,10 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
     VoxBadgeComponent,
     VoxSegmentedComponent,
     VoxMealRowComponent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
+    VoxRecipeModalComponent,
     IonContent,
     RouterLink,
     IonRouterLinkWithHref,
-    IonButtons,
-    IonModal,
-    IonButton,
   ],
 })
 export class DietPage implements ViewWillEnter {
@@ -238,15 +228,6 @@ export class DietPage implements ViewWillEnter {
     this.recipeModalLog.set(null);
   }
 
-  protected recipeLines(log: DietLogListRow | null): string[] {
-    if (!log?.recipe_text?.trim()) {
-      return ['No recipe was saved for this meal.'];
-    }
-    return log.recipe_text
-      .split('\n')
-      .map((s) => s.replace(/^\d+\.\s*/, '').trim())
-      .filter(Boolean);
-  }
 
   protected timeLabel(iso: string): string {
     if (!iso) return '';

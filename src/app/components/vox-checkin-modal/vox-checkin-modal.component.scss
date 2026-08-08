@@ -6,7 +6,9 @@
 
 .cm {
   display: flex;
-  max-height: 100%;
+  /* Matches ion-modal's own cap; see the note on .vox-centre-modal. A
+     percentage would resolve against an indefinite height and do nothing. */
+  max-height: var(--vox-centre-modal-max-h, 80vh);
   flex-direction: column;
   padding: var(--vox-space-md) var(--vox-space-md) var(--vox-space-xs);
   background: linear-gradient(170deg, #1d1637, #141126);
@@ -36,6 +38,12 @@
  */
 .cm-body {
   flex: 1;
+  /*
+   * `min-height: 0` is load-bearing. A flex item defaults to `min-height: auto`,
+   * which floors it at its content height — so `overflow-y: auto` never gets a
+   * constrained box to scroll, and the content is clipped by the modal instead.
+   */
+  min-height: 0;
   overflow-y: auto;
   padding-bottom: var(--vox-space-sm);
   -webkit-overflow-scrolling: touch;
