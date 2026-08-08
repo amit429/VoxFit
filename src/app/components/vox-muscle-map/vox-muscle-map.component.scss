@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.mm-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.mm-caption {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.mm-body {
+  display: flex;
+  align-items: center;
+  gap: var(--vox-space-md);
+  margin-top: var(--vox-space-sm);
+}
+
+.mm-figure {
+  flex-shrink: 0;
+}
+
+.mm-figure rect,
+.mm-figure path {
+  transition: fill var(--vox-dur) var(--vox-ease);
+}
+
+.mm-chips {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 7px;
+}
+
+.mm-empty {
+  margin: var(--vox-space-sm) 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-figure rect,
+  .mm-figure path {
+    transition: none;
+  }
+}

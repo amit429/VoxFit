@@ -1,0 +1,24 @@
+<div class="ms">
+  <p class="ms-title">Volume by muscle group</p>
+
+  @if (hasData()) {
+    <div class="ms-rows">
+      @for (row of rows(); track row.key) {
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="ms-label">{{ row.label }}</span>
+            <span class="ms-value">{{ row.sharePct }}%</span>
+          </div>
+          <div class="vox-track mt-1.5">
+            <i [style.width.%]="row.sharePct" [style.background]="row.gradient"></i>
+          </div>
+        </div>
+      }
+    </div>
+    @if (bodyweightNote(); as note) {
+      <p class="ms-note">{{ note }}</p>
+    }
+  } @else {
+    <p class="ms-empty">Log some weighted lifts and your split across muscle groups shows up here.</p>
+  }
+</div>

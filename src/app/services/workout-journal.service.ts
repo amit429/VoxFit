@@ -3,6 +3,10 @@ import type {
   BadgeMetric,
   BadgeProgressRow,
   MoodDb,
+  MuscleBreakdown,
+  MuscleGroupKey,
+  MuscleShareRow,
+  MuscleWeekRow,
   UserProgressStats,
   HomeStreakMock,
   HomeWorkoutCardMock,
@@ -28,6 +32,7 @@ import {
   formatShortWeekdayLabelsForCurrentWeek,
   formatVolumeKg,
   getCurrentWeekDayKeys,
+  getWeekBoundsForDate,
   moodEmoji,
   moodLabel,
   parseLocalDateKey,
@@ -299,6 +304,29 @@ export class WorkoutJournalService {
   }
 
   /**
+   * What was trained this week, and the all-time split by muscle group.
+   *
+   * Both come from one RPC over the `primary_muscle` column that the insert
+   * trigger denormalizes — so this is a pair of indexed aggregates, not a
+   * classify-on-read. Week bounds are passed from the client so the week is the
+   * user's own Monday rather than the server's.
+   */
+  async getMuscleBreakdown(): Promise<MuscleBreakdown> {
+    const { monday, sunday } = getWeekBoundsForDate(parseLocalDateKey(new Date()));
+    const { data, error } = await this.supabase.client.rpc('get_muscle_breakdown', {
+      p_week_start: monday,
+      p_week_end: sunday,
+    });
+
+    if (error) {
+      console.error('[WorkoutJournal] muscle breakdown', error);
+      throw new Error(error.message);
+    }
+
+    return normalizeMuscleBreakdown(data);
+  }
+
+  /**
    * Top-set-per-session series for one exercise, oldest first.
    *
    * "Top set" is the heaviest weight logged in that session, which is what the
@@ -424,6 +452,58 @@ export class WorkoutJournalService {
 
     return normalizeProgressStats(data);
   }
+}
+
+const MUSCLE_KEYS: readonly MuscleGroupKey[] = [
+  'chest',
+  'back',
+  'legs',
+  'glutes',
+  'shoulders',
+  'arms',
+  'core',
+  'cardio',
+  'other',
+];
+
+function isMuscleKey(value: unknown): value is MuscleGroupKey {
+  return typeof value === 'string' && (MUSCLE_KEYS as readonly string[]).includes(value);
+}
+
+/** Same defensive coercion as the stats RPC — jsonb arrives as `unknown`. */
+function normalizeMuscleBreakdown(raw: unknown): MuscleBreakdown {
+  const obj = isRecord(raw) ? raw : {};
+
+  const week: MuscleWeekRow[] = [];
+  if (Array.isArray(obj['week'])) {
+    for (const entry of obj['week']) {
+      if (!isRecord(entry) || !isMuscleKey(entry['muscle'])) continue;
+      week.push({
+        muscle: entry['muscle'],
+        volumeKg: nonNegativeInt(entry['volume_kg']),
+        sessions: nonNegativeInt(entry['sessions']),
+      });
+    }
+  }
+
+  const overall: MuscleShareRow[] = [];
+  if (Array.isArray(obj['overall'])) {
+    for (const entry of obj['overall']) {
+      if (!isRecord(entry) || !isMuscleKey(entry['muscle'])) continue;
+      overall.push({
+        muscle: entry['muscle'],
+        volumeKg: nonNegativeInt(entry['volume_kg']),
+        sharePct: nonNegativeInt(entry['share_pct']),
+      });
+    }
+  }
+
+  return {
+    week,
+    overall,
+    weekSessions: nonNegativeInt(obj['week_sessions']),
+    pending: nonNegativeInt(obj['pending']),
+  };
 }
 
 /**

@@ -27,3 +27,11 @@
   letter-spacing: var(--vox-tracking-display);
   color: var(--vox-ink);
 }
+
+/* Section heading inside a card, where the card has no component of its own. */
+.pg-card-title {
+  margin: 0 0 var(--vox-space-sm);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}

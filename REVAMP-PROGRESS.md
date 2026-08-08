@@ -383,29 +383,88 @@ assignment was added too. Caught by checking the DB after saving, not by the com
 
 ---
 
+## Phase 8 — Muscle groups (migration 0007) ✅
+
+**Verified.** `npm run build` ✅ · `npm run lint` ✅ · 67/67 tests ✅ · the full async pipeline
+exercised against the live project.
+
+Closes deferred item #1, and adds the macro rings to `/progress`.
+
+### Two-tier resolution, cheapest first
+
+1. **`exercise_muscle_map`** — a **global** lookup keyed on a normalized exercise name, seeded
+   with 91 common lifts. Most logs resolve instantly, deterministically, free.
+2. Anything the lookup misses is classified once by Gemini, **asynchronously**, and written back
+   into the same lookup. Because the lookup is global rather than per-user, each novel exercise
+   name costs exactly one AI call for the whole product, ever.
+
+Muscles are denormalized onto `exercises_logged.primary_muscle` by a `before insert` trigger.
+That is what makes the Progress queries indexed aggregates instead of a classify-on-read.
+
+### The async path never blocks a log
+
+An `after insert ... for each statement` trigger with a transition table collects the
+unresolved names — **one** request per session, not one per exercise — and fires
+`pg_net.http_post` at the `classify-exercise-muscles` edge function, following the same
+Vault-secret pattern as the weekly check-in cron. The insert commits immediately.
+
+The function re-checks the cache before spending a call (two sessions logged back to back
+would otherwise both pay), validates every returned group against the enum with `other` as
+fallback, refuses names it did not ask about, upserts the map, then backfills every
+unclassified row with those names across all users.
+
+**Verified end-to-end on live data**: 9 pending rows with names the seed doesn't cover
+("Pec Fly", "Chest Flies", "Decline Crunches", "Flyes"…) → Gemini classified 8 novel keys
+correctly → backfill closed all 9 → `pending` went 9 → 0, `classified` 29.
+
+### One deliberate deviation from the brief
+
+**There is no per-user rollup table.** Both views are `GROUP BY`s over the indexed
+`primary_muscle` column via `get_muscle_breakdown(p_week_start, p_week_end)`. A rollup would
+have to be fully recomputed per user whenever a session is edited or deleted — the same cost as
+just querying — while adding a way for the numbers to go stale. The genuinely expensive part of
+this feature is the AI classification, and that *is* cached permanently. Week bounds come from
+the client so the week is the user's own Monday, not the server's.
+
+### Components
+
+`vox-muscle-map` — front-view figure plus chips. Jade for the two highest-volume groups, brand
+for the rest that were trained; ranking by volume is what makes it answer "what did I focus on"
+rather than "what did I touch". `back` and `glutes` are chip-only: there is no front-view region
+to fill, and faking one would be worse than being silent.
+
+`vox-muscle-split` — share bars, ordered by share since the ranking is the point. Cardio is
+excluded (no tonnage, so including it would make every strength share read low).
+
+**Both name what they cannot show.** The map reports how many exercises are still being
+classified; the split names groups that were trained but carry no tonnage — "Core and Back came
+from bodyweight work, which carries no tonnage to chart." Without that line, a user who trained
+back twice sees "Chest 100%" and reasonably concludes the chart is broken.
+
+Macro rings reuse the existing `vox-macro-ring`, wired to today's macros.
+
+### Hardening (advisor follow-up, applied)
+
+- `resolve_exercise_muscles` is a trigger function, but PostgREST exposed it at
+  `/rest/v1/rpc/resolve_exercise_muscles` to `anon` and `authenticated`. Calling it outside a
+  trigger errors, so it was not exploitable — but that endpoint should not exist. Revoked, then
+  **re-verified the trigger still resolves** by round-tripping a probe row (Barbell Squat →
+  `legs`) and deleting it.
+- `normalize_exercise_key` / `exercise_volume_kg` had role-mutable search paths; both pinned.
+
+### Known limitation
+
+The normalizer strips one trailing `s`, so "Flies" becomes "flie" and does not collapse onto
+"fly". Proper English plural handling in SQL is a rabbit hole, and the two-tier design already
+absorbs it: the odd spelling is classified once and cached forever.
+
+---
+
 ## Deferred features — mockup UI with no data behind it
 
 Nothing here blocks the redesign. Each is a real gap between the mockups and the schema.
 
-1. **Muscle map + muscle split** (`04_progress` "This week you hit"; `12` "Volume by muscle
-   group") — `exercises_logged` stores only an exercise name; muscle group exists nowhere in the
-   schema. Needs: an `exercise_muscle_map` lookup table (normalized name PK, primary + secondary
-   muscle) seeded with common lifts; nullable `primary_muscle`/`secondary_muscle` columns on
-   `exercises_logged` resolved and denormalized at write time; the `extract-workout` prompt
-   extended to return `primary_muscle` constrained to a fixed enum
-   (`chest|back|legs|glutes|shoulders|arms|core|cardio|other`), validated app-side against the
-   enum with `other` as fallback — never trust the model's string; a backfill of existing rows.
-   **Omitted from this pass by decision.** Its home when built is `/progress`, between the
-   sessions ring and the weekly volume chart, per mockup `04_progress`.
-
-2. **Weekly session target** (`04_progress` activity ring "4/5") — `user_profiles` has no target
-   column. Interim: read sessions-per-week off the active `workout_plans` row, else default 5.
-   Proper fix is a `weekly_session_target` column plus a Settings stepper.
-
-3. **Badge earn history** (`07_profile` badge shelf) — no `user_badges` table. Badges will be
-   derived client-side from live counts, so there is no earned-at date and no new-badge moment.
-   Proper fix: `user_badges` (`user_id`, `badge_key`, `earned_at`, unique on the pair, RLS on
-   `auth.uid()`), evaluated after each session/meal write.
+1. ~~**Muscle map + muscle split**~~ — **done**, migration `0007`. See Phase 8 above.
 
 4. **Reminders toggle** (`08_settings`) — no push or local-notification infrastructure (no FCM,
    no `@capacitor/local-notifications`). A dead toggle is worse than an absent one; omitted.

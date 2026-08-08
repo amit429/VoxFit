@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.ms-title {
+  margin: 0 0 13px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.ms-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.ms-label {
+  font-size: 0.71875rem;
+  font-weight: 600;
+  color: var(--vox-ink-subtle);
+}
+
+.ms-value {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.ms-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}
+
+/* Explains an absence, so it reads as a note rather than a warning. */
+.ms-note {
+  margin: 14px 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--vox-ink-tertiary);
+}

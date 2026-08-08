@@ -33,13 +33,20 @@
       </div>
 
       <!-- Sessions this week -->
-      <vox-card padding="lg">
+      <vox-card padding="sm">
         <vox-activity-ring
           [done]="sessionsThisWeek()"
           [target]="weeklySessionTarget()"
           [caption]="weeklyTargetCaption()"
         />
       </vox-card>
+
+      <!-- What this week trained -->
+      @if (muscles(); as m) {
+        <vox-card>
+          <vox-muscle-map [week]="m.week" [sessions]="m.weekSessions" [pending]="m.pending" />
+        </vox-card>
+      }
 
       <!-- This week's volume -->
       <vox-card>
@@ -60,6 +67,31 @@
             [subtitle]="'Top set · last ' + trendWeeks + ' weeks'"
             [headline]="trendHeadline()"
           />
+        </vox-card>
+      }
+
+      <!-- Today's macros -->
+      @if (macroRings().length) {
+        <vox-card>
+          <p class="pg-card-title">Today's macros</p>
+          <div class="flex justify-around">
+            @for (m of macroRings(); track m.label) {
+              <vox-macro-ring
+                [value]="m.row.current"
+                [target]="m.row.target"
+                [label]="m.label"
+                [tone]="m.tone"
+                unit="g"
+              />
+            }
+          </div>
+        </vox-card>
+      }
+
+      <!-- All-time split by muscle group -->
+      @if (muscles(); as m) {
+        <vox-card>
+          <vox-muscle-split [overall]="m.overall" />
         </vox-card>
       }
 

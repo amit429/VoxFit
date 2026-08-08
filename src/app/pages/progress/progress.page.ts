@@ -6,6 +6,8 @@ import { addIcons } from 'ionicons';
 import { chevronBackOutline } from 'ionicons/icons';
 import type {
   HeatmapCellVm,
+  MacroRowMock,
+  MuscleBreakdown,
   UserProgressStats,
   MonthlyChartStatVm,
   VoxTrendPoint,
@@ -22,6 +24,9 @@ import { VoxHeatmapComponent } from '@/app/components/vox-heatmap/vox-heatmap.co
 import { VoxActivityRingComponent } from '@/app/components/vox-activity-ring/vox-activity-ring.component';
 import { VoxVolumeChartComponent } from '@/app/components/vox-volume-chart/vox-volume-chart.component';
 import { VoxTrendChartComponent } from '@/app/components/vox-trend-chart/vox-trend-chart.component';
+import { VoxMacroRingComponent } from '@/app/components/vox-macro-ring/vox-macro-ring.component';
+import { VoxMuscleMapComponent } from '@/app/components/vox-muscle-map/vox-muscle-map.component';
+import { VoxMuscleSplitComponent } from '@/app/components/vox-muscle-split/vox-muscle-split.component';
 import {
   buildMonthlySeries,
   getCurrentWeekDayKeys,
@@ -61,6 +66,9 @@ const DEFAULT_WEEKLY_TARGET = 4;
     VoxActivityRingComponent,
     VoxVolumeChartComponent,
     VoxTrendChartComponent,
+    VoxMacroRingComponent,
+    VoxMuscleMapComponent,
+    VoxMuscleSplitComponent,
   ],
 })
 export class ProgressPage implements ViewWillEnter {
@@ -81,6 +89,26 @@ export class ProgressPage implements ViewWillEnter {
 
   /** All-time counts + streak from one RPC (see `getProgressStats`). */
   protected readonly stats = signal<UserProgressStats | null>(null);
+
+  /**
+   * This week's trained muscles and the all-time split. Both come from the
+   * `primary_muscle` column the insert trigger fills, so this is an aggregate
+   * read — no classification happens on this page.
+   */
+  protected readonly muscles = signal<MuscleBreakdown | null>(null);
+
+  /** Today's macros, for the rings. */
+  protected readonly macroRings = computed(() => {
+    const rows = this.nutrition.macros().rows;
+    const find = (label: string): MacroRowMock | undefined => rows.find((r) => r.label === label);
+    return [
+      { row: find('Protein'), label: 'Protein', tone: 'jade' as const },
+      { row: find('Carbs'), label: 'Carbs', tone: 'slate' as const },
+      { row: find('Fat'), label: 'Fat', tone: 'apricot' as const },
+    ].filter((m): m is { row: MacroRowMock; label: string; tone: 'jade' | 'slate' | 'apricot' } =>
+      m.row !== undefined,
+    );
+  });
 
   /** Oldest→newest window for both monthly charts — captured once per page load. */
   private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);
@@ -244,7 +272,9 @@ export class ProgressPage implements ViewWillEnter {
   ionViewWillEnter(): void {
     /* The weekly target lives on the profile, so it has to be current. */
     void this.auth.refreshProfile();
+    void this.nutrition.refresh();
     void this.journal.refreshActivitySummary();
+    void this.loadMuscles();
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
     void this.loadStats();
@@ -253,6 +283,20 @@ export class ProgressPage implements ViewWillEnter {
 
   protected goBack(): void {
     this.navCtrl.navigateBack('/tabs/profile');
+  }
+
+  private async loadMuscles(): Promise<void> {
+    if (!this.auth.user()?.id) {
+      this.muscles.set(null);
+      return;
+    }
+    try {
+      this.muscles.set(await this.journal.getMuscleBreakdown());
+    } catch (err) {
+      /* Both cards render their own empty state rather than the page failing. */
+      console.error('[ProgressPage] muscle breakdown', err);
+      this.muscles.set(null);
+    }
   }
 
   private async loadStats(): Promise<void> {
