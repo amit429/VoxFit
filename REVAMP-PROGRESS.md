@@ -464,12 +464,8 @@ absorbs it: the odd spelling is classified once and cached forever.
 
 Nothing here blocks the redesign. Each is a real gap between the mockups and the schema.
 
-1. ~~**Muscle map + muscle split**~~ — **done**, migration `0007`. See Phase 8 above.
-
 4. **Reminders toggle** (`08_settings`) — no push or local-notification infrastructure (no FCM,
    no `@capacitor/local-notifications`). A dead toggle is worse than an absent one; omitted.
-
-5. **Export my data as CSV** (`08_settings`) — no export endpoint or client-side CSV builder.
 
 6. **Notification bell** (`01_home` top bar) — no notification centre. Slot filled by the
    avatar/profile link.
