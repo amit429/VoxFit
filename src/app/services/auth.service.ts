@@ -161,6 +161,7 @@ export class AuthService {
     goal: UserProfile['goal'];
     target_protein_g: number;
     target_calories: number;
+    weekly_session_target: number;
   }): Promise<void> {
     await this.writeProfilePatch({ ...patch, onboarding_completed: true });
     await this.refreshProfile();
@@ -174,6 +175,7 @@ export class AuthService {
     target_protein_g: number;
     target_carbs_g: number;
     target_fat_g: number;
+    weekly_session_target: number;
   }): Promise<void> {
     await this.writeProfilePatch(patch);
     await this.refreshProfile();
@@ -185,6 +187,7 @@ export class AuthService {
     goal?: UserProfile['goal'];
     target_calories?: number;
     target_protein_g?: number;
+    weekly_session_target?: number;
     target_carbs_g?: number;
     target_fat_g?: number;
     onboarding_completed?: boolean;
@@ -201,6 +204,9 @@ export class AuthService {
     if (patch.target_protein_g !== undefined) row['target_protein_g'] = patch.target_protein_g;
     if (patch.target_carbs_g !== undefined) row['target_carbs_g'] = patch.target_carbs_g;
     if (patch.target_fat_g !== undefined) row['target_fat_g'] = patch.target_fat_g;
+    if (patch.weekly_session_target !== undefined) {
+      row['weekly_session_target'] = patch.weekly_session_target;
+    }
     if (patch.onboarding_completed !== undefined) row['onboarding_completed'] = patch.onboarding_completed;
 
     const { error } = await this.supabase.client.from('user_profiles').update(row).eq('id', uid);

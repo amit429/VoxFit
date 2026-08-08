@@ -33,6 +33,22 @@ const TARGET_ROWS = [
   { control: 'targetFat', label: 'Fat', emoji: '🥑', tint: 'rgba(217,117,103,.15)', unit: 'g', step: 5, max: 200 },
 ] as const;
 
+/**
+ * The weekly session target sits in its own group: it is a training goal, not
+ * a nutrition target, and it drives the progress ring rather than the fuel
+ * screen. Bounds mirror the DB check constraint (1–14).
+ */
+const WEEKLY_TARGET_ROW = {
+  control: 'weeklyTarget',
+  label: 'Sessions per week',
+  emoji: '🎯',
+  tint: 'rgba(136,123,252,.15)',
+  unit: '',
+  step: 1,
+  min: 1,
+  max: 14,
+} as const;
+
 type TargetControl = (typeof TARGET_ROWS)[number]['control'];
 
 const GOAL_OPTIONS: readonly ChipOption<GoalType>[] = [
@@ -114,6 +130,7 @@ export class SettingsPage implements OnInit {
     targetProtein: [160, [Validators.required, Validators.min(40), Validators.max(400)]],
     targetCarbs: [250, [Validators.required, Validators.min(0), Validators.max(1000)]],
     targetFat: [65, [Validators.required, Validators.min(0), Validators.max(200)]],
+    weeklyTarget: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
   });
 
   ngOnInit(): void {
@@ -127,11 +144,22 @@ export class SettingsPage implements OnInit {
         targetProtein: p.target_protein_g,
         targetCarbs: p.target_carbs_g,
         targetFat: p.target_fat_g,
+        weeklyTarget: p.weekly_session_target,
       });
     }
   }
 
   protected readonly targetRows = TARGET_ROWS;
+  protected readonly weeklyTargetRow = WEEKLY_TARGET_ROW;
+
+  protected get weeklyTargetValue(): number {
+    return this.form.controls.weeklyTarget.value;
+  }
+
+  protected setWeeklyTarget(next: number): void {
+    this.form.controls.weeklyTarget.setValue(next);
+    this.form.controls.weeklyTarget.markAsDirty();
+  }
 
   protected readonly email = computed(() => this.auth.profile()?.email ?? '');
 
@@ -170,6 +198,7 @@ export class SettingsPage implements OnInit {
         target_protein_g: v.targetProtein,
         target_carbs_g: v.targetCarbs,
         target_fat_g: v.targetFat,
+        weekly_session_target: v.weeklyTarget,
       });
       this.form.markAsPristine();
       await this.presentToast('Preferences saved', 'success');

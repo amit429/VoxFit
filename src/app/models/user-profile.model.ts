@@ -13,6 +13,8 @@ export interface UserProfile {
   target_carbs_g: number;
   /** Daily fat target (grams); defaults from DB migration when unset in UI. */
   target_fat_g: number;
+  /** Sessions per week the user is aiming for. 1–14, enforced by a DB check. */
+  weekly_session_target: number;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;

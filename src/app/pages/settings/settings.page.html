@@ -59,6 +59,20 @@
         }
       </div>
 
+      <p class="vox-eyebrow mb-2.5 mt-4">Training goal</p>
+      <vox-card padding="sm">
+        <vox-stepper-row
+          [label]="weeklyTargetRow.label"
+          [emoji]="weeklyTargetRow.emoji"
+          [iconTint]="weeklyTargetRow.tint"
+          [step]="weeklyTargetRow.step"
+          [min]="weeklyTargetRow.min"
+          [max]="weeklyTargetRow.max"
+          [value]="weeklyTargetValue"
+          (valueChange)="setWeeklyTarget($event)"
+        />
+      </vox-card>
+
       <p class="vox-eyebrow mb-2.5 mt-4">Daily targets</p>
       <vox-card padding="sm">
         @for (t of targetRows; track t.control) {

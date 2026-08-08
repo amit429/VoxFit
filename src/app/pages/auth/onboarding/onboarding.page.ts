@@ -36,7 +36,18 @@ export class OnboardingPage implements OnInit {
     goal: this.fb.nonNullable.control<GoalType>('maintain', Validators.required),
     targetProtein: [160, [Validators.required, Validators.min(40), Validators.max(400)]],
     targetCalories: [2500, [Validators.required, Validators.min(800), Validators.max(8000)]],
+    /* Bounds mirror the DB check constraint (1–14) so the form cannot submit
+       a value the database will reject. */
+    weeklyTarget: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
   });
+
+  /** 2–7 covers realistic training weeks; the column allows 1–14. */
+  protected readonly weeklyTargetOptions = [2, 3, 4, 5, 6, 7] as const;
+
+  protected selectWeeklyTarget(n: number): void {
+    this.form.controls.weeklyTarget.setValue(n);
+    this.form.controls.weeklyTarget.markAsDirty();
+  }
 
   loading = false;
   errorMessage = '';
@@ -50,6 +61,7 @@ export class OnboardingPage implements OnInit {
         goal: p.goal ?? 'maintain',
         targetProtein: p.target_protein_g,
         targetCalories: p.target_calories,
+        weeklyTarget: p.weekly_session_target,
       });
     }
   }
@@ -69,6 +81,7 @@ export class OnboardingPage implements OnInit {
         goal: v.goal,
         target_protein_g: v.targetProtein,
         target_calories: v.targetCalories,
+        weekly_session_target: v.weeklyTarget,
       });
       await this.router.navigateByUrl('/tabs/home');
     } catch (err: unknown) {

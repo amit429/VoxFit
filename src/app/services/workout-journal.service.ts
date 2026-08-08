@@ -1,6 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import type {
+  BadgeMetric,
+  BadgeProgressRow,
   MoodDb,
+  UserProgressStats,
   HomeStreakMock,
   HomeWorkoutCardMock,
   WeeklyVolumeMock,
@@ -396,18 +399,79 @@ export class WorkoutJournalService {
       .map(([name]) => name);
   }
 
-  /** True all-time counts via count-only queries — cheap, no row data transferred. */
-  async getAllTimeCounts(userId: string): Promise<{ workouts: number; prs: number }> {
-    const [workoutsRes, prsRes] = await Promise.all([
-      this.supabase.client.from('workout_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-      this.supabase.client.from('exercises_logged').select('id', { count: 'exact', head: true }).eq('is_pr', true),
-    ]);
+  /**
+   * All-time counts, current streak and the badge shelf — one RPC.
+   *
+   * Replaces two count-only queries plus client-side badge evaluation. The same
+   * call awards anything newly earned, so simply reading persists a badge; the
+   * ledger lives in `user_badges` and only a security-definer function writes
+   * it, which is why badges can no longer un-earn themselves when a streak
+   * lapses.
+   *
+   * Today's local date is passed in deliberately: `workout_sessions.date` holds
+   * the user's local date, so letting Postgres use its own `current_date` moves
+   * the streak by a day for anyone far from UTC.
+   */
+  async getProgressStats(): Promise<UserProgressStats> {
+    const { data, error } = await this.supabase.client.rpc('get_user_progress_stats', {
+      p_today: parseLocalDateKey(new Date()),
+    });
 
-    if (workoutsRes.error) throw new Error(workoutsRes.error.message);
-    if (prsRes.error) throw new Error(prsRes.error.message);
+    if (error) {
+      console.error('[WorkoutJournal] progress stats', error);
+      throw new Error(error.message);
+    }
 
-    return { workouts: workoutsRes.count ?? 0, prs: prsRes.count ?? 0 };
+    return normalizeProgressStats(data);
   }
+}
+
+/**
+ * The RPC returns `jsonb`, which arrives as `unknown`. Coerce every field
+ * explicitly rather than casting the payload — same discipline the Gemini
+ * parsers use, and for the same reason: a shape change should degrade to a
+ * sane default, not throw somewhere far from here.
+ */
+function normalizeProgressStats(raw: unknown): UserProgressStats {
+  const obj = isRecord(raw) ? raw : {};
+  return {
+    workouts: nonNegativeInt(obj['workouts']),
+    prs: nonNegativeInt(obj['prs']),
+    streakDays: nonNegativeInt(obj['streak_days']),
+    badges: normalizeBadgeRows(obj['badges']),
+  };
+}
+
+/* Built with a loop rather than flatMap — this tsconfig's lib predates it. */
+function normalizeBadgeRows(raw: unknown): BadgeProgressRow[] {
+  if (!Array.isArray(raw)) return [];
+  const out: BadgeProgressRow[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
+    const key = typeof entry['badge_key'] === 'string' ? entry['badge_key'] : '';
+    if (!key) continue;
+    const earnedAt = entry['earned_at'];
+    out.push({
+      badge_key: key,
+      metric: isBadgeMetric(entry['metric']) ? entry['metric'] : 'workouts',
+      threshold: nonNegativeInt(entry['threshold']),
+      earned_at: typeof earnedAt === 'string' ? earnedAt : null,
+    });
+  }
+  return out;
+}
+
+function isBadgeMetric(value: unknown): value is BadgeMetric {
+  return value === 'streak' || value === 'workouts' || value === 'prs';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function nonNegativeInt(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
 }
 
 /**

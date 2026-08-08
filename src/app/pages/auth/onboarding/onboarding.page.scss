@@ -2,3 +2,66 @@
   display: block;
   height: 100%;
 }
+
+/*
+ * A row of numbers rather than a stepper or a select: the useful range is
+ * small, so every option can be visible and one tap away instead of hidden
+ * behind an action sheet or reached by repeated increments.
+ */
+.onb-field-label {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vox-ink-muted);
+}
+
+.onb-target-row {
+  display: flex;
+  gap: 7px;
+}
+
+.onb-target-btn {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-surface-1);
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-mono);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition:
+    background var(--vox-dur-fast) var(--vox-ease),
+    color var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.onb-target-btn--on {
+  background: var(--vox-jade-gradient);
+  border-color: transparent;
+  /* White on jade fails contrast — this is the assigned ink for jade fills. */
+  color: var(--vox-on-jade);
+  font-weight: 700;
+}
+
+.onb-target-btn:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+}
+
+.onb-field-hint {
+  margin: 8px 0 0;
+  font-size: 0.71875rem;
+  line-height: 1.45;
+  color: var(--vox-ink-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-target-btn {
+    transition: none;
+  }
+}

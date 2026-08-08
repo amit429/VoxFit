@@ -19,7 +19,7 @@ import {
   chatbubbleEllipsesOutline,
 } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
-import type { GoalType, VoxEarnedBadge } from '@/app/models';
+import type { GoalType, UserProgressStats, VoxEarnedBadge } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
@@ -89,8 +89,11 @@ export class ProfilePage implements ViewWillEnter {
 
   protected readonly showSkeleton = computed(() => !this.journal.activityLoaded());
 
-  /** All-time exact counts — count-only queries, no row data transferred. */
-  protected readonly allTimeCounts = signal({ workouts: 0, prs: 0 });
+  /**
+   * Stats + badge shelf from one RPC. Reading it is also what awards a newly
+   * earned badge, so there is nothing to call on write.
+   */
+  protected readonly stats = signal<UserProgressStats | null>(null);
 
   protected readonly hasReview = computed(() => this.coach.latestReview() !== null);
 
@@ -104,19 +107,14 @@ export class ProfilePage implements ViewWillEnter {
     : 'Takes a moment — we read your recent sessions and meals',
   );
 
-  // ---- Badges ----
-  //
-  // Derived from live counts; there is no `user_badges` table, so a badge has
-  // no earned-at date and can un-earn if a streak lapses. See Deferred #3.
-
-  protected readonly badges = computed((): VoxEarnedBadge[] => {
-    const counts = this.allTimeCounts();
-    return this.badgeService.evaluate({
-      streakDays: this.journal.streak().days,
-      workouts: counts.workouts,
-      prs: counts.prs,
-    });
-  });
+  /**
+   * Awarded server-side and persisted in `user_badges`, so a badge keeps its
+   * earned-at date and no longer disappears when the streak it was won with
+   * lapses. `BadgeService` only supplies emoji/label/tone.
+   */
+  protected readonly badges = computed((): VoxEarnedBadge[] =>
+    this.badgeService.toShelf(this.stats()?.badges ?? []),
+  );
 
   protected readonly goalRows = computed(() => {
     const p = this.profile();
@@ -180,7 +178,7 @@ export class ProfilePage implements ViewWillEnter {
   ionViewWillEnter(): void {
     void this.auth.refreshProfile();
     void this.journal.refreshActivitySummary();
-    void this.loadAllTimeCounts();
+    void this.loadStats();
     void this.coach.getLatest();
   }
 
@@ -216,16 +214,16 @@ export class ProfilePage implements ViewWillEnter {
     void this.coach.acknowledgeReview(id);
   }
 
-  private async loadAllTimeCounts(): Promise<void> {
-    const uid = this.auth.user()?.id;
-    if (!uid) {
-      this.allTimeCounts.set({ workouts: 0, prs: 0 });
+  private async loadStats(): Promise<void> {
+    if (!this.auth.user()?.id) {
+      this.stats.set(null);
       return;
     }
     try {
-      this.allTimeCounts.set(await this.journal.getAllTimeCounts(uid));
+      this.stats.set(await this.journal.getProgressStats());
     } catch (err) {
-      console.error('[ProfilePage] all-time counts', err);
+      /* The shelf renders locked rather than vanishing. */
+      console.error('[ProfilePage] progress stats', err);
     }
   }
 

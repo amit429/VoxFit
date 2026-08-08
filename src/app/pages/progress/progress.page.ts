@@ -6,6 +6,7 @@ import { addIcons } from 'ionicons';
 import { chevronBackOutline } from 'ionicons/icons';
 import type {
   HeatmapCellVm,
+  UserProgressStats,
   MonthlyChartStatVm,
   VoxTrendPoint,
   VoxVolumeBar,
@@ -13,7 +14,6 @@ import type {
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { WorkoutJournalService, TREND_WINDOW_WEEKS } from '@/app/services/workout-journal.service';
-import { WorkoutPlanService } from '@/app/services/workout-plan.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
@@ -36,11 +36,8 @@ addIcons({ chevronBackOutline });
 const HEATMAP_WEEKS = 26;
 const MONTHLY_CHART_MONTHS = 6;
 
-/**
- * Fallback weekly session target when the user has no active plan. There is
- * no configurable target in `user_profiles` — see Deferred #2.
- */
-const DEFAULT_WEEKLY_TARGET = 5;
+/** Only used if the profile has not loaded yet; the DB column defaults to 4. */
+const DEFAULT_WEEKLY_TARGET = 4;
 
 /**
  * Every chart and derived stat, on its own screen.
@@ -67,11 +64,10 @@ const DEFAULT_WEEKLY_TARGET = 5;
   ],
 })
 export class ProgressPage implements ViewWillEnter {
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly navCtrl = inject(NavController);
   protected readonly journal = inject(WorkoutJournalService);
   private readonly nutrition = inject(NutritionDashboardService);
-  private readonly planService = inject(WorkoutPlanService);
 
   protected readonly showSkeleton = computed(
     () => !this.journal.activityLoaded() || !this.nutrition.monthlyHistoryLoaded(),
@@ -83,19 +79,20 @@ export class ProgressPage implements ViewWillEnter {
   /** Tones for the three hero tiles: neutral / streak / PRs. */
   protected readonly statTones = ['ink', 'apricot', 'jade'] as const;
 
-  /** All-time exact counts — count-only queries, no row data transferred. */
-  protected readonly allTimeCounts = signal({ workouts: 0, prs: 0 });
+  /** All-time counts + streak from one RPC (see `getProgressStats`). */
+  protected readonly stats = signal<UserProgressStats | null>(null);
 
   /** Oldest→newest window for both monthly charts — captured once per page load. */
   private readonly monthKeys = getLastNMonthKeys(MONTHLY_CHART_MONTHS);
   private readonly monthLabels = this.monthKeys.map(monthShortLabel);
 
   protected readonly heroStats = computed(() => {
-    const counts = this.allTimeCounts();
+    const s = this.stats();
     return [
-      { label: 'Workouts', value: counts.workouts },
-      { label: 'Streak', value: this.journal.streak().days },
-      { label: 'PRs', value: counts.prs },
+      { label: 'Workouts', value: s?.workouts ?? 0 },
+      /* Server-computed, so the tile agrees with what the badges were awarded on. */
+      { label: 'Streak', value: s?.streakDays ?? 0 },
+      { label: 'PRs', value: s?.prs ?? 0 },
     ];
   });
 
@@ -133,8 +130,13 @@ export class ProgressPage implements ViewWillEnter {
     return this.journal.activityRows().filter((s) => s.date && weekKeys.has(s.date)).length;
   });
 
+  /**
+   * The user's own target, set in onboarding and editable in Settings. It used
+   * to be inferred from the active plan's day count, which moved the goalpost
+   * whenever the plan changed and only existed if a plan did.
+   */
   protected readonly weeklySessionTarget = computed(
-    () => this.planService.activePlan()?.plan.days.length || DEFAULT_WEEKLY_TARGET,
+    () => this.auth.profile()?.weekly_session_target ?? DEFAULT_WEEKLY_TARGET,
   );
 
   protected readonly weeklyTargetCaption = computed(() => {
@@ -240,28 +242,28 @@ export class ProgressPage implements ViewWillEnter {
   });
 
   ionViewWillEnter(): void {
+    /* The weekly target lives on the profile, so it has to be current. */
+    void this.auth.refreshProfile();
     void this.journal.refreshActivitySummary();
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
-    void this.loadAllTimeCounts();
+    void this.loadStats();
     void this.loadTrend();
-    this.planService.getActivePlan().catch((err) => console.error('[ProgressPage] load active plan', err));
   }
 
   protected goBack(): void {
     this.navCtrl.navigateBack('/tabs/profile');
   }
 
-  private async loadAllTimeCounts(): Promise<void> {
-    const uid = this.auth.user()?.id;
-    if (!uid) {
-      this.allTimeCounts.set({ workouts: 0, prs: 0 });
+  private async loadStats(): Promise<void> {
+    if (!this.auth.user()?.id) {
+      this.stats.set(null);
       return;
     }
     try {
-      this.allTimeCounts.set(await this.journal.getAllTimeCounts(uid));
+      this.stats.set(await this.journal.getProgressStats());
     } catch (err) {
-      console.error('[ProgressPage] all-time counts', err);
+      console.error('[ProgressPage] progress stats', err);
     }
   }
 

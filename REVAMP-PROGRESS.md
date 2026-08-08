@@ -324,6 +324,65 @@ twice.
 
 ---
 
+## Phase 7 — Weekly target + persisted badges (migration 0006) ✅
+
+**Verified.** `npm run build` ✅ · `npm run lint` ✅ · 67/67 tests ✅ · both features exercised
+end-to-end against the live project.
+
+Closes deferred items #2 and #3.
+
+### Weekly session target
+
+`user_profiles.weekly_session_target` (integer, default 4, DB check 1–14). Asked during
+onboarding as a 2–7 chip row — the useful range is small enough that every option can be one
+tap away rather than hidden behind a stepper or action sheet — and editable in Settings under
+its own "Training goal" group, since it is a training goal rather than a nutrition target.
+
+The progress ring reads the profile. It previously inferred the target from the active plan's
+day count, which moved the goalpost whenever the plan changed and only existed if a plan did;
+`/progress` no longer depends on `WorkoutPlanService` at all.
+
+### Badges: awarded and stored server-side
+
+Three objects, all in `0006`:
+
+- `badge_definitions` — `badge_key`, `metric`, `threshold`, `sort_order`. Seeded with 13 badges.
+  **This is the awarding authority**: thresholds live in the database, not app code.
+- `user_badges` — `(user_id, badge_key)` PK, `earned_at`. RLS allows **select only**; there is
+  deliberately no insert/update/delete policy, so a badge cannot be self-granted from a client.
+- `get_user_progress_stats(p_today date)` — `SECURITY DEFINER`. Returns workouts, PRs, streak
+  and the full shelf, and awards anything newly earned via `ON CONFLICT DO NOTHING`.
+
+**Awarding happens on read, not in a write trigger.** It is idempotent, keeps the threshold
+logic in one place, and cannot be missed by a write path that forgets to call it. Only the
+workout tables feed these metrics, so a meal write has nothing to trigger.
+
+`BadgeService` no longer evaluates anything — it maps `badge_key` to emoji/label/tone. An
+unknown key renders with a neutral fallback so seeding a new badge server-side doesn't drop a
+tile until the app ships again.
+
+### API calls collapsed
+
+Profile and `/progress` each made two count-only queries and then evaluated badges client-side.
+Both now make **one** RPC that returns stats *and* the shelf *and* persists new awards.
+
+### Two things worth knowing
+
+- **`p_today` is a parameter, not `current_date`.** `workout_sessions.date` holds the user's
+  *local* date while `current_date` is the server's. Verified on the live data: server date
+  2026-08-08 returned streak 0, the user's local 2026-08-09 returned 1. Letting Postgres pick
+  would break or extend streaks by a day for anyone far from UTC.
+- **The advisor flags `get_user_progress_stats` as a SECURITY DEFINER function callable by
+  `authenticated`.** That is the point: it is what lets the function write `user_badges` while
+  clients cannot. It takes no user id — the subject is always `auth.uid()` — so a signed-in
+  caller can only ever affect their own rows.
+
+Also fixed while wiring this: `writeProfilePatch` builds its update row field by field, so
+adding the field to the *type* was not enough — the new column silently didn't save until the
+assignment was added too. Caught by checking the DB after saving, not by the compiler.
+
+---
+
 ## Deferred features — mockup UI with no data behind it
 
 Nothing here blocks the redesign. Each is a real gap between the mockups and the schema.

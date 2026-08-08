@@ -35,6 +35,24 @@
           <ion-select-option value="cut">Cut</ion-select-option>
           <ion-select-option value="maintain">Maintain</ion-select-option>
         </ion-select>
+        <div>
+          <p class="onb-field-label">Sessions per week you're aiming for</p>
+          <div class="onb-target-row" role="radiogroup" aria-label="Sessions per week">
+            @for (n of weeklyTargetOptions; track n) {
+              <button
+                type="button"
+                role="radio"
+                class="onb-target-btn"
+                [class.onb-target-btn--on]="form.controls.weeklyTarget.value === n"
+                [attr.aria-checked]="form.controls.weeklyTarget.value === n"
+                (click)="selectWeeklyTarget(n)"
+              >
+                {{ n }}
+              </button>
+            }
+          </div>
+          <p class="onb-field-hint">Drives your weekly progress ring. Change it any time.</p>
+        </div>
         <ion-input
           formControlName="targetProtein"
           type="number"
