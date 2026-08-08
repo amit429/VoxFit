@@ -32,9 +32,22 @@ export class WorkoutPlanService {
 
   readonly activePlan = signal<WorkoutPlanRow | null>(null);
 
+  /**
+   * Whether `activePlan` reflects a completed fetch.
+   *
+   * Without this, `activePlan() === null` means both "still loading" and
+   * "genuinely has no plan" — so the Train tab flashed the "No plan yet" CTA at
+   * users who do have one. Announcing an absence is only honest once you have
+   * looked.
+   */
+  readonly activePlanLoaded = signal(false);
+
   async getActivePlan(): Promise<WorkoutPlanRow | null> {
     const uid = this.auth.user()?.id;
-    if (!uid) return null;
+    if (!uid) {
+      this.activePlanLoaded.set(true);
+      return null;
+    }
     const { data, error } = await this.supabase.client
       .from('workout_plans')
       .select('*')
@@ -43,10 +56,13 @@ export class WorkoutPlanService {
       .maybeSingle();
     if (error) {
       console.error('[WorkoutPlan] getActive', error);
+      /* Settle even on failure: a permanent skeleton is worse than an empty state. */
+      this.activePlanLoaded.set(true);
       throw new Error(error.message);
     }
     const row = (data as WorkoutPlanRow | null) ?? null;
     this.activePlan.set(row);
+    this.activePlanLoaded.set(true);
     return row;
   }
 

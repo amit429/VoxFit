@@ -22,7 +22,12 @@
           </vox-card>
         }
 
-        @if (generating()) {
+        @if (loadingActive() && !generating() && !review()) {
+          <!-- Was a blank screen: the template only had branches for generating,
+               a review, an active plan, or `!loadingActive()`. -->
+          <vox-skeleton height="150px" radius="xl" class="block" />
+          <vox-skeleton height="260px" radius="xl" class="block" />
+        } @else if (generating()) {
           <vox-card padding="lg">
             <div class="py-6 text-center">
               <ion-spinner name="crescent" style="--color: var(--vox-brand); width: 22px; height: 22px" />

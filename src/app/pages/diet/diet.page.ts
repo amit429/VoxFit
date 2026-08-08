@@ -87,7 +87,12 @@ export class DietPage implements ViewWillEnter {
 
   protected readonly rawLogs = signal<readonly DietLogListRow[]>([]);
   protected readonly logsError = signal<string | null>(null);
-  protected readonly logsLoading = signal(false);
+  /**
+   * Starts true. `ionViewWillEnter` always kicks off a fetch, so a false default
+   * meant the first frame rendered "Nothing logged yet" before the query even
+   * began — an empty state asserted before looking.
+   */
+  protected readonly logsLoading = signal(true);
 
   protected readonly recipeModalLog = signal<DietLogListRow | null>(null);
 

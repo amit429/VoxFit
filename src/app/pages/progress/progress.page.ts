@@ -77,9 +77,21 @@ export class ProgressPage implements ViewWillEnter {
   protected readonly journal = inject(WorkoutJournalService);
   private readonly nutrition = inject(NutritionDashboardService);
 
+  /**
+   * Every card on this page is data-driven, so they are gated together rather
+   * than popping in one at a time as each fetch lands. The muscle breakdown is
+   * part of the gate because its two cards used to appear late and shove the
+   * rest of the page down mid-scroll.
+   */
   protected readonly showSkeleton = computed(
-    () => !this.journal.activityLoaded() || !this.nutrition.monthlyHistoryLoaded(),
+    () =>
+      !this.journal.activityLoaded() ||
+      !this.nutrition.monthlyHistoryLoaded() ||
+      !this.musclesLoaded(),
   );
+
+  /** Settles either way, so a failed breakdown fetch cannot pin the skeleton. */
+  protected readonly musclesLoaded = signal(false);
 
   protected readonly heatmapWeeks = HEATMAP_WEEKS;
   protected readonly trendWeeks = TREND_WINDOW_WEEKS;
@@ -288,6 +300,7 @@ export class ProgressPage implements ViewWillEnter {
   private async loadMuscles(): Promise<void> {
     if (!this.auth.user()?.id) {
       this.muscles.set(null);
+      this.musclesLoaded.set(true);
       return;
     }
     try {
@@ -296,6 +309,8 @@ export class ProgressPage implements ViewWillEnter {
       /* Both cards render their own empty state rather than the page failing. */
       console.error('[ProgressPage] muscle breakdown', err);
       this.muscles.set(null);
+    } finally {
+      this.musclesLoaded.set(true);
     }
   }
 

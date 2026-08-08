@@ -7,6 +7,7 @@ import { chevronBackOutline } from 'ionicons/icons';
 import type { TrainingStatsSummary, WorkoutPlanGenerateResult, WorkoutPlanSource } from '@/app/models';
 import { WorkoutPlanService } from '@/app/services/workout-plan.service';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { PlanReviewCardComponent } from '@/app/components/plan-review-card/plan-review-card.component';
 
@@ -18,7 +19,7 @@ addIcons({ chevronBackOutline });
   standalone: true,
   templateUrl: './workout-plan.page.html',
   styleUrls: ['./workout-plan.page.scss'],
-  imports: [RouterLink, IonContent, IonSpinner, VoxIconComponent, PlanReviewCardComponent, VoxCardComponent],
+  imports: [RouterLink, IonContent, IonSpinner, VoxIconComponent, PlanReviewCardComponent, VoxCardComponent, VoxSkeletonComponent],
 })
 export class WorkoutPlanPage implements ViewWillEnter {
   protected readonly planService = inject(WorkoutPlanService);

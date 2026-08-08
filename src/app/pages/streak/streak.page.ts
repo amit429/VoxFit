@@ -6,6 +6,7 @@ import { addIcons } from 'ionicons';
 import { closeOutline, checkmarkOutline, shareSocialOutline } from 'ionicons/icons';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
+import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { StreakMilestoneService } from '@/app/services/streak-milestone.service';
@@ -29,7 +30,7 @@ addIcons({ closeOutline, checkmarkOutline, shareSocialOutline });
   standalone: true,
   templateUrl: './streak.page.html',
   styleUrls: ['./streak.page.scss'],
-  imports: [IonContent, VoxIconComponent, VoxCardComponent],
+  imports: [IonContent, VoxIconComponent, VoxCardComponent, VoxSkeletonComponent],
 })
 export class StreakPage implements ViewWillEnter {
   private readonly journal = inject(WorkoutJournalService);
@@ -37,6 +38,13 @@ export class StreakPage implements ViewWillEnter {
   private readonly navCtrl = inject(NavController);
   private readonly milestones = inject(StreakMilestoneService);
   private readonly toastCtrl = inject(ToastController);
+
+  /**
+   * Nothing here renders until the activity window has loaded. Every figure on
+   * this page derives from it, and the unloaded state reads "0 — No streak
+   * going", which is an assertion rather than a placeholder.
+   */
+  protected readonly loaded = computed(() => this.journal.activityLoaded());
 
   protected readonly days = computed(() => this.journal.streak().days);
   protected readonly weekDots = computed(() => this.journal.streak().weekDots);

@@ -16,8 +16,11 @@
       </button>
     </header>
 
-    <!-- Today's plan -->
-    @if (planService.activePlan()) {
+    <!-- Today's plan. Skeleton until the fetch settles: `activePlan() === null`
+         alone would render the "No plan yet" CTA at users who do have one. -->
+    @if (!planService.activePlanLoaded()) {
+      <vox-skeleton height="76px" radius="xl" class="block" />
+    } @else if (planService.activePlan()) {
       <vox-plan-banner
         state="active"
         [title]="planBannerTitle()"

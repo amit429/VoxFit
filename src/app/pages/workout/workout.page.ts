@@ -104,7 +104,8 @@ export class WorkoutPage implements ViewWillEnter {
   /** `all`/`prs` filter results — paginated, never loads full history at once. */
   protected readonly journalPageItems = signal<WorkoutSessionListRow[]>([]);
   protected readonly journalHasMore = signal(true);
-  protected readonly journalPageLoading = signal(false);
+  /* True until the first page lands, so the list shows a skeleton, not "No sessions yet". */
+  protected readonly journalPageLoading = signal(true);
   protected readonly journalPageError = signal<string | null>(null);
 
   /** Previous calendar week's strength tonnage — for the week-over-week % stat. Null until fetched or if no prior volume. */

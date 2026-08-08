@@ -4,6 +4,17 @@
 }
 
 /*
+ * A percentage `width` needs a resolvable containing width, which an
+ * inline-block host sized by its own content does not provide — the bar
+ * collapsed to nothing. Callers pass `class="w-full"` or a flex parent; this
+ * makes the host fill it so `width="46%"` means 46% of the slot.
+ */
+:host(.w-full),
+:host(.block) {
+  width: 100%;
+}
+
+/*
  * Shimmer over glass rather than a pulsing grey block. The moving highlight is
  * a background layer on top of the surface tint, so the placeholder reads as
  * the same material as the card it will become.

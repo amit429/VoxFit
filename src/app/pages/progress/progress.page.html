@@ -17,13 +17,30 @@
     </header>
 
     @if (showSkeleton()) {
+      <!-- Mirrors the real stack card for card, at each card's own height, so
+           nothing shifts when the data lands. -->
       <div class="flex gap-2.5">
         @for (i of [0, 1, 2]; track i) {
           <vox-skeleton height="72px" radius="xl" class="block flex-1" />
         }
       </div>
-      <vox-skeleton height="170px" radius="xl" class="block" />
-      <vox-skeleton height="190px" radius="xl" class="block" />
+      <!-- sessions ring -->
+      <vox-skeleton height="182px" radius="xl" class="block" />
+      <!-- muscle map -->
+      <vox-skeleton height="220px" radius="xl" class="block" />
+      <!-- weekly volume -->
+      <vox-skeleton height="176px" radius="xl" class="block" />
+      <!-- strength trend -->
+      <vox-skeleton height="212px" radius="xl" class="block" />
+      <!-- macro rings -->
+      <vox-skeleton height="150px" radius="xl" class="block" />
+      <!-- muscle split -->
+      <vox-skeleton height="164px" radius="xl" class="block" />
+      <!-- activity heatmap -->
+      <vox-skeleton height="150px" radius="xl" class="block" />
+      <!-- two monthly charts -->
+      <vox-skeleton height="176px" radius="xl" class="block" />
+      <vox-skeleton height="176px" radius="xl" class="block" />
     } @else {
       <!-- All-time hero stats -->
       <div class="flex gap-2.5">

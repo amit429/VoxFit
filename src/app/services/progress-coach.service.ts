@@ -13,18 +13,43 @@ export class ProgressCoachService {
   readonly latestReview = signal<ProgressReviewRow | null>(null);
   readonly latestNudge = signal<PlanNudgeRow | null>(null);
 
+  /**
+   * Whether `latestReview`/`latestNudge` reflect a completed fetch. Same reason
+   * as `WorkoutPlanService.activePlanLoaded`: null alone cannot tell "no
+   * check-in yet" apart from "haven't looked yet", and the difference changes
+   * what the Profile card offers.
+   */
+  readonly latestLoaded = signal(false);
+
   /** Loads the most recent review and nudge for the Profile/Train cards. */
   async getLatest(): Promise<void> {
     const uid = this.auth.user()?.id;
-    if (!uid) return;
-    const [{ data: review }, { data: nudge }] = await Promise.all([
-      this.supabase.client.from('progress_reviews').select('*')
-        .eq('user_id', uid).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      this.supabase.client.from('plan_nudges').select('*')
-        .eq('user_id', uid).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    ]);
-    this.latestReview.set((review as ProgressReviewRow | null) ?? null);
-    this.latestNudge.set((nudge as PlanNudgeRow | null) ?? null);
+    if (!uid) {
+      this.latestLoaded.set(true);
+      return;
+    }
+    try {
+      const [{ data: review }, { data: nudge }] = await Promise.all([
+        this.supabase.client
+          .from('progress_reviews')
+          .select('*')
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        this.supabase.client
+          .from('plan_nudges')
+          .select('*')
+          .eq('user_id', uid)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      this.latestReview.set((review as ProgressReviewRow | null) ?? null);
+      this.latestNudge.set((nudge as PlanNudgeRow | null) ?? null);
+    } finally {
+      this.latestLoaded.set(true);
+    }
   }
 
   /** Manual "Check my progress" — runs the agent, persists (idempotent), updates signals. */

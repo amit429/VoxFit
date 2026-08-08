@@ -14,31 +14,51 @@
       </button>
     </header>
 
-    <!-- Identity -->
-    <div class="flex items-center gap-3.5">
-      <span class="pr-avatar-ring">
-        <span class="pr-avatar">{{ avatarInitial() }}</span>
-      </span>
-      <div class="min-w-0 flex-1">
-        <p class="pr-name">{{ displayName() }}</p>
-        <div class="mt-1.5 flex flex-wrap gap-1.5">
-          <vox-badge size="xs">{{ sportChip() }}</vox-badge>
-          <vox-badge size="xs">{{ goalChip() }}</vox-badge>
+    <!-- Identity. Gated on the profile itself: the fallbacks are dummy display
+         data, so an unloaded render shows a placeholder name. -->
+    @if (profileLoaded()) {
+      <div class="flex items-center gap-3.5">
+        <span class="pr-avatar-ring">
+          <span class="pr-avatar">{{ avatarInitial() }}</span>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="pr-name">{{ displayName() }}</p>
+          <div class="mt-1.5 flex flex-wrap gap-1.5">
+            <vox-badge size="xs">{{ sportChip() }}</vox-badge>
+            <vox-badge size="xs">{{ goalChip() }}</vox-badge>
+          </div>
         </div>
       </div>
-    </div>
+    } @else {
+      <div class="flex items-center gap-3.5">
+        <vox-skeleton shape="circle" width="66px" height="66px" />
+        <div class="min-w-0 flex-1">
+          <vox-skeleton shape="text" width="140px" height="21px" />
+          <div class="mt-2 flex gap-1.5">
+            <vox-skeleton shape="pill" width="56px" height="22px" />
+            <vox-skeleton shape="pill" width="68px" height="22px" />
+          </div>
+        </div>
+      </div>
+    }
 
     <!--
       Compact nudge only. The full review opens in a dialog — inlined it ran to
       several hundred words and pushed everything below it off the screen.
     -->
-    <vox-progress-nudge
-      state="check-in-ready"
-      [title]="checkinTitle()"
-      [detail]="checkinDetail()"
-      [ctaLabel]="generating() ? 'Reading your data…' : 'See my check-in'"
-      (action)="openCheckin()"
-    />
+    @if (coach.latestLoaded()) {
+      <vox-progress-nudge
+        state="check-in-ready"
+        [title]="checkinTitle()"
+        [detail]="checkinDetail()"
+        [ctaLabel]="generating() ? 'Reading your data…' : 'See my check-in'"
+        (action)="openCheckin()"
+      />
+    } @else {
+      <!-- The card's copy and CTA both change once we know whether a check-in
+           exists, so showing it early would flip under the user. -->
+      <vox-skeleton height="122px" radius="xl" class="block" />
+    }
 
     @if (error(); as err) {
       <vox-card variant="rose" padding="sm">
@@ -72,20 +92,42 @@
 
     <section>
       <h2 class="pr-section-title">Preferences</h2>
-      <vox-card padding="sm">
-        @for (g of goalRows(); track g.label) {
-          <div class="pr-pref-row">
-            <span class="pr-pref-icon">
-              <vox-icon [name]="g.icon" tone="ink-subtle" size="sm" />
-            </span>
-            <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
-            <span class="pr-pref-value">{{ g.value }}</span>
-          </div>
-        }
-      </vox-card>
+      @if (profileLoaded()) {
+        <vox-card padding="sm">
+          @for (g of goalRows(); track g.label) {
+            <div class="pr-pref-row">
+              <span class="pr-pref-icon">
+                <vox-icon [name]="g.icon" tone="ink-subtle" size="sm" />
+              </span>
+              <span class="flex-1 text-sm text-ink">{{ g.label }}</span>
+              <span class="pr-pref-value">{{ g.value }}</span>
+            </div>
+          }
+        </vox-card>
+      } @else {
+        <!--
+          Row shapes inside the real card, not one tall block. A single 342px
+          rectangle of 11%-white over the gradient is both hard to see and says
+          nothing; six rows say "a list of six things is coming" and hold the
+          exact height the real rows will take.
+        -->
+        <vox-card padding="sm">
+          @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+            <div class="pr-pref-row">
+              <vox-skeleton shape="block" width="32px" height="32px" radius="sm" />
+              <span class="flex-1">
+                <vox-skeleton shape="text" width="46%" height="13px" class="w-full" />
+              </span>
+              <vox-skeleton shape="text" width="58px" height="12px" />
+            </div>
+          }
+        </vox-card>
+      }
     </section>
 
-    <p class="pr-footer">{{ email() }}</p>
+    @if (profileLoaded()) {
+      <p class="pr-footer">{{ email() }}</p>
+    }
   </main>
 </ion-content>
 

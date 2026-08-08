@@ -14,9 +14,14 @@
       <a routerLink="/tabs/profile" class="home-avatar" [attr.aria-label]="'Open profile'">
         {{ initial() }}
       </a>
-      <a routerLink="/streak" routerDirection="forward" class="min-w-0 flex-1 no-underline">
-        <vox-streak-pill [days]="journal.streak().days" />
-      </a>
+      @if (journal.activityLoaded()) {
+        <a routerLink="/streak" routerDirection="forward" class="min-w-0 flex-1 no-underline">
+          <vox-streak-pill [days]="journal.streak().days" />
+        </a>
+      } @else {
+        <!-- Matches the pill's 42px height and radius so the row doesn't jump. -->
+        <vox-skeleton shape="pill" height="42px" class="block min-w-0 flex-1" />
+      }
     </header>
 
     <section>
@@ -111,10 +116,12 @@
           </div>
         </vox-card>
       </a>
-    } @else if (!showSkeleton()) {
+    } @else if (showSkeleton()) {
+      <vox-skeleton height="68px" radius="xl" class="block" />
+    } @else {
       <vox-card padding="sm" class="block">
         <p class="m-0 py-1 text-center text-xs leading-relaxed text-ink-subtle">
-No sessions this week yet.
+          No sessions this week yet.
         </p>
       </vox-card>
     }

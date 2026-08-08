@@ -90,6 +90,13 @@ export class ProfilePage implements ViewWillEnter {
   protected readonly showSkeleton = computed(() => !this.journal.activityLoaded());
 
   /**
+   * The identity block falls back to DUMMY_PROFILE_DISPLAY when the profile is
+   * null, so rendering it unloaded flashes a placeholder name and chips at the
+   * user. Gate on the real thing instead.
+   */
+  protected readonly profileLoaded = computed(() => this.profile() !== null);
+
+  /**
    * Stats + badge shelf from one RPC. Reading it is also what awards a newly
    * earned badge, so there is nothing to call on write.
    */
