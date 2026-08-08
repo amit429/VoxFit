@@ -2,24 +2,35 @@
   display: block;
 }
 
-.ring {
+/*
+ * Prefixed `mr-` rather than named `.ring`, `.ring-fill` and so on.
+ *
+ * `ring` is a Tailwind utility that sets `box-shadow: 0 0 0 1px`. This was not a
+ * specificity fight — Angular's scoped `.ring[_ngcontent-x]` outranks the bare
+ * utility — but the component rule only ever set `text-align`, so it never
+ * contested the box-shadow. Tailwind's simply applied on top, drawing a 1px
+ * white box around every gauge. A component class must not share a name with a
+ * utility, because the collision shows up in properties you never wrote.
+ */
+
+.mr-gauge {
   text-align: center;
 }
 
-.ring-fill {
+.mr-fill {
   transition: stroke-dashoffset var(--vox-dur-slow) var(--vox-ease);
 }
 
 /* The percentage sits inside the ring, so it stays in the display face
    rather than mono — it reads as a label, not a logged figure. */
-.ring-pct {
+.mr-pct {
   fill: var(--vox-ink);
   font-family: var(--vox-font-display);
   font-size: 15px;
   font-weight: 700;
 }
 
-.ring-label {
+.mr-label {
   margin: 5px 0 0;
   font-size: 0.625rem;
   font-weight: 700;
@@ -29,7 +40,7 @@
 }
 
 /* The actual logged numbers stay mono — this is data. */
-.ring-figures {
+.mr-figures {
   margin: 2px 0 0;
   font-family: var(--vox-font-mono);
   font-variant-numeric: tabular-nums;
@@ -37,12 +48,12 @@
   color: var(--vox-ink-subtle);
 }
 
-.ring-unit {
+.mr-unit {
   color: var(--vox-ink-tertiary);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-fill {
+  .mr-fill {
     transition: none;
   }
 }
