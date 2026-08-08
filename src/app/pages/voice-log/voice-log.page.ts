@@ -102,7 +102,6 @@ export class VoiceLogPage {
 
   protected readonly prCount = computed(() => this.cardExercises().filter((ex) => ex.is_pr).length);
 
-  private holdActive = false;
   private dotsInterval?: ReturnType<typeof setInterval>;
   private timerInterval?: ReturnType<typeof setInterval>;
   private pendingTimeouts: ReturnType<typeof setTimeout>[] = [];
@@ -128,10 +127,17 @@ export class VoiceLogPage {
     this.result.set(workoutExtractToVoiceDoneMock(this.pendingExtract));
   }
 
-  protected async onHoldStart(ev: Event): Promise<void> {
-    ev.preventDefault();
+  /**
+   * Tap to start. Recording continues until the user taps "Structure it" or
+   * "Cancel" — it is not tied to the press.
+   *
+   * This was press-and-hold, which the two explicit stop/cancel buttons below
+   * already contradicted, and which made a normal tap start and instantly stop
+   * the recorder ("No speech detected"). The diet voice screen was already
+   * tap-based; the two now behave the same.
+   */
+  protected async startRecording(): Promise<void> {
     if (this.state() !== 'idle') return;
-    this.holdActive = true;
     this.cleanupTimers();
     this.result.set(null);
     this.cardExercises.set([]);
@@ -149,14 +155,12 @@ export class VoiceLogPage {
       console.error('[VoiceLog] Failed to start listening:', err);
       this.clearDotsInterval();
       this.state.set('idle');
-      this.holdActive = false;
     }
   }
 
   /** Discard the in-progress recording without parsing it — distinct from Stop, which proceeds to extraction. */
   protected async cancelRecording(): Promise<void> {
     if (this.state() !== 'recording') return;
-    this.holdActive = false;
     this.cleanupTimers();
     try {
       await this.voiceSession.cancel();
@@ -164,20 +168,6 @@ export class VoiceLogPage {
       console.error('[VoiceLog] Failed to cancel recording:', err);
     }
     this.state.set('idle');
-  }
-
-  protected onHoldEnd(ev: Event): void {
-    ev.preventDefault();
-    if (!this.holdActive || this.state() !== 'recording') return;
-    this.holdActive = false;
-    void this.stopRecording();
-  }
-
-  protected onHoldCancel(): void {
-    if (this.holdActive && this.state() === 'recording') {
-      this.holdActive = false;
-      void this.stopRecording();
-    }
   }
 
   protected async stopRecording(): Promise<void> {

@@ -78,19 +78,16 @@
           <div class="flex w-full flex-col items-center">
             <vox-voice-orb state="listening" size="lg" />
 
-            <p class="dv-eyebrow">Hearing you</p>
+            <p class="dv-eyebrow">Listening</p>
 
-            @if (voiceSession.transcriptPreview(); as heard) {
-              <p class="dv-transcript">{{ heard }}</p>
-            } @else {
-              <p class="dv-transcript dv-transcript--waiting">
-                @if (mode() === 'log_eaten') {
-                  Say what you ate…
-                } @else {
-                  Say what's in your kitchen…
-                }
-              </p>
-            }
+            <p class="dv-reassure">Take your time</p>
+            <p class="dv-reassure-sub">
+              @if (mode() === 'log_eaten') {
+                Describe what you ate — rough amounts are fine.
+              } @else {
+                Name what you have in, in your own words.
+              }
+            </p>
 
             <button type="button" class="dv-stop-btn" (click)="stopListeningAndPlan()">
               {{ mode() === 'log_eaten' ? 'Work it out' : 'Suggest meals' }}

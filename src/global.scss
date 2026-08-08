@@ -163,17 +163,37 @@ app-root {
   height: 100%;
 }
 
-/*
- * The canvas gradient is painted once, here, on the app shell — so it spans
- * the full viewport including the toolbar and tab-bar strips. ion-content is
- * transparent (variables.scss) and pages layer `.vx-atmo` blobs on top.
- * Painting it per-ion-content instead restarts the ramp below each header
- * and leaves a visible seam.
- */
 ion-app {
   height: 100%;
+  /* Backstop only — every routed page paints its own opaque gradient below. */
   background: var(--vox-canvas-gradient);
-  background-attachment: fixed;
+}
+
+/*
+ * The canvas gradient lives on the routed page, not on ion-app.
+ *
+ * It cannot go on ion-content: that restarts the ramp below the header and
+ * cuts a seam at the toolbar. But it cannot *only* be on ion-app either —
+ * with transparent pages, Ionic's push transition keeps both the outgoing and
+ * incoming page in the tree at once, so you see straight through the new page
+ * to the old one for the length of the animation. That is the ghosting/
+ * double-exposure during navigation.
+ *
+ * `.ion-page` wraps header + content and is full-viewport, so painting here
+ * gives an identical ramp with no seam *and* an opaque page during transit.
+ */
+ion-router-outlet > .ion-page,
+ion-router-outlet > .ion-page.ion-page-hidden {
+  background: var(--vox-canvas-gradient);
+}
+
+/*
+ * Ionic leaves the outgoing page in the DOM after a transition, only marked
+ * hidden. Being explicit costs nothing and prevents a flash if the class is
+ * applied a frame late.
+ */
+ion-router-outlet > .ion-page.ion-page-invisible {
+  opacity: 0;
 }
 
 /* Stacked labels + dark theme: keep control text readable inside shadow parts */

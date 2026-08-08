@@ -278,10 +278,23 @@
   --ion-card-background: var(--vox-surface-solid-2);
 }
 
+/*
+ * The tab bar fades up out of the canvas rather than sitting on it as a slab.
+ * A flat fill plus a top hairline reads as a separate bar bolted to the bottom
+ * of the page; the gradient (transparent → 0.94 by 45%) lets content scroll
+ * *under* it and dissolve, which is what the reference design does.
+ *
+ * `--background` must be transparent for the host gradient to show — Ionic
+ * paints its own fill from that variable and would cover this.
+ */
 ion-tab-bar {
-  --background: rgba(12, 10, 20, 0.92);
+  --background: transparent;
+  --border: 0;
+
+  border: 0;
+  background: linear-gradient(180deg, rgba(13, 11, 24, 0) 0%, rgba(13, 11, 24, 0.94) 45%);
   backdrop-filter: blur(12px);
-  border-top: 1px solid var(--vox-border-hairline);
+  -webkit-backdrop-filter: blur(12px);
   /*
    * Promote to its own GPU compositor layer so the backdrop-filter blur
    * is composited independently of the scroll layer. Without this, fast

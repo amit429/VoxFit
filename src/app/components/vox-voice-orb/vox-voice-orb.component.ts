@@ -44,7 +44,7 @@ export class VoxVoiceOrbComponent {
       case 'processing':
         return 'Processing your workout';
       default:
-        return 'Hold to record your workout';
+        return 'Tap to record your workout';
     }
   });
 }

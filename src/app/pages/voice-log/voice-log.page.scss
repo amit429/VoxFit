@@ -63,36 +63,30 @@
   color: var(--vox-brand-text);
 }
 
-.vl-transcript {
+/*
+ * Reassurance, not a live transcript.
+ *
+ * The interim results from the Web Speech API are noisy — they re-guess whole
+ * clauses mid-sentence — and watching that happen makes people stop mid-thought
+ * to check whether they were understood. The orb and this copy confirm we're
+ * listening; correctness is confirmed on the review screen, where it can
+ * actually be edited.
+ */
+.vl-reassure {
   margin: 16px 0 0;
-  padding: 0 12px;
   font-family: var(--vox-font-display);
   font-size: 1.375rem;
   font-weight: 600;
-  line-height: 1.42;
   letter-spacing: -0.01em;
   color: var(--vox-ink);
 }
 
-.vl-transcript--waiting {
-  color: var(--vox-ink-tertiary);
-}
-
-/* Blinking caret so the live transcript reads as still-in-progress. */
-.vl-caret {
-  display: inline-block;
-  width: 3px;
-  height: 22px;
-  margin-left: 4px;
-  vertical-align: -3px;
-  background: var(--vox-brand);
-  animation: vl-blink 1s steps(2, start) infinite;
-}
-
-@keyframes vl-blink {
-  to {
-    visibility: hidden;
-  }
+.vl-reassure-sub {
+  max-width: 270px;
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
 }
 
 .vl-timer {
@@ -157,8 +151,3 @@
   color: var(--vox-ink-subtle);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .vl-caret {
-    animation: none;
-  }
-}

@@ -3,17 +3,25 @@
   height: 100%;
 }
 
-/* Larger tap targets + legible labels (mobile-first shell). */
+/*
+ * 78px tall per the reference, with the safe-area inset on top of that. The
+ * extra height is what gives the gradient room to fade — a shorter bar puts
+ * the opaque end of the ramp right under the icons.
+ */
 ion-tab-bar {
-  min-height: 3.5rem;
-  padding-top: 0.25rem;
-  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+  min-height: 4.875rem;
+  padding-top: 0.5rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 ion-tab-button {
   --color: var(--vox-ink-tertiary);
   /* Periwinkle-bright for the active tab — the brand accent doing its job. */
   --color-selected: var(--vox-brand-text);
+  --background: transparent;
+  --background-focused: transparent;
+  --ripple-color: transparent;
+
   font-size: 0.65625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -22,5 +30,5 @@ ion-tab-button {
 
 ion-tab-button ion-icon {
   font-size: 1.3125rem;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
 }

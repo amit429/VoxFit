@@ -29,17 +29,13 @@
           <div class="flex flex-1 flex-col items-center justify-center pb-16 text-center">
             <button
               type="button"
-              (touchstart)="onHoldStart($event)"
-              (touchend)="onHoldEnd($event)"
-              (mousedown)="onHoldStart($event)"
-              (mouseup)="onHoldEnd($event)"
-              (mouseleave)="onHoldCancel()"
+              (click)="startRecording()"
               class="vl-orb-btn"
-              aria-label="Hold to record"
+              aria-label="Tap to start recording"
             >
               <vox-voice-orb state="idle" size="lg" />
             </button>
-            <p class="vl-title">Hold and say your workout</p>
+            <p class="vl-title">Tap and say your workout</p>
             <p class="vl-hint">"3 sets of 10, 12, 15 on squats"</p>
           </div>
         }
@@ -48,21 +44,18 @@
           <div class="flex flex-1 flex-col items-center justify-center pb-6 text-center">
             <vox-voice-orb state="listening" size="lg" />
 
-            <p class="vl-eyebrow">Hearing you</p>
+            <p class="vl-eyebrow">Listening</p>
 
-            @if (voiceSession.transcriptPreview(); as heard) {
-              <p class="vl-transcript">{{ heard }}<span class="vl-caret"></span></p>
-            } @else {
-              <p class="vl-transcript vl-transcript--waiting">
-                Listening<span class="vl-caret"></span>
-              </p>
-            }
+            <p class="vl-reassure">Take your time</p>
+            <p class="vl-reassure-sub">
+              Say the exercises, sets, reps and weights — in any order, in your own words.
+            </p>
 
             <p class="vl-timer">{{ formatTime(elapsedSeconds()) }}</p>
           </div>
 
           <div class="pb-6">
-            <p class="vl-hint mb-3.5 text-center">Release when you're done</p>
+            <p class="vl-hint mb-3.5 text-center">Tap when you're done</p>
             <div class="flex gap-3">
               <button type="button" class="vl-btn vl-btn--ghost" (click)="cancelRecording()">Cancel</button>
               <button type="button" class="vl-btn vl-btn--primary" (click)="stopRecording()">
