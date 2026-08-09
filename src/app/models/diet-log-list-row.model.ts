@@ -7,6 +7,8 @@ export interface DietLogListRow {
   readonly date: string;
   readonly meal_name: string;
   readonly meal_type: DietMealTypeDb | null;
+  /** Model-chosen glyph. Null on rows logged before the column existed. */
+  readonly emoji: string | null;
   readonly calories: number;
   readonly protein_g: number;
   readonly carbs_g: number;

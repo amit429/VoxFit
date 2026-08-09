@@ -8,6 +8,7 @@ import type {
   MuscleShareRow,
   MuscleWeekRow,
   UserProgressStats,
+  WeeklyVolumePoint,
   HomeStreakMock,
   HomeWorkoutCardMock,
   WeeklyVolumeMock,
@@ -428,6 +429,24 @@ export class WorkoutJournalService {
   }
 
   /**
+   * Weekly training tonnage, oldest first, weeks without volume omitted.
+   *
+   * One aggregate RPC rather than a client-side sum: volume lives in
+   * `set_lines`, the column every list query deliberately skips because it is
+   * the expensive one. `computeVolumeTrend` fills the missing weeks in.
+   */
+  async getWeeklyVolumeSeries(): Promise<WeeklyVolumePoint[]> {
+    const { data, error } = await this.supabase.client.rpc('get_weekly_volume_series');
+
+    if (error) {
+      console.error('[WorkoutJournal] weekly volume series', error);
+      throw new Error(error.message);
+    }
+
+    return normalizeWeeklyVolumeSeries(data);
+  }
+
+  /**
    * All-time counts, current streak and the badge shelf — one RPC.
    *
    * Replaces two count-only queries plus client-side badge evaluation. The same
@@ -504,6 +523,20 @@ function normalizeMuscleBreakdown(raw: unknown): MuscleBreakdown {
     weekSessions: nonNegativeInt(obj['week_sessions']),
     pending: nonNegativeInt(obj['pending']),
   };
+}
+
+/** Same defensive coercion as the other RPCs — jsonb arrives as `unknown`. */
+function normalizeWeeklyVolumeSeries(raw: unknown): WeeklyVolumePoint[] {
+  if (!Array.isArray(raw)) return [];
+  const out: WeeklyVolumePoint[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
+    const weekStart = entry['week_start'];
+    /* A week key that isn't a date would silently break the densify walk. */
+    if (typeof weekStart !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) continue;
+    out.push({ weekStart, volumeKg: nonNegativeInt(entry['volume_kg']) });
+  }
+  return out;
 }
 
 /**

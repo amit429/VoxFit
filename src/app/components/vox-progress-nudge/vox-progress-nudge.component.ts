@@ -1,6 +1,13 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { addIcons } from 'ionicons';
+import { chatbubbleEllipsesOutline, sparklesOutline, trendingUpOutline } from 'ionicons/icons';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
+
+/* Registered here rather than per host page: a page that renders this banner
+   without also registering its glyphs shows an empty tile, and which page gets
+   visited first should not decide whether the icon appears. */
+addIcons({ chatbubbleEllipsesOutline, sparklesOutline, trendingUpOutline });
 
 export type VoxProgressNudgeState = 'check-in-ready' | 'trending-up' | 'recurring-note';
 

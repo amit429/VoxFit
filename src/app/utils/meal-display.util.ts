@@ -1,9 +1,8 @@
-import type { DietMealTypeDb } from '@/app/models';
+import type { DietLogListRow, DietMealTypeDb } from '@/app/models';
 
 /**
- * Emoji per meal type. `diet_logs` has no emoji column — AI-suggested meals
- * carry one transiently but it is never persisted — so the icon is derived.
- * See Deferred #10.
+ * Fallback emoji per meal type, for rows logged before `diet_logs.emoji`
+ * existed and for the ones where the model's glyph failed validation.
  */
 const MEAL_TYPE_EMOJI: Record<string, string> = {
   breakfast: '🍳',
@@ -28,6 +27,19 @@ const MEAL_TYPE_TONE: Record<string, string> = {
 
 export function mealTypeEmoji(mealType: DietMealTypeDb | null | undefined): string {
   return MEAL_TYPE_EMOJI[mealType ?? ''] ?? FALLBACK_EMOJI;
+}
+
+/**
+ * The glyph for a logged meal: the model's own choice where there is one, the
+ * meal-type fallback otherwise.
+ *
+ * Every surface that shows a meal resolves it here, so a history mixing rows
+ * from before and after the column was added still reads consistently — and
+ * there is one place to change if the fallback ever moves to an icon.
+ */
+export function mealEmoji(log: Pick<DietLogListRow, 'emoji' | 'meal_type'> | null | undefined): string {
+  const own = log?.emoji?.trim();
+  return own || mealTypeEmoji(log?.meal_type);
 }
 
 export function mealTypeTone(mealType: DietMealTypeDb | null | undefined): string {

@@ -32,6 +32,9 @@ JSON shape:
   "meals": [
     {
       "name": string,
+      "emoji": string (ONE emoji that best pictures this specific dish — a food or drink
+        glyph, as specific as you can get: 🍜 for a noodle soup, 🌯 for a wrap, 🥣 for oats.
+        Exactly one emoji, no text, no variation of the same glyph for every meal),
       "prep_minutes": number (reasonable estimate),
       "calories": number (whole meal approximate),
       "protein_g": number,
@@ -49,6 +52,7 @@ Rules:
 - Respect allergies only if user mentions them; otherwise assume standard omnivore unless they say vegetarian/vegan.
 - Steps should be actionable (prep → cook → serve). No ingredient quantities required unless helpful.
 - Variety: mix quick vs fuller meals when possible.
+- Give each meal a distinct emoji where the dishes differ — the list is scanned by icon.
 
 Optional user hints may appear after the transcript — treat them as soft guidance only; pantry transcript wins for ingredients.`;
 

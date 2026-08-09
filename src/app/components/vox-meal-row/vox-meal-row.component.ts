@@ -1,18 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import type { DietLogListRow } from '@/app/models';
-
-/**
- * Emoji per meal type. `diet_logs` has no emoji column — AI-suggested meals
- * carry one transiently but it is never persisted — so the icon is derived
- * from `meal_type`. See Deferred #10.
- */
-const MEAL_TYPE_EMOJI: Record<string, string> = {
-  breakfast: '🍳',
-  lunch: '🥗',
-  dinner: '🍗',
-  snack: '🍎',
-};
+import { mealEmoji } from '@/app/utils/meal-display.util';
 
 /**
  * One logged meal. Extracted because the Fuel screen renders this same row in
@@ -33,5 +22,5 @@ export class VoxMealRowComponent {
 
   readonly openRecipe = output<DietLogListRow>();
 
-  protected readonly emoji = computed(() => MEAL_TYPE_EMOJI[this.log().meal_type ?? ''] ?? '🍽️');
+  protected readonly emoji = computed(() => mealEmoji(this.log()));
 }

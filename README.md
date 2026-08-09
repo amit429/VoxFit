@@ -6,22 +6,47 @@
 
 VoxFit is a voice-first fitness logging application designed for gym-goers and fitness communities who want to log their workouts and meals without typing. Just speak naturally — "did three sets of ten twenty thirty on bench" — and VoxFit's AI parses it into structured workout data in seconds. On top of that, an agentic AI coach generates personalized workout plans on demand, writes a weekly progress reflection automatically, and nudges you when your training has drifted from your plan.
 
-🔗 **Live app:** [voxfit.amitpile.com](https://voxfit.amitpile.com/auth/welcome) · 📄 **PRD & Design:** [Notion doc](https://app.notion.com/p/VoxFit-PRD-and-Design-3a72d7e24b0581088740dd1e36936c8b#2b6e03e9372c443ea2d0cceba656e936)
+Everything you log then reads back: which muscle groups you actually hit this week, where your volume is going, badges that stay earned, a rolling four-week volume trend, and a streak you can share as a rendered poster.
+
+🔗 **Live app:** [voxfit.amitpile.com](https://voxfit.amitpile.com/auth/welcome)
+
+📄 **Product docs** (Notion)
+- [VoxFit — PRD & Design](https://app.notion.com/p/VoxFit-PRD-and-Design-3a72d7e24b0581088740dd1e36936c8b) — the living product record
+- [PRD: AI Workout Planner & Progress/Wellness Coach](https://app.notion.com/p/3a72d7e24b05816b9771f25975686f32) — the agent, the weekly cron, the safety framing
+- [PRD: Dusk Design System & UI Revamp](https://app.notion.com/p/3b72d7e24b05819daa53fac31717d7e2) — tokens, component library, screen migration
+- [PRD: Progress Intelligence](https://app.notion.com/p/3b72d7e24b0581c48272d353586800a8) — muscle split, badge ledger, streak poster, volume trend
 
 ## Project Glimpses
 
-<img src="screenshots/hero-banner.png" alt="VoxFit — Home, voice logging, and profile screens" width="100%" />
+<img src="mockups/00_wide_banner.png" alt="VoxFit — Home, voice capture, my plan, and fuel screens" width="100%" />
+
+The **Dusk** design system across ten screens: gradient canvas, glass surfaces, the voice orb as the hero, and one accent per job.
 
 | | | |
 |---|---|---|
-| ![Home dashboard](screenshots/home-dashboard.png) Home — streak, daily macros, today's session | ![Voice workout log](screenshots/voice-workout-log.png) Hold-to-talk workout capture | ![Session detail with AI coach note](screenshots/session-detail-coach-note.png) Session detail — AI coach note per workout |
-| ![PR badges and physical flags](screenshots/session-physical-flags.png) PR badges & recurring physical-note flags | ![Training journal](screenshots/journal-training-log.png) Training journal — weekly volume & history | ![Diet voice picker](screenshots/diet-voice-picker.png) Diet voice — suggest a meal or log what you ate |
-| ![AI-generated meal recipe](screenshots/meal-recipe-detail.png) AI-suggested recipe from your pantry | ![Profile overview](screenshots/profile-overview.png) Profile — activity heatmap & stats | |
+| <img src="mockups/01_home.png" width="260" /><br>**Home** — voice orb, streak pill, today's fuel, quick actions | <img src="mockups/02_voice_capture.png" width="260" /><br>**Voice capture** — tap to record, waveform while listening | <img src="mockups/03_session_result.png" width="260" /><br>**Session result** — hero stats, coach note, per-set breakdown, PR highlight |
+| <img src="mockups/10_train.png" width="260" /><br>**Train** — plan banner, filters, weekly volume, recent sessions | <img src="mockups/09_my_plan.png" width="260" /><br>**My Plan** — AI-generated split with per-session rationale | <img src="mockups/04_progress.png" width="260" /><br>**My Progress** — sessions ring, muscle map, volume trend |
+| <img src="mockups/05_fuel.png" width="260" /><br>**Fuel** — calorie ring, two voice modes, per-meal glyphs | <img src="mockups/07_profile.png" width="260" /><br>**Profile** — check-in nudge, all-time stats, badge shelf, heatmap | <img src="mockups/06_streak_moment.png" width="260" /><br>**Streak moment** — the screen behind the shareable poster |
+| <img src="mockups/08_settings.png" width="260" /><br>**Settings** — training style, goal, macro steppers, account | | |
+
+Also in [`mockups/`](mockups): `00_gallery_grid.png` (all ten as one sheet) and `00_hero_banner.png` (staggered three-phone hero, for a landing page or social post).
+
+<details>
+<summary><b>These are device-framed design mockups, not live captures — and three things in them aren't built</b></summary>
+
+The mockups are the design source of truth for the Dusk system and match the shipped UI closely, but they are renders rather than screenshots of the running app. Three details in them are deliberately **not** in the build, each for a reason recorded in [Future Features](#future-features):
+
+- **The notification bell** on Home — there is no notification centre. That slot is the profile avatar in the app.
+- **The live transcript** on the voice capture screen — removed by design. Watching imperfect speech recognition arrive word by word undermines trust in a parse the user is about to review anyway, so the app shows reassurance copy instead.
+- **Reminders and "Export my data as CSV"** in Settings — neither has infrastructure behind it yet, and a dead toggle is worse than an absent one.
+
+Real on-device screenshots are still on the list to capture.
+</details>
 
 ## Features
 
 🎙️ **Voice-First Workout Logging**
-- Hold-to-talk mic interface for capturing workout sessions
+- Tap-to-talk mic interface for capturing workout sessions
 - AI-powered parsing (Gemini 2.5 Flash) converts natural speech into sets, reps, weights, cardio segments — even messy, repeated, or garbled mobile speech-to-text output
 - Review & edit AI-extracted data before saving — your data, your control
 
@@ -29,7 +54,8 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 - Tap-to-speak meal suggestions based on your cravings and pantry, complete with recipes
 - Tap-to-speak logging of meals you've already eaten — describe it once, AI estimates the nutrients and logs it
 - Track calories and macros (Protein, Carbs, Fats) against daily targets
-- Smart recommendations against your nutrition goals
+- The model picks **one dish-specific emoji** per meal, persisted on the row — so a long history is scannable by icon instead of four repeating meal-type glyphs. Validated like any other model output: prose, refusals and multi-glyph runs are rejected and fall back to the meal-type icon
+- Tapping a logged meal opens a centred **recipe dialog** — tinted hero, macros, the AI's reason for suggesting it, numbered method steps
 
 🤖 **AI Workout Plan Generator** *(on-demand)*
 - A real Gemini **tool-calling agent** — not a single prompt — reads your training history, recurring physical notes, and goals through read-only tools (`get_training_stats`, `get_recurring_notes`, …) before writing anything
@@ -54,35 +80,59 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 - The exact same edge function serves both the manual "Check my progress" button and the weekly cron — one engine, two triggers, so what you test on-demand is exactly what runs unattended
 - Passive **pointer cards** on Home ("New check-in ready," "New plan nudge") let you know something's waiting on Profile/Train without ever surfacing content on Home itself
 
-📊 **Workout Analytics & History**
-- Weekly workout volume tracking with bar charts
-- Streak counter to stay motivated (days, weekly dots)
-- Personal records (PR) badges and flagged exercises
-- Mood/energy tracking per session for holistic logging
-- Calendar heatmap of activity to visualize your consistency
+📊 **Workout Analytics & History** *(`/progress`)*
+- Every chart on its own **My Progress** screen, so Profile isn't identity, badges and preferences competing with six charts for the same scroll
+- All-time stat tiles, sessions-this-week ring against your own target, weekly volume, strength trend per exercise, macro rings, 26-week activity heatmap, and six months of workout + calorie history
+- Mood/energy tracking per session, PR detection, and a filterable training journal (mood, has-PRs, has-notes)
 
-⚙️ **Mobile-First, Offline-Ready**
+💪 **Muscle Split — what you actually trained**
+- Every logged exercise resolves to a muscle group, so *"what did I hit this week"* and *"where is my volume going"* are real answers
+- **Two-tier resolution, cheapest first:** a global seeded lookup (91 common lifts) handles most logs instantly, deterministically and free
+- Anything it misses is classified once by Gemini **asynchronously** — a statement-level trigger fires one `pg_net` request per session while the insert commits immediately, so classification never blocks a log
+- Because the lookup is **global rather than per-user**, a novel exercise name costs exactly one AI call for the whole product, ever
+- Both components name what they can't show — how many exercises are still classifying, and which groups were trained but carry no tonnage to chart
+
+🏅 **Badges & Weekly Target**
+- Thresholds live in the database as the awarding authority; the earned ledger is **select-only under RLS**, so a badge can't be self-granted from a client
+- Awarding happens on read inside one `SECURITY DEFINER` RPC — idempotent, one place for the threshold logic, and impossible for a write path to forget. Badges no longer un-earn themselves when a streak lapses
+- One RPC returns stats, the full shelf and persists new awards, replacing two count queries plus client-side evaluation
+- Your **weekly session target** is set in onboarding and editable in Settings, instead of being inferred from whatever plan happened to be active
+
+🔥 **The Streak Moment** *(`/streak`)*
+- Tap the streak pill on Home for a full celebration screen: day count at poster scale, the week's dots, best run, days logged
+- **"Share my streak" renders a 1080×1350 PNG poster** on a canvas and hands it to the OS share sheet as a file — no dependency, no external fetch, identical in the Android WebView
+- Composed as a poster, not a screenshot: one enormous numeral, the week's dots as the receipt that proves it, a quiet wordmark strip. Falls back to saving the image where a WebView won't accept file payloads
+
+📈 **"You're trending up"**
+- A rolling four-week volume comparison against the four before, and against every four-week stretch on record
+- Weeks off count as **zero**, not as gaps — otherwise a naive read reports growth across a two-month layoff
+- Stays silent without a real baseline to divide by, without two full windows of history, or on a move under 5% (that's one extra set of squats)
+- **No "down" state** — a banner telling you your training is shrinking is a nag, not a nudge. The volume chart directly below it speaks for itself
+
+⚙️ **Mobile-First, Cross-Platform**
 - Responsive mobile-web app (desktop fallback supported)
-- Progressive Web App (PWA) with offline caching
 - One-codebase deployment to browsers and Play Store (via Capacitor)
 - Integrates with native speech recognition (web & Android)
+- Skeleton loading on every data-driven screen, sized to the shape that's coming, so nothing pops in or shifts under a thumb
+- Offline-first logging is **not** built yet — see [Future Features](#future-features)
 
-🎨 **Modern Dark UI**
-- Linear-inspired design system (dark canvas, hairline borders, single lavender accent)
-- Self-hosted fonts (Inter for text, JetBrains Mono for stats)
-- Tailwind CSS v4 for rapid, consistent styling
-- Fully accessible component library (vox-card, vox-badge, vox-icon) — the AI coach surfaces reuse the same calm, non-alarmist visual register even for "attention"-tone content (no red/danger styling, ever)
+🎨 **Dusk Design System**
+- Plum-ink gradient canvas, translucent glass surfaces, hairline borders and a top rim-light — depth from stacked layers, never from shadows
+- Five accents with exactly one job each (see [Design System](#design-system)), so colour carries meaning instead of decoration
+- Self-hosted fonts (Poppins for display and body, JetBrains Mono for every numeric display)
+- 44px minimum tap targets grown with padding rather than size; every animation silenced under `prefers-reduced-motion`
+- The AI coach surfaces keep the same calm, non-alarmist register even for "attention"-tone content (no red/danger styling, ever) — enforced by a unit test, not just convention
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | Angular 20 (standalone components, signals), Ionic Angular 8, Tailwind CSS v4 |
-| **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), Progressive Web App |
+| **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), mobile-web |
 | **Backend** | Supabase (PostgreSQL, Auth, Edge Functions, `pg_cron`, `pg_net`, Vault) |
-| **AI** | Google Gemini 2.5 Flash — both single-shot extraction (workout parsing, meal suggestions, eaten-meal analysis) and a **tool-calling agent loop** (workout plan generation, weekly progress coach) |
-| **Automation** | `pg_cron` (weekly schedule) + `pg_net` (async HTTP dispatch) + Supabase Vault (secret storage) — server-side only, no third-party job queue |
-| **Fonts** | Inter 500/600/700, JetBrains Mono 400/500 (self-hosted via @fontsource) |
+| **AI** | Google Gemini 2.5 Flash — single-shot extraction (workout parsing, meal suggestions, eaten-meal analysis, muscle-group classification) and a **tool-calling agent loop** (workout plan generation, weekly progress coach) |
+| **Automation** | `pg_cron` (weekly schedule) + `pg_net` (async HTTP dispatch, also used for muscle classification) + Supabase Vault (secret storage) — server-side only, no third-party job queue |
+| **Fonts** | Poppins 500/600/700, JetBrains Mono 400/500/700 (self-hosted via @fontsource — no CDN, so the WebView renders offline) |
 | **Icons** | Ionicons 7 |
 | **State** | Angular signals (lightweight, reactive) |
 
@@ -99,8 +149,8 @@ VoxFit is a voice-first fitness logging application designed for gym-goers and f
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/voxfit.git
-cd voxfit
+git clone https://github.com/amit429/VoxFit.git
+cd VoxFit
 
 # Install dependencies
 npm install
@@ -140,15 +190,20 @@ npm run android:run:dev
 
 ### Pages & Routes
 
-- **Auth**: Welcome, Login, Register, Onboarding (profile setup)
-- **Home**: Dashboard with streak, today's workout, nutrition macros, passive AI coach pointer cards
-- **Voice Log** (`/voice`): Hold-to-talk workout capture with AI review
-- **Workout** (`/tabs/workout`): Session history, list/detail views, weekly volume chart, active-plan card, plan-vs-actual nudge card
+Four tabs plus three standalone routes. Routing is gated by four composed guards, each encoding one state of the sign-in/onboarding machine rather than a generic "is logged in" check.
+
+- **Auth**: Welcome, Login, Register, Onboarding (profile setup, incl. weekly session target)
+- **Home** (`/tabs/home`): Voice orb as the hero, streak pill, daily macros, quick actions, last session, passive AI coach pointer cards
+- **Voice Log** (`/voice`): Tap-to-talk workout capture with AI review
+- **Train** (`/tabs/workout`): Session journal, plan banner, weekly volume chart, filter sheet (mood / has-PRs / has-notes), plan-vs-actual nudge card
 - **Workout Plan** (`/tabs/workout/plan`): Generate/review/save an AI-generated multi-day plan with per-session rationale
-- **Diet Voice Log** (`/log-diet`): Tap-to-speak — suggest a meal from pantry/cravings, or log a meal you already ate
-- **Diet** (`/tabs/diet`): Meal log and macro tracking
-- **Profile** (`/tabs/profile`): Activity heatmap, goals, stats, AI progress-review card ("Check my progress")
-- **Settings** (`/settings`): Edit profile & preferences (targets, sport, goal), about, sign out
+- **Session detail** (`/tabs/workout/:sessionId`): Hero stat tiles, coach note, per-set breakdown, "you mentioned" notes card
+- **Diet Voice Log** (`/log-diet`): Tap-to-speak — suggest a meal from pantry/cravings, or log a meal you already ate. Accepts `?mode=suggest|log_eaten` for deep-linking
+- **Fuel** (`/tabs/diet`): Meal log, calorie ring, macro tracking, day/week views, recipe dialog
+- **You** (`/tabs/profile`): Identity, badge shelf, compact check-in nudge (opens the full review in a centred dialog), link to My Progress
+- **My Progress** (`/progress`): Every chart — stat tiles, sessions ring, muscle map, muscle split, volume, strength trend, macro rings, heatmap, monthly history, volume-trend nudge
+- **Streak** (`/streak`): The streak moment + shareable poster
+- **Settings** (`/settings`): Edit profile & preferences (macro targets, sport, goal, weekly target), about, sign out, delete account
 
 ### Data Flow — Voice Logging
 
@@ -200,39 +255,77 @@ my plan" ────────────┤   Edge Function         │   o
 
 The **on-demand button** and the **weekly cron** hit the exact same edge function — the only difference is who's asking (a signed-in user's JWT vs. a server-side service-role call with a target `user_id`). That's a deliberate design choice: what you test manually is exactly what runs unattended.
 
+### Data Flow — Async Muscle Classification
+
+The pattern for anything expensive that happens *because of* a write but must never slow it down:
+
+```
+Log a workout
+    ↓
+BEFORE INSERT trigger → resolve each name from exercise_muscle_map (global lookup)
+    ↓
+all resolved? ──yes──→ INSERT commits. Done. Zero AI cost.
+    │
+    no
+    ↓
+AFTER INSERT ... FOR EACH STATEMENT (transition table)
+collects the unresolved names — one request per session, not per exercise
+    ↓
+pg_net.http_post → classify-exercise-muscles      ┐ insert commits
+(secrets from Vault, same pattern as the cron)    ┘ immediately — user never waits
+    ↓
+Edge fn: re-check the cache first (two sessions logged back to back
+would otherwise both pay for the same name)
+    ↓
+Gemini classifies only the novel names
+    ↓
+Validate every group against the enum ('other' fallback),
+refuse any name it wasn't asked about
+    ↓
+UPSERT exercise_muscle_map → backfill every unclassified row
+with those names, across all users
+```
+
+Muscle groups are denormalized onto `exercises_logged.primary_muscle` at insert time, which is what makes the Progress reads indexed aggregates rather than a classify-on-read. There is deliberately **no per-user rollup table** — a rollup would need full recomputation whenever a session is edited or deleted (the same cost as just querying) while adding a way for numbers to go stale. The genuinely expensive part is the AI classification, and that *is* cached permanently.
+
 ## Design System
 
-VoxFit uses a **Linear-inspired dark design system**, defined as CSS custom properties in `src/theme/variables.scss`:
+VoxFit uses the **Dusk** design system, defined as CSS custom properties in `src/theme/variables.scss`. Depth comes from three stacked layers — a single gradient canvas, blurred accent blobs placed per screen, and a fine grain overlay above content — rather than from elevation.
 
 | Token | Value | Use |
 |-------|-------|-----|
-| Canvas | `#0a0a0c` | App background |
-| Surface-1 | `#101113` | Toolbar, tab bar |
-| Surface-2 | `#16171a` | Resting cards |
-| Surface-3 | `#1b1c1f` | Raised cards, modals |
-| Surface-4 | `#212226` | Active/hover state |
-| Primary Accent | `#5e6ad2` | CTA, focus ring, brand only |
-| Success | `#27a644` | Positive indicators |
-| Warning | `#d4a72c` | Caution, macro warnings |
-| Danger | `#e5484d` | Destructive actions, errors |
+| Canvas gradient | `#1c1536` → `#151228` → `#0d0b18` → `#191029` | One continuous plum-ink ramp across the whole app shell |
+| Surface 1–4 | translucent glass + hairline border + top rim-light | Cards, sheets, tab bar — the rim-light is what separates a surface from the canvas |
+| Periwinkle (brand) | `#887bfc` | CTAs, focus rings, brand — **and anything AI-authored** |
+| Jade | `#33c998` | Affirmative — logged, on track, current best |
+| Apricot | `#f8a44c` | Streaks and personal records |
+| Rose | `#e77161` | User-reported notes — **deliberately not an alert red** (product-safety requirement, not taste) |
+| Slate | `#6693e3` | Secondary data series |
 
-**Typography** (Inter + JetBrains Mono)
-- Display: 600 weight max, -0.02em tracking
-- Body: 400 weight, -0.05px tracking
-- Mono: Numeric displays (reps, weights, macros) for tabular alignment
+Each accent has exactly one job, so colour carries meaning instead of decoration. `--vox-on-jade` / `--vox-on-apricot` exist because white text fails contrast badly on both fills; every place those fills appear uses the assigned ink.
 
-**Spacing**: 4px base unit (4/8/12/16/24/32/48/96px tokens)
-**Radii**: xs(4px) → sm(6px) → md(8px) → lg(12px) → xl(16px) → pill(9999px)
+**Typography** (Poppins + JetBrains Mono)
+- Display: **600 weight, not 700** — the lighter weight is what keeps this out of mass-market fitness register
+- Body: Poppins 500
+- Mono: every numeric display (reps, weights, macros) for tabular alignment
+
+**Spacing**: 4px base unit, plus `--vox-space-stack` (20px) and `--vox-space-card` (18px). Pages set their rhythm once via `.vx-stack` on `<main>` rather than sprinkling margins on children, so it stays even when sections are reordered.
+**Radii**: xs(4px) → sm(6px) → md(8px) → lg(12px) → xl(18px) → 2xl → pill(9999px)
 
 **Rules**
-- Single scarce accent — never as card fill or gradient
-- No pill-shaped CTAs (md radius only)
-- No box-shadows — hierarchy via surface ladder + hairlines
-- Emoji chrome → ionicons; AI-generated data emoji stays
+- One accent per job — never a card fill, never a gradient outside the brand CTA and the orb
+- No pill-shaped CTAs (md radius only); pill radius is reserved for badges and chips
+- No box-shadows — hierarchy via the surface ladder + hairlines
+- **One glow in the entire system**: the voice orb
+- 44px minimum tap targets, grown with `content-box` padding + negative margin rather than by enlarging the visual
+- Every animation silenced under `prefers-reduced-motion`
+- Emoji chrome → ionicons via the `vox-icon` wrapper; emoji that *is* AI-generated data (a meal's glyph) stays
 
 **Page shell convention**
 - `vox-page-header` / `vox-card` are reserved for the auth flow (welcome, login, register, onboarding)
-- Every other screen (tabs + standalone routes like `/voice`, `/log-diet`, `/settings`) uses a plain `<header>` with `vox-standalone-page` / `tab-page-content` classes and Tailwind utilities directly
+- Every other screen (tabs + standalone routes like `/voice`, `/log-diet`, `/progress`, `/streak`, `/settings`) uses a plain `<header>` with `vox-standalone-page` / `tab-page-content` classes and Tailwind utilities directly
+
+> ⚠️ **Tailwind 4.2.4 caveat:** the installed version silently drops any class containing `.` `[` `]` or `/` — reproduced with a minimal PostCSS script, so it isn't an Angular config issue. Use the `.vx-*` escape hatches in `src/theme/vox-ui.scss` instead of arbitrary-value classes until the version is upgraded.
 
 ## Project Structure
 
@@ -241,30 +334,42 @@ voxfit/
 ├── src/
 │   ├── app/
 │   │   ├── pages/          # Route components (home, voice-log, diet, diet-voice-log, workout,
-│   │   │                   #   workout-detail, workout-plan, auth, profile, settings)
-│   │   ├── components/     # Shared UI (vox-card, vox-badge, vox-icon, vox-page-header) + feature
-│   │   │                   #   components: exercise editor/review, password checklist,
-│   │   │                   #   plan-review-card, progress-review-card, plan-nudge-card,
-│   │   │                   #   coach-pointer-card (passive Home pointers)
+│   │   │                   #   workout-detail, workout-plan, progress, streak, auth, profile,
+│   │   │                   #   settings)
+│   │   ├── components/     # Shared UI: vox-card, vox-badge, vox-icon, vox-skeleton, vox-voice-orb,
+│   │   │                   #   vox-streak-pill, vox-stat-tile, vox-quick-action-grid, vox-plan-banner,
+│   │   │                   #   vox-progress-nudge, vox-macro-ring, vox-activity-ring, vox-volume-chart,
+│   │   │                   #   vox-trend-chart, vox-heatmap, vox-badge-shelf, vox-muscle-map,
+│   │   │                   #   vox-muscle-split, vox-segmented, vox-date-scrubber, vox-filter-sheet,
+│   │   │                   #   vox-stepper-row, vox-meal-row, vox-checkin-modal, vox-recipe-modal
+│   │   │                   #   + coach surfaces: plan-review-card, progress-review-card,
+│   │   │                   #   plan-nudge-card, coach-pointer-card
 │   │   ├── services/       # Auth, voice, Gemini (workout extract + diet + workout-plan + checkin),
 │   │   │                   #   Supabase, journal, diet log, nutrition dashboard, workout-plan,
-│   │   │                   #   progress-coach (review/nudge signals + acknowledge)
+│   │   │                   #   progress-coach, badge, streak-milestone
 │   │   ├── models/         # TypeScript types, one file per exported interface/type, all re-exported
 │   │   │                   #   from models/index.ts — every consumer imports from `@/app/models`
-│   │   ├── guards/         # Route guards (auth, onboarding)
-│   │   ├── utils/          # Formatters, mappers (workout display, exercise parsing/drafts)
+│   │   ├── guards/         # Route guards (guest, auth, onboardingPage, onboardingComplete)
+│   │   ├── utils/          # Formatters + pure logic: workout display, session filters, meal display,
+│   │   │                   #   volume-trend (rolling windows), streak-share-image (canvas poster)
 │   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal
 │   │   │                   #   logger, workout-plan builder, weekly coach builder)
 │   │   └── data/           # Small fallback/mock display constants (not types)
-│   ├── theme/              # Design tokens (variables.scss) + shared styles (buttons, headers, fonts)
-│   ├── global.scss         # Tailwind config, Ionic imports, fonts
-│   └── index.html          # PWA manifest, viewport, meta tags
+│   ├── theme/              # Design tokens (variables.scss), vox-ui.scss utilities, fonts, buttons
+│   ├── global.scss         # Tailwind @theme bridge, Ionic imports, fonts
+│   └── index.html          # Viewport, meta tags, splash matching the canvas gradient
 ├── android/                # Capacitor Android project
 ├── supabase/
-│   ├── functions/          # extract-workout, suggest-diet-meals, log-food (single-shot Gemini calls)
+│   ├── functions/          # extract-workout, suggest-diet-meals, log-food,
+│   │                       #   classify-exercise-muscles  (single-shot Gemini calls)
 │   │                       # generate-workout-plan, generate-checkin (Gemini tool-calling agent)
+│   │                       # delete-account
 │   └── migrations/         # 0001 workout_plans · 0002 progress_reviews + plan_nudges
 │                           # 0003 pg_cron/pg_net weekly dispatcher · 0004 service_role grants
+│                           # 0005 email_exists check · 0006 weekly target + badge ledger
+│                           # 0007 muscle groups + async classification · 0008 weekly volume series
+│                           # 0009 diet_logs.emoji
+├── REVAMP-PROGRESS.md      # Phase-by-phase log of the Dusk revamp + the deferred-feature list
 ├── capacitor.config.ts     # Capacitor config (appId: com.voxfit.app)
 └── angular.json            # Angular CLI workspace config
 ```
@@ -273,7 +378,7 @@ All type declarations live under `src/app/models/`, one file per exported interf
 
 ## Deployment
 
-### Web (PWA)
+### Web
 ```bash
 npm run build:prod
 # Deploy www/ directory to Vercel, Netlify, or any static host
@@ -315,29 +420,45 @@ cd android && ./gradlew bundleRelease
 2. **Component changes**: Edit `.ts`/`.html`/`.scss`, save → auto-reload
 3. **Design token changes**: Edit `src/theme/variables.scss` → impacts all screens
 4. **Voice testing**: Use web Speech API in Chrome, or native Android emulator/device
-5. **Build verification**: `npm run build:dev` (2 min)
+5. **Verification before landing**: `npm run build`, `npm run lint`, `npx ng test --watch=false`
 6. **Android smoke test** (before landing): `npm run android:run:dev`
 
 ## API & Services
 
 ### Supabase Tables
 
-- `user_profiles` — User info, goals, macro targets, onboarding status
+- `user_profiles` — User info, goals, macro targets, `weekly_session_target`, onboarding status
 - `workout_sessions` — Logged workouts (date, mood, energy, raw/cleaned transcript, coach summary)
-- `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance)
-- `diet_logs` — Meal entries (date, meal type, macros, source: AI-suggested or manually logged)
+- `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance, `primary_muscle`/`secondary_muscle` denormalized at insert)
+- `diet_logs` — Meal entries (date, meal type, macros, recipe text, model-chosen `emoji`, source: AI-suggested or manually logged)
 - `workout_plans` — AI-generated plan content (JSONB) + status (`active`/superseded), one active plan per user at a time
 - `progress_reviews` — Weekly AI coach reflections (highlights, trends, recurring notes, suggestions), unique per `(user_id, generated_for_week)`
 - `plan_nudges` — Weekly plan-vs-actual adherence + drift signal, tied to the active plan, unique per `(user_id, generated_for_week)`
+- `badge_definitions` — `badge_key`, `metric`, `threshold`, `sort_order`. Seeded with 13 badges. **The awarding authority** — thresholds live here, not in app code
+- `user_badges` — `(user_id, badge_key)` PK + `earned_at`. **Select-only under RLS**, with no insert/update/delete policy at all, so a badge cannot be self-granted from a client
+- `exercise_muscle_map` — **global**, not per-user: normalized exercise name → primary/secondary muscle group. A novel name is classified once for the whole product
 
-All tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for most, via a `workout_sessions` ownership join for `exercises_logged`). The two AI-coach tables' unique `(user_id, generated_for_week)` indexes are what make the weekly automation idempotent — re-running or overlapping never produces a duplicate.
+All user tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for most, via a `workout_sessions` ownership join for `exercises_logged`). The two AI-coach tables' unique `(user_id, generated_for_week)` indexes are what make the weekly automation idempotent — re-running or overlapping never produces a duplicate.
+
+### RPCs
+
+- **`get_user_progress_stats(p_today date)`** — `SECURITY DEFINER`. Returns workouts, PRs, streak and the full badge shelf, and awards anything newly earned via `ON CONFLICT DO NOTHING`. **Awarding happens on read, not in a write trigger:** idempotent, threshold logic in exactly one place, and impossible for a write path to skip. `p_today` is a parameter rather than `current_date` because `workout_sessions.date` holds the user's *local* date — proven on live data, where the server's date returned a streak of 0 and the user's returned 1
+- **`get_muscle_breakdown(p_week_start, p_week_end)`** — this week's trained groups + the all-time volume split, as `GROUP BY`s over the indexed `primary_muscle` column. Week bounds come from the client so the week is the user's own Monday, not the server's
+- **`get_weekly_volume_series()`** — weekly tonnage, oldest first. Server-side because volume lives in `set_lines`, the column every list query deliberately omits for cost. Returns the *series*, not the verdict — the rolling-window arithmetic lives in `volume-trend.util.ts` where it's unit-testable
+- **`current_workout_streak(p_user, p_today)`**, **`exercise_volume_kg(...)`**, **`normalize_exercise_key(text)`** — supporting functions, search paths pinned
+
+Every RPC returns `jsonb`, which arrives as `unknown` — so each field is coerced explicitly on the client rather than the payload being cast. Same discipline the Gemini parsers use, and for the same reason: a shape change should degrade to a sane default, not throw somewhere far away.
 
 ### Gemini Edge Functions
 
 **Single-shot extraction:**
 - **`extract-workout`** — Deno runtime, POST transcript → structured `WorkoutExtractResult`
-- **`suggest-diet-meals`** — Deno runtime, POST pantry/cravings → meal suggestions with macros & recipe
-- **`log-food`** — Deno runtime, POST a description of a meal already eaten → single nutrient-estimated meal entry
+- **`suggest-diet-meals`** — Deno runtime, POST pantry/cravings → meal suggestions with macros, recipe & emoji
+- **`log-food`** — Deno runtime, POST a description of a meal already eaten → single nutrient-estimated meal entry with an emoji
+- **`classify-exercise-muscles`** — invoked by a `pg_net` trigger, not by the client. Validates a service-role bearer, re-checks the cache before spending a call, validates every returned group against the enum with `other` as fallback, refuses names it wasn't asked about, then upserts the map and backfills globally
+
+**Account:**
+- **`delete-account`** — permanent account + data deletion, behind a typed confirmation in Settings (a Google Play requirement)
 
 **Agentic (tool-calling loop, read-only tools, deterministic writes):**
 - **`generate-workout-plan`** — builds a multi-day plan grounded in the athlete's own training data; on-demand only
@@ -362,16 +483,32 @@ Contributions welcome! Follow these guidelines:
 
 ## Future Features
 
-**AI Coach — next up:**
-- Push notifications (FCM) for the weekly check-in and plan nudge, supplementing today's passive in-app pointer cards — schema is already designed to accommodate this without rework
+Everything that used to sit here has shipped: the AI plan generator, the weekly progress coach, the plan-vs-actual nudge, the muscle split, the persisted badge ledger, the weekly session target, the rolling volume trend, the shareable streak poster, and per-meal emoji. What follows is what's genuinely still open.
+
+**Designed but not yet buildable.** These exist in the design mockups and were **omitted rather than stubbed** — rendering dead UI would be worse than being honest about the gap. The full list, with reasoning, lives in [`REVAMP-PROGRESS.md`](REVAMP-PROGRESS.md).
+
+| Item | Blocked on |
+|------|-----------|
+| Reminders toggle | No push or local-notification infrastructure (no FCM, no `@capacitor/local-notifications`) |
+| Notification centre | Nothing to centre yet — the top-bar slot is the profile avatar instead |
+| Export my data as CSV | No export endpoint, no client-side CSV builder |
+| Session-type & min-volume filters | Session type isn't a column (derivable, but only after loading exercise rows); min-volume needs the `set_lines` JSONB the paginated query deliberately omits. Mood / has-PRs / has-notes ship today |
+| Whole-plan session progress ("8 of 24 done") | `plan_nudges` tracks planned-vs-completed for its own week only; plan-lifetime completion isn't tracked |
+| "Today's planned session" | `workout_plans.plan` has no plan-day → weekday mapping. Needs either a weekday field per plan day or a plan start-date anchor to rotate against. The banner names the split instead |
+
+**AI Coach — next increments.** All four slot into the existing schema and edge function without rework; that was designed for from the start.
+- Push notifications (FCM) for the weekly check-in and plan nudge, supplementing today's passive in-app pointer cards
 - Per-user schedule control (custom day/time instead of one global Sunday run for everyone)
 - Real server-side streak calculation for the coach's training snapshot (currently stubbed at 0 server-side; the client-facing streak is unaffected)
 - Retry/backoff for a failed weekly dispatch, rather than waiting for next week's run
 
 **Platform:**
-- Offline-first workout logging (service worker + IndexedDB sync)
-- Social features (share sessions, friend leaderboards)
+- **Offline-first logging** (service worker + local queue) — the largest genuine gap in the product thesis. The app is voice-first for speed, and a dead connection still blocks a log. There is no service worker or web manifest today
+- **Capture real on-device screenshots** — the docs currently illustrate the app with design mockups, which is honest but not the same as showing the running build
+- **On-device Android verification pass** for the revamp — `backdrop-filter` on the tab bar, the grain overlay, and the blurred atmosphere blobs are the three things most likely to render differently in the WebView than in desktop Chrome
+- Social features (share sessions, friend leaderboards) — the streak poster is the first step; it already leaves the app as an image
 - Wearable integration (Apple Watch, Wear OS)
+- Cleanup: `/log-diet`'s results sections still carry pre-revamp markup (`bg-primary`, `ring-hairline`, and arbitrary-value classes the Tailwind bug silently drops)
 
 > iOS is not on the near-term roadmap — the Capacitor bridge is technically portable, but there's no active plan to build or test an iOS release right now.
 
@@ -381,7 +518,7 @@ MIT — see LICENSE file
 
 ## Support & Feedback
 
-Found a bug? Have a feature idea? [Open an issue](https://github.com/yourusername/voxfit/issues) or reach out via [email/Discord/etc.].
+Found a bug? Have a feature idea? [Open an issue](https://github.com/amit429/VoxFit/issues).
 
 ---
 

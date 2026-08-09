@@ -201,6 +201,7 @@ function parseMeal(raw: unknown, index: number): DietMealSuggestion | null {
 
   return {
     name,
+    emoji: normalizeMealEmoji(o['emoji']),
     prepMinutes,
     calories,
     proteinG,
@@ -246,5 +247,25 @@ function parseEatenMeal(raw: unknown): EatenMealAnalysis | null {
   const fatG = Math.max(0, num(o['fat_g']) ?? 0);
   const rationale = String(o['rationale'] ?? '').trim() || 'Estimated from what you described.';
 
-  return { name, calories, proteinG, carbsG, fatG, rationale };
+  return { name, emoji: normalizeMealEmoji(o['emoji']), calories, proteinG, carbsG, fatG, rationale };
+}
+
+/**
+ * One emoji, or nothing.
+ *
+ * The model is asked for exactly one glyph and usually complies, but this is
+ * untrusted output on a field that goes straight into both the UI and the
+ * database. Anything containing ASCII letters or digits is prose — a refusal, a
+ * label, a fenced answer — and a long run of code points is a sentence. Both
+ * fall back to the meal-type glyph rather than being stored, which is why the
+ * column is nullable.
+ */
+function normalizeMealEmoji(v: unknown): string {
+  if (typeof v !== 'string') return '';
+  const trimmed = v.trim();
+  if (!trimmed) return '';
+  /* A ZWJ sequence such as 👨‍🍳 is five code points; past eight it is not one glyph. */
+  if ([...trimmed].length > 8) return '';
+  if (/[A-Za-z0-9]/.test(trimmed)) return '';
+  return /\p{Extended_Pictographic}/u.test(trimmed) ? trimmed : '';
 }

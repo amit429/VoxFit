@@ -65,6 +65,17 @@
         </vox-card>
       }
 
+      <!-- Rolling volume trend. Sits directly above the volume chart so the
+           claim and the evidence for it are in the same glance. -->
+      @if (volumeTrendNudge(); as nudge) {
+        <vox-progress-nudge
+          state="trending-up"
+          title="You're trending up"
+          [detail]="nudge.detail"
+          [stat]="nudge.stat"
+        />
+      }
+
       <!-- This week's volume -->
       <vox-card>
         <vox-volume-chart

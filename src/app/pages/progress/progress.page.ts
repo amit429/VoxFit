@@ -12,6 +12,7 @@ import type {
   MonthlyChartStatVm,
   VoxTrendPoint,
   VoxVolumeBar,
+  VolumeTrend,
 } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
@@ -27,6 +28,8 @@ import { VoxTrendChartComponent } from '@/app/components/vox-trend-chart/vox-tre
 import { VoxMacroRingComponent } from '@/app/components/vox-macro-ring/vox-macro-ring.component';
 import { VoxMuscleMapComponent } from '@/app/components/vox-muscle-map/vox-muscle-map.component';
 import { VoxMuscleSplitComponent } from '@/app/components/vox-muscle-split/vox-muscle-split.component';
+import { VoxProgressNudgeComponent } from '@/app/components/vox-progress-nudge/vox-progress-nudge.component';
+import { computeVolumeTrend, isTrendingUp } from '@/app/utils/volume-trend.util';
 import {
   buildMonthlySeries,
   getCurrentWeekDayKeys,
@@ -69,6 +72,7 @@ const DEFAULT_WEEKLY_TARGET = 4;
     VoxMacroRingComponent,
     VoxMuscleMapComponent,
     VoxMuscleSplitComponent,
+    VoxProgressNudgeComponent,
   ],
 })
 export class ProgressPage implements ViewWillEnter {
@@ -87,11 +91,19 @@ export class ProgressPage implements ViewWillEnter {
     () =>
       !this.journal.activityLoaded() ||
       !this.nutrition.monthlyHistoryLoaded() ||
-      !this.musclesLoaded(),
+      !this.musclesLoaded() ||
+      !this.volumeTrendLoaded(),
   );
 
   /** Settles either way, so a failed breakdown fetch cannot pin the skeleton. */
   protected readonly musclesLoaded = signal(false);
+
+  /**
+   * Part of the gate rather than rendered late: the trend nudge is a whole
+   * banner, and having it drop in above the volume chart after the page has
+   * settled would shove everything below it down mid-scroll.
+   */
+  protected readonly volumeTrendLoaded = signal(false);
 
   protected readonly heatmapWeeks = HEATMAP_WEEKS;
   protected readonly trendWeeks = TREND_WINDOW_WEEKS;
@@ -184,6 +196,29 @@ export class ProgressPage implements ViewWillEnter {
     if (left <= 0) return 'Target hit for the week 🎯';
     if (left === 1) return 'One more and you hit the target 🎯';
     return `${left} more to hit the target 🎯`;
+  });
+
+  // ---- Rolling volume trend ----
+
+  protected readonly volumeTrend = signal<VolumeTrend | null>(null);
+
+  /**
+   * Only rendered when the last four weeks genuinely beat the four before by
+   * more than noise. The nudge has no "down" state by design — a banner that
+   * tells someone their training is shrinking is not a nudge, it's a nag — so
+   * a flat or falling trend simply shows nothing and the chart below speaks
+   * for itself.
+   */
+  protected readonly volumeTrendNudge = computed(() => {
+    const trend = this.volumeTrend();
+    if (!trend || !isTrendingUp(trend)) return null;
+    return {
+      detail:
+        trend.isBestStretch ?
+          `Best ${trend.windowWeeks}-week stretch since you started`
+        : `Your last ${trend.windowWeeks} weeks beat the ${trend.windowWeeks} before`,
+      stat: `+${trend.deltaPct}%`,
+    };
   });
 
   // ---- This week's volume ----
@@ -287,6 +322,7 @@ export class ProgressPage implements ViewWillEnter {
     void this.nutrition.refresh();
     void this.journal.refreshActivitySummary();
     void this.loadMuscles();
+    void this.loadVolumeTrend();
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refreshMonthlyHistory(MONTHLY_CHART_MONTHS);
     void this.loadStats();
@@ -311,6 +347,23 @@ export class ProgressPage implements ViewWillEnter {
       this.muscles.set(null);
     } finally {
       this.musclesLoaded.set(true);
+    }
+  }
+
+  private async loadVolumeTrend(): Promise<void> {
+    if (!this.auth.user()?.id) {
+      this.volumeTrend.set(null);
+      this.volumeTrendLoaded.set(true);
+      return;
+    }
+    try {
+      this.volumeTrend.set(computeVolumeTrend(await this.journal.getWeeklyVolumeSeries()));
+    } catch (err) {
+      /* No trend is a valid state, so a failure just means no banner. */
+      console.error('[ProgressPage] volume trend', err);
+      this.volumeTrend.set(null);
+    } finally {
+      this.volumeTrendLoaded.set(true);
     }
   }
 

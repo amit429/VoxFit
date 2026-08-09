@@ -67,6 +67,14 @@
   line-height: 1;
 }
 
+/* The dish glyph on a suggestion/estimate card. Sized to sit level with the
+   meal name's cap height rather than towering over it. */
+.dv-meal-emoji {
+  flex-shrink: 0;
+  font-size: 1.375rem;
+  line-height: 1.15;
+}
+
 .dv-mode-title {
   font-size: 0.84375rem;
   font-weight: 700;

@@ -203,6 +203,15 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     return `${meal.name}::${index}`;
   }
 
+  /**
+   * The model's glyph for a meal it has just proposed. Nothing is logged yet,
+   * so there is no `meal_type` to fall back to — hence a plain place setting
+   * rather than `mealEmoji()`, which resolves against a saved row.
+   */
+  protected mealGlyph(meal: { emoji: string }): string {
+    return meal.emoji || '🍽️';
+  }
+
   protected openRecipe(meal: DietMealSuggestion): void {
     this.recipeDetail.set(meal);
   }

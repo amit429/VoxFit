@@ -125,6 +125,7 @@
               class="mb-3 flex w-full items-start justify-between gap-3 border-0 bg-transparent p-0 text-left active:opacity-90"
               (click)="openRecipe(meal)"
             >
+              <span class="dv-meal-emoji" aria-hidden="true">{{ mealGlyph(meal) }}</span>
               <p class="m-0 flex-1 text-base font-semibold leading-snug text-ink">{{ meal.name }}</p>
               <vox-badge tone="accent" shape="pill" class="shrink-0 whitespace-nowrap">Recipe ›</vox-badge>
             </div>
@@ -183,7 +184,10 @@
           Review it below, then log it — it'll show up in today's Diet list.
         </p>
         <div class="rounded-2xl bg-surface-1 p-4 ring-1 ring-hairline">
-          <p class="m-0 mb-3 text-base font-semibold leading-snug text-ink">{{ meal.name }}</p>
+          <p class="m-0 mb-3 flex items-start gap-2.5 text-base font-semibold leading-snug text-ink">
+            <span class="dv-meal-emoji" aria-hidden="true">{{ mealGlyph(meal) }}</span>
+            <span class="flex-1">{{ meal.name }}</span>
+          </p>
           <div class="mb-3 grid grid-cols-4 gap-2">
             <div class="rounded-lg bg-surface-2 px-2 py-2 text-center">
               <p class="m-0 font-mono text-sm font-semibold tabular-nums text-warning">{{ meal.calories }}</p>

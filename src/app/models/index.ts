@@ -71,3 +71,5 @@ export * from './vox-earned-badge.model';
 export * from './vox-session-filters.model';
 export * from './user-progress-stats.model';
 export * from './muscle-breakdown.model';
+export * from './weekly-volume-point.model';
+export * from './volume-trend.model';

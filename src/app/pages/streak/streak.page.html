@@ -75,9 +75,20 @@
 
     <div class="sk-actions">
       @if (loaded() && canShare()) {
-        <button type="button" class="sk-share" (click)="share()">
-          <vox-icon name="share-social-outline" size="sm" tone="inherit" />
-          Share my streak
+        <button
+          type="button"
+          class="sk-share"
+          [disabled]="sharing()"
+          [attr.aria-busy]="sharing()"
+          (click)="share()"
+        >
+          @if (sharing()) {
+            <ion-spinner name="crescent" style="--color: currentColor; width: 16px; height: 16px" />
+            Making your image…
+          } @else {
+            <vox-icon name="share-social-outline" size="sm" tone="inherit" />
+            Share my streak
+          }
         </button>
       }
       <button type="button" class="sk-keep" (click)="close()">Keep going</button>

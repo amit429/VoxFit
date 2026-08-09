@@ -1,8 +1,10 @@
 # VoxFit UI revamp — progress log
 
 Tracking the migration from the Linear-inspired flat dark system to **Dusk** (the
-"Kinetic" redesign). Source brief: `~/Downloads/voxfit-redesign-handoff/IMPLEMENTATION.md`,
-mockups in `mockups/`, reference HTML in `html-source/`.
+"Kinetic" redesign). Source brief: `~/Downloads/voxfit-redesign-doc/IMPLEMENTATION.md`,
+mockups in `mockups/`, reference HTML in `html-source/`. The device-framed mockups of the
+finished screens are committed to this repo at `mockups/` and are what the README and the
+Notion PRD illustrate.
 
 Branch: `feat/kinetic-ui-revamp`
 
@@ -474,16 +476,6 @@ Nothing here blocks the redesign. Each is a real gap between the mockups and the
    session-type column, and min-volume needs `set_lines`, which the journal's lean paginated
    query deliberately omits for cost. Mood / has-PRs / has-notes ship.
 
-8. **Shareable streak *image*** (`06_streak_moment`) — partially resolved: text sharing now
-   works through the Web Share API with a clipboard fallback, no new dependency. Rendering the
-   streak card as an image to share still needs canvas/SVG rasterisation.
-
-9. **"You're trending up / best 4-week stretch"** (`11_components` nudge state) — needs a rolling
-   multi-week volume comparison; only the current and previous week are loaded today.
-
-10. **Per-meal emoji** (`05_fuel`) — `diet_logs` has no emoji column. AI-suggested meals carry one
-    transiently but it is not persisted. Interim: derive an icon from `meal_type`.
-
 11. **Plan session progress** (`09_my_plan` "8 of 24 sessions done") — `plan_nudges` carries
     `planned_sessions`/`completed_sessions` but only for its own week; whole-plan completion is
     not tracked.
@@ -493,3 +485,85 @@ Nothing here blocks the redesign. Each is a real gap between the mockups and the
     no plan-day → weekday mapping, so "today's session" is not derivable. The banner names the
     split instead. Needs either a weekday field per plan day, or a plan start-date anchor to
     rotate days against.
+
+Resolved since this list was written: #1 (Phase 8), #2 and #3 (Phase 7), #8/#9/#10 (Phase 9).
+The numbering is kept stable rather than reflowed, so earlier notes still point at the right item.
+
+---
+
+## Phase 9 — Streak poster, volume trend, per-meal emoji ✅
+
+The last three deferred items that had real product value. All three were "the UI exists, the
+data behind it does not".
+
+### #8 — Shareable streak image
+
+`src/app/utils/streak-share-image.util.ts` renders a 1080×1350 poster on a `<canvas>` and hands
+it to the OS share sheet as a PNG file. Text sharing is gone: a line of text is not worth
+sharing, and it was the image that carried the app.
+
+- **Canvas 2D, not a DOM-to-image library.** No dependency, no external fetch, identical in the
+  Android WebView. `html2canvas` and friends re-implement CSS layout and get `backdrop-filter`,
+  gradients and emoji wrong — and the poster is a different composition from the page anyway.
+- **Poster, not screenshot.** One enormous numeral (320px Poppins with the apricot glow), the
+  week's dots underneath as the receipt that proves it, best-run/days-logged stats, and a quiet
+  wordmark strip. Same tokens as the page — canvas gradient stops, apricot ramp, `--vox-on-apricot`
+  for the check inside a dot, the grain overlay — so the two read as one object at two sizes.
+- **The hero is measured, then centred** in the band above the footer. A cursor-from-the-top
+  layout left a growing hole for a one-line headline and crowded the dots on a three-line one,
+  and the headline length varies by milestone. Glyph boxes, not font sizes: a 320px numeral is
+  ~232px of cap height, and laying out against the font size leaves a gap under every element.
+- **Tracked labels are drawn glyph by glyph.** `ctx.letterSpacing` exists only in newer engines
+  and the WebView version is whatever the device shipped with — a silently ignored property
+  would collapse every uppercase label in the poster.
+- **Fonts are awaited before the first `fillText`.** Canvas takes no part in CSS font loading, so
+  drawing early falls back to the system face and every measurement — and so the whole layout —
+  comes out wrong.
+- **Grain is seeded** (mulberry32), so re-sharing the same streak produces a byte-identical image.
+- Share path: `navigator.canShare({ files })` → `navigator.share`. `canShare` is the only reliable
+  signal, because a WebView can support `share()` and reject file payloads. Where files are not
+  accepted (desktop, older WebViews) the poster downloads instead, so the user still gets it.
+  The CTA carries its own loading state — rendering takes a beat.
+
+### #9 — "You're trending up"
+
+Migration `0008_weekly_volume_series.sql`: `get_weekly_volume_series()`, one indexed aggregate
+over `exercise_volume_kg()` (from 0007), grouped by ISO week.
+
+- **Server-side, because volume lives in `set_lines`** — the JSONB column every list query
+  deliberately omits because it is the expensive one. Pulling months of it into the browser to
+  sum it is exactly the cost that omission was avoiding.
+- **The RPC returns the series, not the verdict.** Rolling-window arithmetic is easier to get
+  right, and to unit-test, in TypeScript; a few hundred `{week_start, volume_kg}` rows is a few
+  KB after years of logging. `computeVolumeTrend` in `volume-trend.util.ts`, 10 specs.
+- **Weeks with no volume are densified to zero.** The RPC only returns weeks that have data, so
+  a naive "last four entries" read would compare the last four *logged* weeks and report growth
+  across a two-month layoff. That regression is pinned by a spec.
+- **A percentage needs a baseline**: coming back from a blank block is real progress, but "+∞%"
+  is not a claim, so the nudge stays quiet until there is something to divide by. It also needs
+  two full windows of history, and a move of at least 5% — 1–2% between four-week blocks is one
+  extra set of squats, and a banner that fires on noise stops being read.
+- **No "down" state.** The mockup has none, and a banner telling someone their training is
+  shrinking is a nag, not a nudge. A flat or falling trend renders nothing and the volume chart
+  directly below it speaks for itself.
+- Placement: Progress, immediately above "This week's volume" — claim and evidence in one glance.
+  Included in the page's load gate so a whole banner cannot drop in after the page has settled.
+- `vox-progress-nudge` now registers its own three ionicons. It was relying on whichever host
+  page happened to be visited first, so landing directly on `/progress` showed an empty tile.
+
+### #10 — Per-meal emoji
+
+Migration `0009_diet_log_emoji.sql`: nullable `diet_logs.emoji`.
+
+- Both prompts (and both edge-function SYSTEM blocks, redeployed) now ask for one dish-specific
+  glyph. Verified live: ramen → 🍜, and a six-meal suggestion set came back
+  🍚 / 🧀 / 🥢 / 🍜 / 🥣 / 🍛 rather than six identical icons.
+- **Validated like any other model output.** `normalizeMealEmoji` rejects anything with ASCII
+  letters or digits (prose, a refusal, a fenced answer) or more than eight code points, and
+  requires an `Extended_Pictographic` character. A rejection stores null, which is why the
+  column is nullable.
+- `mealEmoji()` in `meal-display.util.ts` is the single resolution point: the model's glyph where
+  there is one, the meal-type glyph otherwise. `vox-meal-row` had its own copy of the meal-type
+  table; it now shares this one. Rows logged before the column existed keep working unchanged.
+- The suggestion and estimate cards on `/log-diet` show the glyph too — that is where it is first
+  seen, and it makes a six-meal list scannable by icon.

@@ -177,6 +177,11 @@
   cursor: pointer;
 }
 
+.sk-share:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
 .sk-keep {
   width: 100%;
   min-height: 44px;

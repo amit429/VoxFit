@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavController, ToastController } from '@ionic/angular/standalone';
 import type { ViewWillEnter } from '@ionic/angular/standalone';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, checkmarkOutline, shareSocialOutline } from 'ionicons/icons';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
@@ -11,6 +11,7 @@ import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { StreakMilestoneService } from '@/app/services/streak-milestone.service';
 import { collectSessionDateSet, computeLongestStreakDays } from '@/app/utils/workout-display.util';
+import { renderStreakShareImage } from '@/app/utils/streak-share-image.util';
 
 addIcons({ closeOutline, checkmarkOutline, shareSocialOutline });
 
@@ -30,7 +31,7 @@ addIcons({ closeOutline, checkmarkOutline, shareSocialOutline });
   standalone: true,
   templateUrl: './streak.page.html',
   styleUrls: ['./streak.page.scss'],
-  imports: [IonContent, VoxIconComponent, VoxCardComponent, VoxSkeletonComponent],
+  imports: [IonContent, IonSpinner, VoxIconComponent, VoxCardComponent, VoxSkeletonComponent],
 })
 export class StreakPage implements ViewWillEnter {
   private readonly journal = inject(WorkoutJournalService);
@@ -84,16 +85,15 @@ export class StreakPage implements ViewWillEnter {
     return 'Keep going.';
   });
 
-  private readonly shareSupported = signal(false);
-
   /** Nothing to boast about at zero — the CTA would read as a taunt. */
-  protected readonly canShare = computed(() => this.shareSupported() && this.days() > 0);
+  protected readonly canShare = computed(() => this.days() > 0);
+
+  /** Rendering the poster takes a beat; the CTA says so rather than stalling. */
+  protected readonly sharing = signal(false);
 
   ionViewWillEnter(): void {
     void this.auth.refreshProfile();
     void this.journal.refreshActivitySummary().then(() => this.markMilestoneSeen());
-    /* Feature-detect once per view rather than in the template. */
-    this.shareSupported.set(typeof navigator !== 'undefined' && typeof navigator.share === 'function');
   }
 
   protected close(): void {
@@ -101,29 +101,59 @@ export class StreakPage implements ViewWillEnter {
   }
 
   /**
-   * Text-only share via the Web Share API — available in the Capacitor
-   * WebView and mobile browsers, so it needs no extra plugin. The mockup's
-   * shareable image is not built; see Deferred #8.
+   * Renders the streak as a PNG poster and hands it to the OS share sheet.
+   *
+   * Image rather than text: a line of text is not worth sharing, and it is the
+   * poster that carries the app. Web Share API Level 2 (files) is what the
+   * Capacitor WebView and mobile browsers expose, so this needs no plugin —
+   * but `canShare` is the only reliable way to know whether *files* are
+   * accepted, since a WebView can support `share()` and reject file payloads.
+   * Where files aren't accepted (desktop browsers, older WebViews) the poster
+   * is saved instead, so the user still ends up with the image.
    */
   protected async share(): Promise<void> {
-    const text = `${this.days()}-day streak on VoxFit 🔥`;
+    if (this.sharing()) return;
+    this.sharing.set(true);
     try {
-      await navigator.share({ title: 'My VoxFit streak', text });
+      const blob = await renderStreakShareImage({
+        days: this.days(),
+        headline: this.headline(),
+        subline: this.subline(),
+        bestRun: this.longestStreak(),
+        daysLogged: this.totalLoggedDays(),
+        weekDots: this.weekDots(),
+      });
+      const file = new File([blob], 'voxfit-streak.png', { type: 'image/png' });
+
+      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My VoxFit streak',
+          text: `${this.days()}-day streak on VoxFit 🔥`,
+        });
+        return;
+      }
+      this.saveFallback(blob);
+      await this.presentToast('Streak image saved');
     } catch (err) {
       /* AbortError is the user dismissing the sheet — not a failure. */
       if (err instanceof Error && err.name === 'AbortError') return;
       console.error('[StreakPage] share', err);
-      await this.copyFallback(text);
+      await this.presentToast('Could not make the image right now');
+    } finally {
+      this.sharing.set(false);
     }
   }
 
-  private async copyFallback(text: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(text);
-      await this.presentToast('Copied to clipboard');
-    } catch {
-      await this.presentToast('Could not share right now');
-    }
+  /** Saves the poster to the device instead of opening a share sheet. */
+  private saveFallback(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `voxfit-streak-${this.days()}-days.png`;
+    a.click();
+    /* Revoking synchronously can cancel the download in some engines. */
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 
   private markMilestoneSeen(): void {

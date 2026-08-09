@@ -26,6 +26,8 @@ export class DietLogService {
       date: dateStr,
       meal_name: meal.name,
       meal_type: inferMealType(),
+      /* Null rather than '' so the client's meal-type fallback kicks in. */
+      emoji: meal.emoji || null,
       calories: Math.round(meal.calories),
       protein_g: meal.proteinG,
       carbs_g: meal.carbsG,
@@ -51,6 +53,7 @@ export class DietLogService {
       date: dateStr,
       meal_name: meal.name,
       meal_type: inferMealType(),
+      emoji: meal.emoji || null,
       calories: Math.round(meal.calories),
       protein_g: meal.proteinG,
       carbs_g: meal.carbsG,
@@ -86,7 +89,7 @@ export class DietLogService {
     let q = this.supabase.client
       .from('diet_logs')
       .select(
-        'id, date, meal_name, meal_type, calories, protein_g, carbs_g, fat_g, prep_minutes, rationale, recipe_text, created_at',
+        'id, date, meal_name, meal_type, emoji, calories, protein_g, carbs_g, fat_g, prep_minutes, rationale, recipe_text, created_at',
       )
       .eq('user_id', userId)
       .gte('date', fromDate)
@@ -117,6 +120,8 @@ function normalizeLogRow(r: Record<string, unknown>): DietLogListRow {
     typeof dateRaw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateRaw) ?
       dateRaw
     : parseLocalDateKey(new Date());
+  const em = r['emoji'];
+  const emoji = typeof em === 'string' && em.trim() !== '' ? em.trim() : null;
   const rt = r['recipe_text'];
   const recipe_text = rt == null || String(rt).trim() === '' ? null : String(rt).trim();
   return {
@@ -124,6 +129,7 @@ function normalizeLogRow(r: Record<string, unknown>): DietLogListRow {
     date,
     meal_name: String(r['meal_name'] ?? 'Meal'),
     meal_type,
+    emoji,
     calories: Math.round(Number(r['calories'] ?? 0)),
     protein_g: Number(r['protein_g'] ?? 0),
     carbs_g: Number(r['carbs_g'] ?? 0),

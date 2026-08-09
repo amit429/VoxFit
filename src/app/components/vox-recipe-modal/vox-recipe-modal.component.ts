@@ -4,7 +4,7 @@ import { IonModal } from '@ionic/angular/standalone';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import type { DietLogListRow } from '@/app/models';
-import { mealTypeEmoji, mealTypeLabel, mealTypeTone } from '@/app/utils/meal-display.util';
+import { mealEmoji, mealTypeLabel, mealTypeTone } from '@/app/utils/meal-display.util';
 
 /**
  * A logged meal, in full.
@@ -13,9 +13,10 @@ import { mealTypeEmoji, mealTypeLabel, mealTypeTone } from '@/app/utils/meal-dis
  * unnumbered steps over a large empty void — while ignoring the calories,
  * macros, prep time and AI rationale already on the row.
  *
- * The hero is the meal emoji on a tinted wash, coloured by meal type. That is
+ * The hero is the meal's emoji on a tinted wash, coloured by meal type. That is
  * the illustration: real food photography is not something this app has, and a
- * generated stock image would be a lie about what was eaten.
+ * generated stock image would be a lie about what was eaten. The glyph is the
+ * one the model picked for this dish, so it is at least about the food.
  */
 @Component({
   selector: 'vox-recipe-modal',
@@ -34,7 +35,7 @@ export class VoxRecipeModalComponent {
 
   protected readonly isOpen = computed(() => this.log() !== null);
 
-  protected readonly emoji = computed(() => mealTypeEmoji(this.log()?.meal_type));
+  protected readonly emoji = computed(() => mealEmoji(this.log()));
   protected readonly tone = computed(() => mealTypeTone(this.log()?.meal_type));
   protected readonly typeLabel = computed(() => mealTypeLabel(this.log()?.meal_type));
 
