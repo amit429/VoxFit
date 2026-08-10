@@ -4,14 +4,21 @@
 }
 
 /*
- * 78px tall per the reference, with the safe-area inset on top of that. The
- * extra height is what gives the gradient room to fade — a shorter bar puts
- * the opaque end of the ramp right under the icons.
+ * 58px of chrome plus whatever the device reserves for its gesture bar.
+ *
+ * This was 78px + 8 + 12 = 98px before the safe-area inset, which put it near
+ * 130px on a phone with a gesture bar — about a sixth of the screen given over
+ * to four labels. The old comment justified that with "the gradient needs room
+ * to fade", but the fade is a percentage of the bar (opaque by 45%), so it
+ * scales down with it rather than being lost.
+ *
+ * The floor is the tab button (48px) plus this padding, so the button's tap
+ * target — not this number — is what actually keeps the bar accessible.
  */
 ion-tab-bar {
-  min-height: 4.875rem;
-  padding-top: 0.5rem;
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  min-height: 3.125rem;
+  padding-top: 0.25rem;
+  padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
 }
 
 ion-tab-button {

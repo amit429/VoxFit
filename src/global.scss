@@ -139,11 +139,11 @@ html,
 body {
   height: 100%;
   /*
-   * Without this, a fast fling can rubber-band/elastic-bounce the whole document
-   * (not just the intended scroll container) — since ion-tab-bar is a plain flex
-   * sibling in ion-tabs (not position: fixed), it visibly drags along with that
-   * whole-page bounce and jitters. This contains overscroll to each scroller
-   * (ion-content's own inner-scroll) instead of chaining to the document.
+   * Belt to the braces below. The document is not actually scrollable here
+   * (body is overflow:hidden and ion-app is viewport-sized), so this rule alone
+   * cannot stop the tab-bar drag — the scroller that overscrolls is inside
+   * ion-content's shadow root. It stays as a guard in case a future layout ever
+   * does give the document overflow.
    */
   overscroll-behavior-y: none;
 }
@@ -154,8 +154,26 @@ body {
   letter-spacing: -0.05px;
 }
 
+/*
+ * Kills the elastic overscroll that made the tab bar detach and drag.
+ *
+ * `contain` is NOT enough and this is the whole bug: per spec it only stops
+ * scroll *chaining* to ancestors — "default scroll overflow behavior is
+ * observed inside the element", i.e. the bounce is deliberately kept. `none`
+ * is the value that both stops chaining and suppresses the bounce itself.
+ *
+ * It drags the tab bar because this scroller exactly fills the viewport, which
+ * is the criterion Chrome uses to promote it to the implicit *root* scroller.
+ * Overscrolling a root scroller applies the browser's stretch at the root
+ * layer, and ion-tab-bar is `position: static` inside a viewport-sized
+ * ion-tabs — so it is part of that layer and rides along, then springs back.
+ * That is also why it happens at both ends of the scroll, not just the top.
+ *
+ * Safe to suppress: nothing in the app uses ion-refresher or native
+ * pull-to-refresh, so the overscroll gesture carries no affordance here.
+ */
 ion-content::part(scroll) {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 }
 
 app-root {
@@ -209,8 +227,10 @@ ion-select {
  * Horizontal inset respects notched phones without cramming edge-to-edge text.
  */
 .tab-page-content {
-  /* Tab bar (~3.5rem) + safe area + extra so last cards/actions clear the bar comfortably */
-  --padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  /* Tab bar is 58px + safe area (tabs.page.scss); this clears it with ~26px of
+     breathing room so the last card does not sit against the bar. Keep the two
+     in step — over-padding here is what left a dead band above the bar. */
+  --padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
   --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
   --padding-top: max(0.75rem, env(safe-area-inset-top, 0px));

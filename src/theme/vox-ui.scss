@@ -94,9 +94,28 @@
   background: var(--vox-canvas-gradient);
 }
 
+/*
+ * Viewport-anchored, NOT part of the scrolled content — this is load-bearing.
+ *
+ * As `position: absolute` this layer was exactly one viewport tall but lived
+ * inside ion-content's scrolling box, so it scrolled away with the content.
+ * Its `overflow: hidden` then sliced the 70px-blurred blobs along a hard
+ * horizontal edge that travelled up the screen as you scrolled — the visible
+ * "line splitting the page", with atmosphere above it and bare canvas below.
+ *
+ * `fixed` pins it to the viewport so that clip edge never crosses the content.
+ * The explicit `height: 100vh` (rather than `bottom: 0`) matters on tab pages:
+ * the containing block ends at the top of the tab bar, so `bottom: 0` would put
+ * the clip edge right under the bar's deliberately transparent top and show the
+ * same seam through it. `overflow: hidden` stays — it is what stops the blur
+ * bleeding into a horizontal scroll.
+ */
 .vx-atmo {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
@@ -111,9 +130,14 @@
   filter: blur(70px);
 }
 
+/* Same reasoning as `.vx-atmo` — as an absolute layer the grain scrolled away
+   with the content and simply stopped covering the lower half of a long page. */
 .vx-grain {
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
   z-index: 3;
   pointer-events: none;
   opacity: 0.055;
