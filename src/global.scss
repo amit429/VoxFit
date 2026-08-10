@@ -135,21 +135,50 @@
  * html → app-root → ion-app → ion-router-outlet to establish height. Without this,
  * nested routes can show only the toolbar and a blank/black main area.
  */
+/*
+ * APP SHELL HEIGHT — the dynamic viewport.
+ *
+ * `100%` resolves against the initial containing block, which on a mobile
+ * browser is the LARGE viewport: the height the page has with the URL bar
+ * hidden. The shell was therefore taller than the visible area whenever the URL
+ * bar was showing, which pushed its bottom edge — ion-tab-bar — off screen
+ * entirely. Scrolling up re-showed the URL bar and the bar vanished; scrolling
+ * down hid it and the bar swung back.
+ *
+ * `dvh` tracks the CURRENT viewport, so the shell always ends exactly at the
+ * visible bottom and the bar stays flush against it in both states, following
+ * browser chrome as it animates the way a native bottom bar does.
+ *
+ * Not `svh`: that pins the shell to the URL-bar-SHOWN height, so every time the
+ * URL bar hides the shell would fall short of the visible area and the bar
+ * would sit stranded above the bottom with a strip of background beneath it —
+ * turning a transient glitch into a permanent one. `lvh`/`100%` alone is the
+ * bug being fixed. `dvh` is the only one of the three that is flush in both
+ * states.
+ *
+ * The `100%` line is a deliberate fallback and must stay first — browsers
+ * without `dvh` support ignore the second declaration.
+ */
 html,
 body {
   height: 100%;
+  height: 100dvh;
   /*
-   * Belt to the braces below. The document is not actually scrollable here
-   * (body is overflow:hidden and ion-app is viewport-sized), so this rule alone
-   * cannot stop the tab-bar drag — the scroller that overscrolls is inside
-   * ion-content's shadow root. It stays as a guard in case a future layout ever
-   * does give the document overflow.
+   * Belt to the braces on ion-content's scroller below. The document is not
+   * actually scrollable here (body is overflow:hidden and ion-app is
+   * viewport-sized), so this rule alone cannot stop a tab-bar drag — the
+   * scroller that overscrolls is inside ion-content's shadow root. It stays as
+   * a guard in case a future layout ever does give the document overflow.
    */
   overscroll-behavior-y: none;
 }
 
 body {
   margin: 0;
+  /* Backstop for the frame or two during a chrome animation where the visible
+     area has grown but the shell has not yet been laid out at the new `dvh`.
+     Matching the gradient's last stop keeps that sliver from flashing black. */
+  background-color: var(--vox-canvas-gradient-end);
   font-family: var(--vox-font-text);
   letter-spacing: -0.05px;
 }

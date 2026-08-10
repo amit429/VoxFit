@@ -142,6 +142,30 @@ as `position: absolute` they sat inside ion-content's scrolling box, so they scr
 
 Per-screen blob placement stays per-page (each screen gets its own arrangement so screens feel distinct while staying related), but never change the positioning scheme.
 
+### App shell height — `dvh`, never `100%`
+
+`html, body` are sized `height: 100%` then `height: 100dvh` (the `100%` line is a
+deliberate fallback and must stay first). `100%` resolves against the initial
+containing block, which on a mobile browser is the **large** viewport — the
+height with the URL bar hidden — so the shell's bottom edge, and with it
+`ion-tab-bar`, sat below the visible area whenever the URL bar was showing. The
+bar vanished entirely on scroll up and swung back on scroll down.
+
+All three viewport units were tried against real device screenshots, and the
+choice is not arbitrary:
+
+| unit | URL bar shown | URL bar hidden |
+|---|---|---|
+| `100%` / `lvh` | bar pushed off screen | flush |
+| `svh` | flush | bar stranded above the bottom, gap beneath |
+| `dvh` | flush | flush |
+
+`dvh` is the only one flush in both states — it tracks the current viewport, so
+the bar follows browser chrome as it animates, the way a native bottom bar does.
+`body` carries `--vox-canvas-gradient-end` as a backstop so the sliver exposed
+mid-animation continues the page ramp instead of flashing black. Don't
+"simplify" any of this back to `100%`.
+
 ### Scrolling
 
 `ion-content::part(scroll)` sets `overscroll-behavior-y: none`. **`contain` is not sufficient** — per spec it only stops scroll *chaining*; the local bounce is deliberately preserved. The scroller exactly fills the viewport, which is the criterion Chrome uses to promote it to the implicit *root* scroller, so its bounce stretches the root layer and drags the statically-positioned `ion-tab-bar` with it. Nothing in the app uses `ion-refresher`, so suppressing the gesture costs no affordance.

@@ -28,11 +28,17 @@
   --vox-canvas-mid: #151024;
   --vox-canvas-violet: #1e1735;
 
+  /* The gradient's final stop, pulled out as its own token because the document
+     background behind the app shell has to match it: on a mobile browser the
+     visible area grows past the shell when the URL bar hides, and this is what
+     fills that strip so the ramp appears to continue. */
+  --vox-canvas-gradient-end: #191029;
+
   /* Default page gradient. Pages may retune the stops but must keep the
      same three-stop structure so screens feel related. */
   /* stylelint-disable-next-line -- kept on one line: Sass preserves newlines
      inside custom-property values, which some WebView versions reject. */
-  --vox-canvas-gradient: linear-gradient(180deg, #1c1536 0%, #151228 40%, #0d0b18 70%, #191029 100%);
+  --vox-canvas-gradient: linear-gradient(180deg, #1c1536 0%, #151228 40%, #0d0b18 70%, var(--vox-canvas-gradient-end) 100%);
 
   /* ================================================================
    * SURFACES — glass, not opaque greys
