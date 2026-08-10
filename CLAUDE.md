@@ -168,11 +168,47 @@ mid-animation continues the page ramp instead of flashing black. Don't
 
 ### Scrolling
 
-`ion-content::part(scroll)` sets `overscroll-behavior-y: none`. **`contain` is not sufficient** — per spec it only stops scroll *chaining*; the local bounce is deliberately preserved. The scroller exactly fills the viewport, which is the criterion Chrome uses to promote it to the implicit *root* scroller, so its bounce stretches the root layer and drags the statically-positioned `ion-tab-bar` with it. Nothing in the app uses `ion-refresher`, so suppressing the gesture costs no affordance.
+`ion-content::part(scroll)` sets `overscroll-behavior-y: none`. **`contain` is not sufficient** — per spec it only stops scroll *chaining*; the local bounce is deliberately preserved, and on a scroller the browser has promoted to root that bounce stretches the root layer and takes `ion-tab-bar` with it. Nothing in the app uses `ion-refresher`, so suppressing the gesture costs no affordance.
 
-### Tab bar
+Tab pages no longer fill the viewport (see below), so they are not promotion candidates; standalone pages still are, which is why this rule stays global rather than being scoped to tabs.
 
-`ion-tab-bar` height lives in `src/app/pages/tabs/tabs.page.scss`; `.tab-page-content --padding-bottom` in `src/global.scss` must clear it. **Keep the two in step** — over-padding leaves a dead band above the bar. The tab button (not the bar's `min-height`) sets the real floor, so it is what keeps the tap target ≥44px.
+### Tab pages are NOT `fullscreen` — this is the load-bearing one
+
+The six tab pages (`class="tab-page-content"`) deliberately omit
+`[fullscreen]="true"`. Standalone pages keep it.
+
+With `fullscreen`, ion-content's scroller measured **exactly** the viewport
+height, and a scroller that exactly fills the viewport is the criterion Chrome
+uses to promote it to the implicit **root scroller**. Once promoted, every
+scroll collapsed or restored the mobile URL bar; each of those resizes the
+viewport, and because the whole shell is `contain: size` top-to-bottom (see
+below), `ion-tab-bar` was dragged along and re-settled when scrolling stopped.
+Without `fullscreen` the scroller is the bar's height shorter than the viewport,
+Chrome never promotes it, and the URL bar never collapses — the cause is gone
+rather than compensated for.
+
+Two consequences that must stay in step:
+
+- **The bar is opaque** (`--vox-canvas-gradient-end` + hairline top). Nothing
+  scrolls behind it any more, so the old fade-up gradient had nothing to fade
+  and the backdrop-filter had nothing to resample; both were removed.
+- **`.tab-page-content --padding-bottom` is breathing room only** (`1.5rem`), not
+  clearance for the bar. ion-content is already inset above it, and the bar
+  carries its own `env(safe-area-inset-bottom)`. Adding the bar's height back
+  here leaves a dead band.
+
+Bar height lives in `src/app/pages/tabs/tabs.page.scss`. The tab button, not the
+bar's `min-height`, sets the real floor — that is what keeps the tap target ≥44px.
+
+### Why `position: fixed` cannot rescue the tab bar
+
+Worth knowing before reaching for it: `ion-tabs`, `app-tabs`,
+`ion-router-outlet` and `ion-app` all compute `contain: size layout style`.
+`contain: layout` makes every one of them a containing block for fixed
+descendants, so a `position: fixed` bar anchors to `ion-tabs`, not the viewport;
+and `contain: size` means each box is sized only by its own `height`, never by
+content. The shell's height is therefore dictated top-down by `html`/`body`, and
+that is the only lever that moves the bar's bottom edge.
 
 ### Icons
 

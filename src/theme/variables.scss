@@ -296,21 +296,28 @@
  * `--background` must be transparent for the host gradient to show — Ionic
  * paints its own fill from that variable and would cover this.
  */
+/*
+ * Opaque, with a hairline top edge.
+ *
+ * The bar used to fade up out of the canvas — a transparent-to-0.94 gradient
+ * over a backdrop blur — so content dissolved as it scrolled underneath. That
+ * required ion-content to span the full viewport (`[fullscreen]="true"`), and
+ * a scroller that exactly fills the viewport is precisely what Chrome promotes
+ * to the implicit *root* scroller. Once promoted, every scroll collapsed or
+ * restored the mobile URL bar, resizing the viewport and dragging this bar with
+ * it. Tab pages dropped `fullscreen` to stop that, so nothing scrolls behind
+ * the bar any more and the fade has nothing left to fade.
+ *
+ * With no moving backdrop there is also nothing for a backdrop-filter to
+ * resample, so the blur and its compositor-promotion hints are gone with it —
+ * that pair was pure cost once the content stopped passing underneath.
+ */
 ion-tab-bar {
-  --background: transparent;
+  --background: var(--vox-canvas-gradient-end);
   --border: 0;
 
   border: 0;
-  background: linear-gradient(180deg, rgba(13, 11, 24, 0) 0%, rgba(13, 11, 24, 0.94) 45%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  /*
-   * Promote to its own GPU compositor layer so the backdrop-filter blur
-   * is composited independently of the scroll layer. Without this, fast
-   * scroll causes the browser to repaint the bar on every frame → jitter.
-   */
-  transform: translateZ(0);
-  will-change: transform;
+  border-top: 1px solid var(--vox-border-hairline);
 }
 
 /*

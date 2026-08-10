@@ -256,10 +256,11 @@ ion-select {
  * Horizontal inset respects notched phones without cramming edge-to-edge text.
  */
 .tab-page-content {
-  /* Tab bar is 58px + safe area (tabs.page.scss); this clears it with ~26px of
-     breathing room so the last card does not sit against the bar. Keep the two
-     in step — over-padding here is what left a dead band above the bar. */
-  --padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+  /* Just breathing room, NOT clearance for the tab bar. These pages are no
+     longer `fullscreen`, so ion-content is inset above the bar and content
+     cannot scroll under it; the bar carries its own safe-area padding. Adding
+     the bar's height back here is what would leave a dead band above it. */
+  --padding-bottom: 1.5rem;
   --padding-start: max(1.25rem, env(safe-area-inset-left, 0px));
   --padding-end: max(1.25rem, env(safe-area-inset-right, 0px));
   --padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
