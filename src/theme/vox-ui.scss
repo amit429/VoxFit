@@ -250,6 +250,66 @@
 }
 
 /*
+ * PLAN FOCUS KEYING.
+ *
+ * A day's focus (push / pull / legs / full / cardio / recovery) tints its card
+ * rail, its number tile, and its slice of the weekly focus bar. These classes
+ * set nothing but custom properties: the component decides what to paint with
+ * them, while "what colour is a legs day" is answered in exactly one place.
+ * Custom properties inherit through emulated encapsulation, so a global class
+ * on a component's host reaches that component's own styles.
+ *
+ * Every focus maps onto an existing accent role — no new hues enter the system.
+ * Recovery is deliberately uncoloured: a rest day earning an accent would say
+ * it is one of the training days, which is the opposite of the point.
+ */
+.vox-focus-push {
+  --vox-focus-from: var(--vox-brand-bright);
+  --vox-focus-to: var(--vox-brand-deep);
+  --vox-focus-solid: var(--vox-brand);
+  --vox-focus-dim: rgba(136, 123, 252, 0.18);
+  --vox-focus-wash: rgba(136, 123, 252, 0.1);
+  --vox-focus-text: var(--vox-brand-text);
+}
+
+.vox-focus-pull {
+  --vox-focus-from: var(--vox-slate-bright);
+  --vox-focus-to: var(--vox-slate-deep);
+  --vox-focus-solid: var(--vox-slate);
+  --vox-focus-dim: rgba(102, 147, 227, 0.16);
+  --vox-focus-wash: rgba(102, 147, 227, 0.09);
+  --vox-focus-text: var(--vox-slate-text);
+}
+
+.vox-focus-legs {
+  --vox-focus-from: var(--vox-jade-bright);
+  --vox-focus-to: var(--vox-jade-deep);
+  --vox-focus-solid: var(--vox-jade);
+  --vox-focus-dim: rgba(51, 201, 152, 0.16);
+  --vox-focus-wash: rgba(51, 201, 152, 0.09);
+  --vox-focus-text: var(--vox-jade-text);
+}
+
+.vox-focus-full,
+.vox-focus-cardio {
+  --vox-focus-from: var(--vox-apricot-bright);
+  --vox-focus-to: #d98a4a;
+  --vox-focus-solid: var(--vox-apricot);
+  --vox-focus-dim: rgba(248, 164, 76, 0.16);
+  --vox-focus-wash: rgba(248, 164, 76, 0.09);
+  --vox-focus-text: var(--vox-apricot-text);
+}
+
+.vox-focus-recovery {
+  --vox-focus-from: rgba(255, 255, 255, 0.16);
+  --vox-focus-to: rgba(255, 255, 255, 0.16);
+  --vox-focus-solid: rgba(255, 255, 255, 0.16);
+  --vox-focus-dim: rgba(255, 255, 255, 0.07);
+  --vox-focus-wash: rgba(255, 255, 255, 0.05);
+  --vox-focus-text: var(--vox-ink-tertiary);
+}
+
+/*
  * Thin progress track — macros, plan completion, muscle share. The fill is a
  * child element so callers set width and colour inline from live data.
  */

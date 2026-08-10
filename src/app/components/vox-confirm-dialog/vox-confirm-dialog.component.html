@@ -1,0 +1,19 @@
+<ion-modal class="vox-centre-modal" [isOpen]="open()" (ionModalDidDismiss)="dismissed.emit()">
+  <ng-template>
+    <div class="cd">
+      <h2 class="cd-title">{{ heading() }}</h2>
+      @if (body(); as text) {
+        <p class="cd-body">{{ text }}</p>
+      }
+
+      <div class="cd-actions">
+        <button type="button" class="vox-btn-secondary cd-btn" (click)="dismissed.emit()">
+          {{ cancelLabel() }}
+        </button>
+        <button type="button" class="cd-btn cd-btn--confirm" (click)="confirmed.emit()">
+          {{ confirmLabel() }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

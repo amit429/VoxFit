@@ -1,0 +1,18 @@
+@if (short()) {
+  <div class="pr">
+    <span class="vox-ai-mark vox-ai-mark--sm">
+      <vox-icon name="sparkles" size="sm" tone="inherit" />
+    </span>
+
+    <div class="pr-body">
+      <p class="pr-eyebrow">Why this plan</p>
+      <p class="pr-text" [class.pr-text--clamp]="!expanded()">{{ text() }}</p>
+
+      @if (canExpand()) {
+        <button type="button" class="pr-more" [attr.aria-expanded]="expanded()" (click)="toggle()">
+          {{ expanded() ? 'Show less' : 'Read more' }}
+        </button>
+      }
+    </div>
+  </div>
+}

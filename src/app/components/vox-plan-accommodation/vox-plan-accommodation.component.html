@@ -1,0 +1,18 @@
+@if (accommodations().length) {
+  <div class="pa">
+    <vox-icon name="hand-left-outline" size="sm" tone="rose" />
+
+    <div class="pa-body">
+      <p class="pa-title">{{ heading() }}</p>
+      <p class="pa-text">{{ body() }}</p>
+
+      @if (showReasons()) {
+        <ul class="pa-list">
+          @for (item of accommodations(); track item.reason) {
+            <li>{{ item.reason }}</li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,19 @@
+<div class="pg">
+  <h3 class="pg-title">{{ heading() }}</h3>
+  <p class="pg-copy">{{ copy() }}</p>
+
+  <p class="pg-label" id="plan-days-label">Days per week</p>
+  <vox-segmented
+    class="pg-seg"
+    [segments]="segments"
+    [value]="selected()"
+    [mono]="true"
+    (valueChange)="onSegment($event)"
+  />
+
+  <button type="button" class="vox-btn-primary pg-cta" [disabled]="busy()" (click)="generate.emit()">
+    {{ busy() ? 'Building your plan…' : cta() }}
+  </button>
+
+  <p class="pg-note">Takes about 15 seconds</p>
+</div>

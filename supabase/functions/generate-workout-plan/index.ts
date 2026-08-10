@@ -55,9 +55,15 @@ Deno.serve(async (req: Request) => {
       tools: toolset.tools,
     });
 
-    const parsed = JSON.parse(finalText) as { ai_rationale?: string; plan?: unknown };
+    const parsed = JSON.parse(finalText) as {
+      ai_rationale?: string;
+      plan?: { rationale_short?: string } | null;
+    };
+    // The rationale now lives inside the plan body; `ai_rationale` stays in the
+    // response because it maps to the plain-text column on `workout_plans`.
+    // Older prompt revisions returned it at the top level — accept both.
     return json({
-      ai_rationale: parsed.ai_rationale ?? '',
+      ai_rationale: parsed.plan?.rationale_short ?? parsed.ai_rationale ?? '',
       plan: parsed.plan ?? { days: [] },
       stats_snapshot: { ...(toolset.lastSnapshot() ?? {}), targetDaysPerWeek },
     });

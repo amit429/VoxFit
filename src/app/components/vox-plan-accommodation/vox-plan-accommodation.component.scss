@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+/*
+ * Rose here is a note, not an alert — no red, no warning triangle, no clinical
+ * iconography. The open hand is doing the "mind this" work an exclamation mark
+ * would do far too loudly.
+ */
+.pa {
+  display: flex;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid var(--vox-rose-border);
+  border-radius: var(--vox-radius-lg);
+  background: linear-gradient(120deg, rgba(231, 113, 97, 0.18), rgba(231, 113, 97, 0.06));
+}
+
+.pa-body {
+  min-width: 0;
+}
+
+.pa-title {
+  margin: 0;
+  font-size: 0.71875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--vox-rose-text);
+}
+
+.pa-text {
+  margin: 3px 0 0;
+  font-size: 0.71875rem;
+  line-height: 1.45;
+  color: var(--vox-ink-muted);
+}
+
+.pa-list {
+  margin: 6px 0 0;
+  padding-left: 1rem;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--vox-ink-subtle);
+}

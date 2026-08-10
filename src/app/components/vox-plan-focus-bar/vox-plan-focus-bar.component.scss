@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.fb-eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--vox-ink-tertiary);
+}
+
+.fb-bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fb-seg {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--vox-focus-from), var(--vox-focus-to));
+}
+
+.fb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 11px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fb-key {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.fb-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--vox-focus-solid);
+}

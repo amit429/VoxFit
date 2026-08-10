@@ -1,0 +1,368 @@
+:host {
+  display: block;
+}
+
+.pb {
+  padding: 8px 4px 0;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- the orb */
+
+/*
+ * The one place in the system permitted a halo, reused here because this
+ * screen is the voice/AI surface for the length of the call.
+ */
+.pb-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin: 18px auto 0;
+}
+
+.pb-orb-core {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--vox-brand-gradient-orb);
+  color: var(--vox-on-brand);
+  box-shadow: var(--vox-glow-orb);
+  animation: pb-breathe 2.6s var(--vox-ease) infinite;
+}
+
+.pb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--vox-brand-border);
+  opacity: 0;
+  animation: pb-pulse 2.6s var(--vox-ease) infinite;
+}
+
+.pb-ring--2 {
+  animation-delay: 1.3s;
+}
+
+@keyframes pb-pulse {
+  0% {
+    transform: scale(0.62);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes pb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* ------------------------------------------------------------- the copy */
+
+.pb-title {
+  margin: 18px 0 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.125rem;
+  font-weight: var(--vox-weight-display);
+  letter-spacing: var(--vox-tracking-display);
+  color: var(--vox-ink);
+}
+
+.pb-aside {
+  margin: 6px 0 0;
+  min-height: 1.1rem;
+  font-size: 0.75rem;
+  color: var(--vox-ink-subtle);
+  animation: pb-fade var(--vox-dur) var(--vox-ease);
+}
+
+@keyframes pb-fade {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------- the steps */
+
+.pb-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 17rem;
+  margin: 22px auto 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.pb-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78125rem;
+  color: var(--vox-ink-tertiary);
+  transition: color var(--vox-dur) var(--vox-ease);
+}
+
+.pb-step--active {
+  color: var(--vox-ink);
+  font-weight: 600;
+}
+
+.pb-step--done {
+  color: var(--vox-ink-subtle);
+}
+
+.pb-dot {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--vox-border-hairline-strong);
+  background: var(--vox-surface-1);
+  transition:
+    background var(--vox-dur) var(--vox-ease),
+    border-color var(--vox-dur) var(--vox-ease);
+}
+
+/* The active step gets a rotating conic sweep — a spinner scoped to the one
+   line that is actually in progress, rather than one for the whole screen. */
+.pb-step--active .pb-dot {
+  border-color: transparent;
+  background:
+    conic-gradient(from 0deg, transparent 0deg, var(--vox-brand) 300deg, transparent 360deg) border-box;
+  animation: pb-spin 1s linear infinite;
+}
+
+.pb-step--active .pb-dot::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--vox-canvas-mid);
+}
+
+.pb-step--done .pb-dot {
+  border-color: var(--vox-jade-border);
+  background: var(--vox-jade-dim);
+  color: var(--vox-jade-text);
+  animation: pb-pop var(--vox-dur) var(--vox-ease);
+}
+
+@keyframes pb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pb-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ------------------------------------------------------------ the progress */
+
+.pb-track {
+  position: relative;
+  max-width: 17rem;
+  height: 6px;
+  margin: 22px auto 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.pb-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--vox-brand-gradient);
+  transition: width var(--vox-dur) linear;
+}
+
+/* Shimmer sweeping the track — motion that reads as "still working" even in
+   the seconds where the width barely changes. */
+.pb-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: translateX(-100%);
+  animation: pb-sweep 1.6s var(--vox-ease) infinite;
+}
+
+@keyframes pb-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Mono while it is a countdown — that is a figure. Once the estimate lapses the
+   line becomes a sentence, and a sentence set in mono reads as a terminal log. */
+.pb-eta {
+  margin: 9px 0 0;
+  font-family: var(--vox-font-mono);
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.pb-eta--prose {
+  font-family: var(--vox-font-text);
+  font-size: 0.71875rem;
+}
+
+/* -------------------------------------------------------- the ghost cards */
+
+.pb-ghosts {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 26px;
+  text-align: left;
+}
+
+/*
+ * These are the day cards of the plan being built, arriving one at a time.
+ * They are deliberately the same silhouette as the real thing — same rail,
+ * same tile, same rhythm — so the transition to the finished plan reads as the
+ * placeholders filling in rather than one screen replacing another.
+ */
+.pb-ghost {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 15px 14px 17px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-surface-1);
+  opacity: 0;
+  animation: pb-land 0.5s var(--vox-ease) forwards;
+}
+
+.pb-ghost::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--vox-focus-from), var(--vox-focus-to));
+}
+
+.pb-ghost-num {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: var(--vox-focus-dim);
+  color: var(--vox-focus-text);
+  font-family: var(--vox-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pb-ghost-lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pb-ghost-line {
+  display: block;
+  height: 9px;
+  width: 62%;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--vox-surface-2) 25%,
+    var(--vox-surface-4) 37%,
+    var(--vox-surface-2) 63%
+  );
+  background-size: 400% 100%;
+  animation: pb-shimmer 1.5s ease-in-out infinite;
+}
+
+.pb-ghost-line--short {
+  height: 7px;
+  width: 40%;
+}
+
+@keyframes pb-shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+
+@keyframes pb-land {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Motion is opt-out across the app. Everything above still reads without it:
+ * the steps tick over, the bar advances, and the ghost cards are all present
+ * from the start rather than animating in.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .pb-orb-core,
+  .pb-ring,
+  .pb-aside,
+  .pb-step--done .pb-dot,
+  .pb-step--active .pb-dot,
+  .pb-track::after,
+  .pb-ghost,
+  .pb-ghost-line {
+    animation: none;
+  }
+
+  .pb-ghost {
+    opacity: 1;
+  }
+
+  .pb-ring {
+    opacity: 0.35;
+  }
+
+  .pb-step--active .pb-dot {
+    border-color: var(--vox-brand-border);
+    background: var(--vox-brand-dim);
+  }
+}

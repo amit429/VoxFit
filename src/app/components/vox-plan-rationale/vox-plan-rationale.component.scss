@@ -1,0 +1,66 @@
+:host {
+  display: block;
+}
+
+.pr {
+  display: flex;
+  gap: 10px;
+  padding: 13px 15px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-rim-light), var(--vox-surface-1);
+}
+
+.pr-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pr-eyebrow {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--vox-brand-text);
+}
+
+.pr-text {
+  margin: 3px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--vox-ink-muted);
+}
+
+/*
+ * The clamp is unconditional, not a function of the string the model returned.
+ * `-webkit-line-clamp` is still the only cross-WebView way to do this; Android
+ * WebView and iOS WKWebView both support it, which is the whole shipping target.
+ */
+.pr-text--clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pr-more {
+  /* Padding plus the negative margin clears a 44px tap target without moving
+     the label off the 6px offset the design calls for. */
+  padding: 12px 12px 12px 0;
+  margin: -6px -12px -12px 0;
+  border: 0;
+  background: none;
+  font-family: var(--vox-font-text);
+  font-size: 0.71875rem;
+  font-weight: 600;
+  color: var(--vox-brand-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pr-more:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-xs);
+}

@@ -1,0 +1,53 @@
+.cd {
+  padding: var(--vox-space-lg);
+  background: var(--vox-surface-solid-2);
+}
+
+.cd-title {
+  margin: 0;
+  font-family: var(--vox-font-display);
+  font-size: 1.0625rem;
+  font-weight: var(--vox-weight-display);
+  letter-spacing: var(--vox-tracking-display);
+  color: var(--vox-ink);
+}
+
+.cd-body {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--vox-ink-subtle);
+}
+
+.cd-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: var(--vox-space-lg);
+}
+
+.cd-btn {
+  flex: 1;
+  min-height: 3rem;
+}
+
+/* Rose is the destructive role here, not an alarm. Flat fill, `md` radius —
+   same button geometry as every other CTA in the app. */
+.cd-btn--confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--vox-rose-border);
+  border-radius: var(--vox-radius-md);
+  background: var(--vox-rose-dim);
+  color: var(--vox-rose-text);
+  font-family: var(--vox-font-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cd-btn--confirm:active {
+  background: rgba(231, 113, 97, 0.32);
+}

@@ -1,0 +1,19 @@
+<div class="pe-top">
+  <span class="pe-name">{{ exercise().name }}</span>
+  <span class="pe-pres">{{ prescription() }}</span>
+</div>
+
+@if (exercise().start_load; as load) {
+  <p class="pe-load">{{ load }}</p>
+}
+
+@if (exercise().note; as note) {
+  <div class="pe-note" [class.pe-note--caution]="isCaution()">
+    <vox-icon
+      [name]="isCaution() ? 'hand-left-outline' : 'bulb-outline'"
+      size="xs"
+      [tone]="isCaution() ? 'rose' : 'ink-tertiary'"
+    />
+    <span class="pe-note-text">{{ note }}</span>
+  </div>
+}

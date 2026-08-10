@@ -24,33 +24,90 @@
   color: var(--vox-ink);
 }
 
-.wp-day-btn {
+/* Sections breathe at the page rhythm; day cards inside a section sit tighter
+   together, because they are one list rather than several sections. */
+.wp-stack > * + * {
+  margin-top: 11px;
+}
+
+/* With no plan there is one card on an 844px screen; pinned to the top it
+   reads as content that failed to load rather than as an invitation. */
+.wp-stack--centred {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.wp-week {
+  margin-top: 15px;
+}
+
+.wp-week-head {
   display: flex;
-  width: 44px;
-  height: 44px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--vox-border-hairline);
-  border-radius: var(--vox-radius-md);
-  background: var(--vox-surface-1);
-  color: var(--vox-ink-subtle);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.wp-week-title {
+  margin: 0;
+  font-family: var(--vox-font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--vox-ink);
+}
+
+.wp-week-count {
   font-family: var(--vox-font-mono);
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+}
+
+.wp-days {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.wp-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--vox-rose-border);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-rose-dim);
+}
+
+.wp-error-body {
+  min-width: 0;
+}
+
+.wp-error-text {
+  margin: 0;
+  font-size: 0.78125rem;
+  line-height: 1.45;
+  color: var(--vox-ink-muted);
+}
+
+.wp-error-retry {
+  /* Padding plus the matching negative margin gives a 44px tap target without
+     pushing the strip taller than the message it carries. */
+  padding: 12px 12px 12px 0;
+  margin: -4px -12px -12px 0;
+  border: 0;
+  background: none;
+  font-family: var(--vox-font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vox-rose-text);
   cursor: pointer;
-  transition:
-    background var(--vox-dur-fast) var(--vox-ease),
-    color var(--vox-dur-fast) var(--vox-ease);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.wp-day-btn--on {
-  background: var(--vox-brand-dim);
-  border-color: var(--vox-brand-border);
-  color: var(--vox-brand-text);
-  font-weight: 700;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wp-day-btn {
-    transition: none;
-  }
+.wp-error-retry:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 2px;
+  border-radius: var(--vox-radius-xs);
 }

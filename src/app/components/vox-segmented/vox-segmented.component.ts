@@ -16,6 +16,8 @@ import type { VoxSegment } from '@/app/models';
 export class VoxSegmentedComponent<T extends string = string> {
   readonly segments = input.required<readonly VoxSegment<T>[]>();
   readonly value = input.required<T>();
+  /** Set when the labels are numerals, so they stay tabular across segments. */
+  readonly mono = input(false);
 
   readonly valueChange = output<T>();
 }

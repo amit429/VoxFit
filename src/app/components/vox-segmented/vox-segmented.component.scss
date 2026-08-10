@@ -33,6 +33,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Numeric segments (days per week) — mono keeps the digits tabular so the
+   options line up rather than drifting with the proportional font's widths. */
+.seg-item--mono {
+  font-family: var(--vox-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
 .seg-item--on {
   background: var(--vox-jade-gradient);
   /* White on jade fails contrast — this is the assigned ink for jade fills. */

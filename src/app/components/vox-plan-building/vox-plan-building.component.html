@@ -1,0 +1,52 @@
+<div class="pb">
+  <div class="pb-orb" aria-hidden="true">
+    <span class="pb-ring"></span>
+    <span class="pb-ring pb-ring--2"></span>
+    <span class="pb-orb-core">
+      <vox-icon name="sparkles" size="lg" tone="inherit" />
+    </span>
+  </div>
+
+  <h2 class="pb-title">{{ title() }}</h2>
+  <p class="pb-aside">{{ aside() }}</p>
+
+  <ul class="pb-steps" role="status" aria-live="polite" [attr.aria-label]="activeLabel()">
+    @for (step of steps(); track step.label) {
+      <li
+        class="pb-step"
+        [class.pb-step--done]="step.state === 'done'"
+        [class.pb-step--active]="step.state === 'active'"
+      >
+        <span class="pb-dot">
+          @if (step.state === 'done') {
+            <vox-icon name="checkmark" size="xs" tone="inherit" />
+          }
+        </span>
+        <span class="pb-step-label">{{ step.label }}</span>
+      </li>
+    }
+  </ul>
+
+  <div
+    class="pb-track"
+    role="progressbar"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="progress()"
+  >
+    <i class="pb-fill" [style.width.%]="progress()"></i>
+  </div>
+  <p class="pb-eta" [class.pb-eta--prose]="!counting()">{{ eta() }}</p>
+
+  <div class="pb-ghosts" aria-hidden="true">
+    @for (ghost of ghosts(); track ghost.index) {
+      <div class="pb-ghost" [ngClass]="'vox-focus-' + ghost.focus" [style.animation-delay]="ghost.delay">
+        <span class="pb-ghost-num">{{ ghost.index }}</span>
+        <span class="pb-ghost-lines">
+          <i class="pb-ghost-line"></i>
+          <i class="pb-ghost-line pb-ghost-line--short"></i>
+        </span>
+      </div>
+    }
+  </div>
+</div>

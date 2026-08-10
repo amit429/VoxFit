@@ -1,0 +1,118 @@
+:host {
+  display: block;
+}
+
+.pd {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: var(--vox-radius-card);
+  background: var(--vox-surface-1);
+}
+
+/* The 3px focus rail. A pseudo-element rather than a border-left so the card's
+   radius still rounds the rail's ends. */
+.pd::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--vox-focus-from), var(--vox-focus-to));
+}
+
+.pd-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  /* 34px tile + 14px twice clears the 44px minimum tap target comfortably. */
+  padding: 14px 15px 14px 17px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--vox-dur-fast) var(--vox-ease);
+}
+
+/* Open, the header carries a wash of its own focus colour — enough to tie the
+   header to the list beneath it without competing with the exercise rows. */
+.pd--open .pd-head {
+  background: var(--vox-focus-wash);
+}
+
+.pd-head:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: -2px;
+}
+
+.pd-num {
+  display: flex;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--vox-focus-dim);
+  color: var(--vox-focus-text);
+  font-family: var(--vox-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pd-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pd-title {
+  display: block;
+  font-size: 0.90625rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--vox-ink);
+}
+
+.pd-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.71875rem;
+  line-height: 1.35;
+  color: var(--vox-ink-tertiary);
+}
+
+.pd-count {
+  flex-shrink: 0;
+  font-family: var(--vox-font-mono);
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.pd-chevron {
+  flex-shrink: 0;
+  transition: transform var(--vox-dur) var(--vox-ease);
+}
+
+.pd--open .pd-chevron {
+  transform: rotate(180deg);
+}
+
+.pd-list {
+  padding: 2px 15px 12px 17px;
+}
+
+.pd-empty {
+  margin: 11px 0 0;
+  font-size: 0.71875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-head,
+  .pd-chevron {
+    transition: none;
+  }
+}

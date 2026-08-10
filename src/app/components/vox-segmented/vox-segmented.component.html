@@ -5,6 +5,7 @@
       role="tab"
       class="seg-item"
       [class.seg-item--on]="segment.id === value()"
+      [class.seg-item--mono]="mono()"
       [attr.aria-selected]="segment.id === value()"
       (click)="valueChange.emit(segment.id)"
     >

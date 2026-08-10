@@ -11,10 +11,30 @@ import { SupabaseService } from '@/app/services/supabase.service';
 import { GeminiWorkoutPlanService } from '@/app/services/gemini-workout-plan.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { buildTrainingStatsSummary } from '@/app/utils/training-stats.util';
+import { normalizeWorkoutPlanContent } from '@/app/utils/workout-plan-content.util';
 import { parseLocalDateKey } from '@/app/utils/workout-display.util';
 
 const PLAN_WINDOW_WEEKS = 10;
 const PLAN_COVERAGE_DAYS = 28;
+
+/**
+ * Bring a persisted row up to the current `WorkoutPlanContent` shape.
+ *
+ * Plans written before the hero/focus redesign have no title, no focus enum and
+ * no accommodations, and keep their rationale in the `ai_rationale` column.
+ * Upgrading on read means the redesigned screen renders them correctly without
+ * a data migration, and without the components carrying legacy branches.
+ */
+export function upgradeRow(row: WorkoutPlanRow): WorkoutPlanRow {
+  return {
+    ...row,
+    plan: normalizeWorkoutPlanContent(row.plan, {
+      snapshot: row.stats_snapshot,
+      aiRationale: row.ai_rationale,
+      targetDaysPerWeek: row.stats_snapshot?.targetDaysPerWeek ?? null,
+    }),
+  };
+}
 
 /** Pure helper: the plan's coverage window as YYYY-MM-DD strings. */
 export function planWindowDates(today: Date, coverageDays: number): { start_date: string; end_date: string } {
@@ -60,7 +80,7 @@ export class WorkoutPlanService {
       this.activePlanLoaded.set(true);
       throw new Error(error.message);
     }
-    const row = (data as WorkoutPlanRow | null) ?? null;
+    const row = data ? upgradeRow(data as WorkoutPlanRow) : null;
     this.activePlan.set(row);
     this.activePlanLoaded.set(true);
     return row;
@@ -107,7 +127,7 @@ export class WorkoutPlanService {
       .single();
     if (error) throw new Error(error.message);
 
-    const row = data as WorkoutPlanRow;
+    const row = upgradeRow(data as WorkoutPlanRow);
     this.activePlan.set(row);
     return row;
   }

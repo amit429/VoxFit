@@ -1,14 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { buildWorkoutPlanPrompt } from '@/app/prompts/generate-workout-plan.prompt';
-import type {
-  TrainingStatsSummary,
-  WorkoutPlanContent,
-  WorkoutPlanDay,
-  WorkoutPlanExercise,
-  WorkoutPlanGenerateResult,
-} from '@/app/models';
+import type { TrainingStatsSummary, WorkoutPlanGenerateResult } from '@/app/models';
 import { SupabaseService } from '@/app/services/supabase.service';
+import { normalizeWorkoutPlanContent } from '@/app/utils/workout-plan-content.util';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -118,39 +113,18 @@ export function parseWorkoutPlanJson(
   const daysRaw = planRaw && typeof planRaw === 'object' ? (planRaw as Record<string, unknown>)['days'] : undefined;
   if (!Array.isArray(daysRaw)) throw new Error('Plan response missing days array');
 
-  const days: WorkoutPlanDay[] = daysRaw.map((d, i) => parseDay(d, i)).filter((d): d is WorkoutPlanDay => d !== null);
-  const plan: WorkoutPlanContent = { days };
-  const aiRationale = String(o['ai_rationale'] ?? '').trim() || 'A plan built from your recent training.';
+  const plan = normalizeWorkoutPlanContent(planRaw, {
+    snapshot: statsSnapshot,
+    // Older prompt versions put the rationale at the top level; the current one
+    // nests it in the plan. Accept both so a mid-rollout response still renders.
+    aiRationale: typeof o['ai_rationale'] === 'string' ? o['ai_rationale'] : null,
+    targetDaysPerWeek: statsSnapshot?.targetDaysPerWeek ?? null,
+  });
+  if (plan.days.length === 0) throw new Error('Plan response contained no usable days');
+
+  // `workout_plans.ai_rationale` is a plain text column; the short form is what
+  // a legacy reader would want to show.
+  const aiRationale = plan.rationale_short || plan.rationale_full || 'A plan built from your recent training.';
 
   return { plan, aiRationale, statsSnapshot };
-}
-
-function parseDay(raw: unknown, index: number): WorkoutPlanDay | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const o = raw as Record<string, unknown>;
-  const exRaw = o['exercises'];
-  const exercises: WorkoutPlanExercise[] = Array.isArray(exRaw)
-    ? exRaw.map(parseExercise).filter((e): e is WorkoutPlanExercise => e !== null)
-    : [];
-  return {
-    day_label: String(o['day_label'] ?? `Day ${index + 1}`).trim(),
-    focus: String(o['focus'] ?? '').trim(),
-    exercises,
-  };
-}
-
-function parseExercise(raw: unknown): WorkoutPlanExercise | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const o = raw as Record<string, unknown>;
-  const name = String(o['name'] ?? '').trim();
-  if (!name) return null;
-  const setsRaw = o['sets'];
-  const setsNum = setsRaw == null ? NaN : Number(setsRaw);
-  const note = String(o['note'] ?? '').trim();
-  return {
-    name,
-    sets: Number.isFinite(setsNum) ? Math.max(0, Math.round(setsNum)) : null,
-    reps: o['reps'] == null ? null : String(o['reps']).trim() || null,
-    note: note || null,
-  };
 }

@@ -1,0 +1,34 @@
+<div class="pd" [ngClass]="'vox-focus-' + day().focus" [class.pd--open]="expanded()">
+  <button
+    type="button"
+    class="pd-head"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="'plan-day-' + day().day"
+    (click)="toggled.emit()"
+  >
+    <span class="pd-num">{{ day().day }}</span>
+
+    <span class="pd-body">
+      <span class="pd-title">{{ day().title }}</span>
+      @if (subtitle(); as sub) {
+        <span class="pd-sub">{{ sub }}</span>
+      }
+    </span>
+
+    @if (!expanded()) {
+      <span class="pd-count">{{ day().exercises.length }}</span>
+    }
+
+    <vox-icon name="chevron-down-outline" size="sm" tone="ink-tertiary" class="pd-chevron" />
+  </button>
+
+  @if (expanded()) {
+    <div class="pd-list" [id]="'plan-day-' + day().day">
+      @for (exercise of day().exercises; track exercise.name + $index) {
+        <vox-plan-exercise-row [exercise]="exercise" />
+      } @empty {
+        <p class="pd-empty">Nothing prescribed for this day — treat it as rest.</p>
+      }
+    </div>
+  }
+</div>

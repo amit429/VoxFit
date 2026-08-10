@@ -15,81 +15,84 @@
     </header>
 
     <main class="flex flex-1 flex-col pb-6">
-      <div class="my-auto w-full space-y-4">
-        @if (error(); as err) {
-          <vox-card variant="rose" padding="sm">
-            <p class="m-0 text-sm text-rose-text">{{ err }}</p>
-          </vox-card>
-        }
-
-        @if (loadingActive() && !generating() && !review()) {
-          <!-- Was a blank screen: the template only had branches for generating,
-               a review, an active plan, or `!loadingActive()`. -->
-          <vox-skeleton height="150px" radius="xl" class="block" />
-          <vox-skeleton height="260px" radius="xl" class="block" />
-        } @else if (generating()) {
-          <vox-card padding="lg">
-            <div class="py-6 text-center">
-              <ion-spinner name="crescent" style="--color: var(--vox-brand); width: 22px; height: 22px" />
-              <p class="m-0 mt-3 text-sm text-ink-subtle">Building your {{ daysPerWeek() }}-day plan…</p>
+      @if (loadingActive()) {
+        <div class="wp-stack" aria-busy="true">
+          <vox-skeleton height="188px" radius="xl" class="block" />
+          <vox-skeleton height="74px" radius="xl" class="block" />
+          <vox-skeleton height="62px" radius="xl" class="block" />
+          <vox-skeleton height="62px" radius="xl" class="block" />
+          <vox-skeleton height="62px" radius="xl" class="block" />
+        </div>
+      } @else if (generating()) {
+        <vox-plan-building [daysPerWeek]="daysPerWeek()" [rebuilding]="!!planService.activePlan()" />
+      } @else {
+        <div class="wp-stack" [class.wp-stack--centred]="!planService.activePlan()">
+          <!-- A failed generation keeps the existing plan on screen underneath;
+               the error is a strip above it, not a replacement for it. -->
+          @if (error(); as err) {
+            <div class="wp-error" role="alert">
+              <vox-icon name="refresh-outline" size="sm" tone="rose" />
+              <div class="wp-error-body">
+                <p class="wp-error-text">{{ err }}</p>
+                <button type="button" class="wp-error-retry" (click)="requestGenerate()">Try again</button>
+              </div>
             </div>
-          </vox-card>
-        } @else if (review(); as r) {
-          <p class="mb-4 text-center text-sm text-ink-tertiary">{{ buildBasis(r.statsSnapshot, r.plan.days.length) }}</p>
-          <vox-plan-review-card [plan]="r.plan" [rationale]="r.aiRationale" />
-          <div class="flex gap-2">
-            <button type="button" class="vox-btn-secondary flex-1 transition-opacity hover:opacity-90" (click)="save()">Save plan</button>
-            <button type="button" class="vox-btn-ghost flex-1 transition-opacity hover:opacity-90" (click)="discard()">Discard</button>
-          </div>
-        } @else if (planService.activePlan(); as active) {
-          <p class="mt-4 text-center text-sm text-ink-tertiary">
-            {{ buildBasis(active.stats_snapshot, active.plan.days.length) }}
-          </p>
-          <vox-plan-review-card [plan]="active.plan" [rationale]="active.ai_rationale ?? ''" />
+          }
 
-          <vox-card>
-            <p class="m-0 mb-3 text-center text-xs text-ink-subtle">Want a fresh plan? Pick your weekly frequency.</p>
-            <div class="mb-4 flex items-center justify-center gap-2">
-              <span class="text-xs text-ink-subtle">Days / week</span>
-              @for (d of dayOptions; track d) {
-                <button
-                  type="button"
-                  (click)="daysPerWeek.set(d)"
-                  class="wp-day-btn"
-                  [class.wp-day-btn--on]="daysPerWeek() === d"
-                >
-                  {{ d }}
-                </button>
-              }
-            </div>
-            <button type="button" class="vox-btn-secondary w-full transition-opacity hover:opacity-90" (click)="generate()">Regenerate</button>
-          </vox-card>
-        } @else if (!loadingActive()) {
-          <vox-card padding="lg" class="block text-center">
-            <p class="m-0 text-sm leading-relaxed text-ink">Create your training plan</p>
-            <p class="m-0 mt-2 text-xs leading-relaxed text-ink-subtle">
-              I'll design a day-by-day plan around your goal and sport — using your recent sessions when you have them, and
-              sensible starting movements when you don't.
-            </p>
+          @if (planService.activePlan(); as active) {
+            <vox-plan-hero [plan]="active.plan" [createdAt]="active.created_at" />
 
-            <div class="mt-5 flex items-center justify-center gap-2">
-              <span class="text-xs text-ink-subtle">Days / week</span>
-              @for (d of dayOptions; track d) {
-                <button
-                  type="button"
-                  (click)="daysPerWeek.set(d)"
-                  class="wp-day-btn"
-                  [class.wp-day-btn--on]="daysPerWeek() === d"
-                >
-                  {{ d }}
-                </button>
-              }
-            </div>
+            <vox-plan-accommodation [accommodations]="active.plan.accommodations" />
 
-            <button type="button" class="vox-btn-primary mt-5 w-full" (click)="generate()">Generate my plan</button>
-          </vox-card>
-        }
-      </div>
+            <vox-plan-rationale
+              [short]="active.plan.rationale_short"
+              [full]="active.plan.rationale_full"
+            />
+
+            <section class="wp-week">
+              <div class="wp-week-head">
+                <h2 class="wp-week-title">The week</h2>
+                @if (totalExercises(); as count) {
+                  <span class="wp-week-count">{{ count }} exercises</span>
+                }
+              </div>
+
+              <div class="wp-days">
+                @for (day of active.plan.days; track day.day) {
+                  <vox-plan-day
+                    [day]="day"
+                    [expanded]="openDay() === day.day"
+                    (toggled)="toggleDay(day.day)"
+                  />
+                }
+              </div>
+            </section>
+
+            <vox-plan-regenerate
+              mode="regenerate"
+              [daysPerWeek]="daysPerWeek()"
+              (daysPerWeekChange)="setDaysPerWeek($event)"
+              (generate)="requestGenerate()"
+            />
+          } @else {
+            <vox-plan-regenerate
+              mode="create"
+              [daysPerWeek]="daysPerWeek()"
+              (daysPerWeekChange)="setDaysPerWeek($event)"
+              (generate)="requestGenerate()"
+            />
+          }
+        </div>
+      }
     </main>
   </div>
+
+  <vox-confirm-dialog
+    [open]="confirmOpen()"
+    heading="Replace your current plan?"
+    body="This builds a fresh plan from your latest sessions. Your current plan is replaced and can't be brought back."
+    confirmLabel="Regenerate"
+    (confirmed)="confirmRegenerate()"
+    (dismissed)="confirmOpen.set(false)"
+  />
 </ion-content>

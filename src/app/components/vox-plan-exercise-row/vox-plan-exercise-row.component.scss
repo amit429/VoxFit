@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:host(:first-of-type) {
+  border-top: 0;
+}
+
+.pe-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pe-name {
+  font-size: 0.84375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--vox-ink);
+}
+
+/* Mono, periwinkle, right-aligned — the scannable column. */
+.pe-pres {
+  flex-shrink: 0;
+  font-family: var(--vox-font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--vox-brand-text);
+}
+
+.pe-load {
+  margin: 3px 0 0;
+  font-family: var(--vox-font-mono);
+  font-size: 0.6875rem;
+  color: var(--vox-ink-tertiary);
+}
+
+.pe-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--vox-border-hairline);
+  border-radius: 11px;
+  background: var(--vox-surface-1);
+}
+
+/* A caution is a physical note, not a warning: rose tint, open hand, no red. */
+.pe-note--caution {
+  border-color: rgba(231, 113, 97, 0.24);
+  background: rgba(231, 113, 97, 0.11);
+}
+
+.pe-note-text {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--vox-ink-muted);
+}

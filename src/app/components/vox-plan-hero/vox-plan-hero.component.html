@@ -1,0 +1,40 @@
+<div class="ph">
+  <div class="ph-top">
+    <vox-badge tone="brand" size="xs" class="ph-ai">
+      <vox-icon name="sparkles" size="xs" tone="inherit" />
+      AI generated
+    </vox-badge>
+    @if (createdLabel(); as created) {
+      <span class="ph-date">{{ created }}</span>
+    }
+  </div>
+
+  <h2 class="ph-title">{{ plan().title }}</h2>
+
+  @if (plan().goal_label || plan().sport_label || sessionLabel()) {
+    <div class="ph-chips">
+      @if (plan().goal_label; as goal) {
+        <vox-badge size="xs">
+          <vox-icon name="flag-outline" size="xs" tone="ink-subtle" />
+          {{ goal }}
+        </vox-badge>
+      }
+      @if (plan().sport_label; as sport) {
+        <vox-badge size="xs">
+          <vox-icon name="barbell-outline" size="xs" tone="ink-subtle" />
+          {{ sport }}
+        </vox-badge>
+      }
+      @if (sessionLabel(); as session) {
+        <vox-badge size="xs">
+          <vox-icon name="time-outline" size="xs" tone="ink-subtle" />
+          <span class="ph-mono">{{ session }}</span>
+        </vox-badge>
+      }
+    </div>
+  }
+
+  <div class="ph-focus">
+    <vox-plan-focus-bar [days]="plan().days" />
+  </div>
+</div>

@@ -1,0 +1,17 @@
+@if (slices().length) {
+  <p class="fb-eyebrow">Weekly focus</p>
+
+  <div class="fb-bar" role="img" [attr.aria-label]="'Weekly focus: ' + summary()">
+    @for (slice of slices(); track slice.focus) {
+      <i class="fb-seg" [ngClass]="'vox-focus-' + slice.focus" [style.flex]="slice.count"></i>
+    }
+  </div>
+
+  <ul class="fb-legend">
+    @for (slice of slices(); track slice.focus) {
+      <li class="fb-key" [ngClass]="'vox-focus-' + slice.focus">
+        <i class="fb-dot"></i>{{ slice.label }}
+      </li>
+    }
+  </ul>
+}
