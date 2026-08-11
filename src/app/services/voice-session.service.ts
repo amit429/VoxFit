@@ -94,7 +94,24 @@ export class VoiceSessionService {
   readonly transcriptPreview = signal('');
 
   private partialListener?: PluginListenerHandle;
+  private listeningStateListener?: PluginListenerHandle;
   private nativeListening = false;
+  /**
+   * Speech committed by recogniser sessions that have already ended, in order.
+   * Android's `partialResults` are scoped to the *current* session and restart
+   * from an empty string after each one, so the running text cannot live in
+   * `transcriptPreview` alone — a restart would overwrite it. Same reason the
+   * web path keeps `webFinalSegments`.
+   */
+  private nativeSegments: string[] = [];
+  /** Latest partial of the session that is listening right now. */
+  private nativeLivePartial = '';
+  /**
+   * True while we deliberately want recognition running — the native twin of
+   * `webActive`. Distinguishes "Android's silence timeout ended the session"
+   * (restart it) from "the user pressed stop" (let it end).
+   */
+  private nativeActive = false;
   private webRecognition?: SpeechRecognitionInstance;
   /**
    * Final segments keyed by a *global* index spanning every recognition instance
@@ -141,6 +158,8 @@ export class VoiceSessionService {
     this.webFinalSegments = [];
     this.webIndexOffset = 0;
     this.webBoundaryCheckSegment = null;
+    this.nativeSegments = [];
+    this.nativeLivePartial = '';
 
     if (Capacitor.isNativePlatform()) {
       await this.startNative();
@@ -173,10 +192,37 @@ export class VoiceSessionService {
     this.partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
       const text = data.matches?.[0]?.trim() ?? '';
       if (text.length > 0) {
-        this.transcriptPreview.set(text);
+        this.nativeLivePartial = text;
+        this.publishNativeTranscript();
       }
     });
 
+    // Android's SpeechRecognizer ends the session on its own end-of-speech
+    // silence timeout — a pause mid-sentence is enough. Without this listener
+    // nothing restarted it, `nativeListening` stayed true, and `stopNative()`
+    // returned only what had been said before that first pause. The web path
+    // has always restarted on `onend`; this is its native counterpart.
+    this.listeningStateListener = await SpeechRecognition.addListener('listeningState', (data) => {
+      if (data.status !== 'stopped') return;
+      this.commitNativeSegment();
+      if (!this.nativeActive) return;
+      void this.restartNativeRecognition();
+    });
+
+    this.nativeActive = true;
+    try {
+      await this.startNativeRecognition();
+    } catch (err) {
+      // Leaving `nativeActive` set here would arm the restart listener for a
+      // session that never began — a later stray 'stopped' would resume
+      // recording with the UI back on idle. Tear down before rethrowing.
+      await this.cleanupNativeSession();
+      throw err;
+    }
+  }
+
+  /** One recogniser session. Called for the first one and for every restart. */
+  private async startNativeRecognition(): Promise<void> {
     await SpeechRecognition.start({
       language: 'en-US',
       maxResults: 5,
@@ -186,7 +232,45 @@ export class VoiceSessionService {
     this.nativeListening = true;
   }
 
+  private async restartNativeRecognition(): Promise<void> {
+    try {
+      await this.startNativeRecognition();
+    } catch (err) {
+      // The recogniser can refuse to restart (busy tearing down, or the OS
+      // service died). Keep whatever is already committed rather than throwing
+      // out of a listener — the user can still press stop and submit it.
+      this.nativeListening = false;
+      console.warn('[VoiceSession] Native restart failed:', err);
+    }
+  }
+
+  /**
+   * Moves the ending session's partial into the committed run. Empty is normal
+   * — a session can time out without the user having said anything — and must
+   * not push a blank segment, which would show up as a doubled space.
+   */
+  private commitNativeSegment(): void {
+    const segment = this.nativeLivePartial.trim();
+    this.nativeLivePartial = '';
+    if (segment.length === 0) return;
+    this.nativeSegments.push(segment);
+  }
+
+  private publishNativeTranscript(): void {
+    const display = [...this.nativeSegments, this.nativeLivePartial]
+      .filter((s) => s.length > 0)
+      .join(' ')
+      .trim();
+    if (display.length > 0) {
+      this.transcriptPreview.set(display);
+    }
+  }
+
   private async stopNative(): Promise<string> {
+    // Must precede stop(): the plug-in reports the stop we asked for through
+    // the same 'listeningState' event as a silence timeout, and this flag is
+    // the only thing telling the two apart.
+    this.nativeActive = false;
     let stopError: unknown;
     try {
       if (this.nativeListening) {
@@ -213,12 +297,19 @@ export class VoiceSessionService {
   }
 
   private async cleanupNativeSession(): Promise<void> {
+    this.nativeActive = false;
     try {
       await this.partialListener?.remove();
     } catch {
       /* noop */
     }
     this.partialListener = undefined;
+    try {
+      await this.listeningStateListener?.remove();
+    } catch {
+      /* noop */
+    }
+    this.listeningStateListener = undefined;
     try {
       await SpeechRecognition.removeAllListeners();
     } catch {
