@@ -92,6 +92,11 @@ Real on-device screenshots are still on the list to capture.
 - Because the lookup is **global rather than per-user**, a novel exercise name costs exactly one AI call for the whole product, ever
 - Both components name what they can't show — how many exercises are still classifying, and which groups were trained but carry no tonnage to chart
 
+🏆 **Automatic PR Detection**
+- Every logged strength exercise is compared against your own history — heaviest top-set weight ever, by canonical exercise name (normalized + curated aliases, so "Pec Fly" and "Chest Flies" share one history while equipment variants like barbell vs. dumbbell bench stay separate)
+- Runs entirely in Postgres via insert/delete triggers on `exercises_logged` — no AI call, no async gap, the flag is already correct by the time the review screen reads the row back
+- Declared and detected PRs are tracked separately (`pr_source`): a claim you spoke or ticked yourself is never overwritten by detection, and editing a session afterward never launders a detected PR into a permanent declared one
+
 🏅 **Badges & Weekly Target**
 - Thresholds live in the database as the awarding authority; the earned ledger is **select-only under RLS**, so a badge can't be self-granted from a client
 - Awarding happens on read inside one `SECURITY DEFINER` RPC — idempotent, one place for the threshold logic, and impossible for a write path to forget. Badges no longer un-earn themselves when a streak lapses
@@ -368,7 +373,7 @@ voxfit/
 │                           # 0003 pg_cron/pg_net weekly dispatcher · 0004 service_role grants
 │                           # 0005 email_exists check · 0006 weekly target + badge ledger
 │                           # 0007 muscle groups + async classification · 0008 weekly volume series
-│                           # 0009 diet_logs.emoji
+│                           # 0009 diet_logs.emoji · 0010 automatic PR detection
 ├── REVAMP-PROGRESS.md      # Phase-by-phase log of the Dusk revamp + the deferred-feature list
 ├── capacitor.config.ts     # Capacitor config (appId: com.voxfit.app)
 └── angular.json            # Angular CLI workspace config
@@ -429,7 +434,7 @@ cd android && ./gradlew bundleRelease
 
 - `user_profiles` — User info, goals, macro targets, `weekly_session_target`, onboarding status
 - `workout_sessions` — Logged workouts (date, mood, energy, raw/cleaned transcript, coach summary)
-- `exercises_logged` — Exercise rows per session (name, type, PR flag, `set_lines` JSONB for per-set reps/weight/duration/distance, `primary_muscle`/`secondary_muscle` denormalized at insert)
+- `exercises_logged` — Exercise rows per session (name, type, PR flag with `pr_source` distinguishing a declared claim from one auto-detected against the user's own history via insert/delete triggers, `set_lines` JSONB for per-set reps/weight/duration/distance, `primary_muscle`/`secondary_muscle` denormalized at insert)
 - `diet_logs` — Meal entries (date, meal type, macros, recipe text, model-chosen `emoji`, source: AI-suggested or manually logged)
 - `workout_plans` — AI-generated plan content (JSONB) + status (`active`/superseded), one active plan per user at a time
 - `progress_reviews` — Weekly AI coach reflections (highlights, trends, recurring notes, suggestions), unique per `(user_id, generated_for_week)`
