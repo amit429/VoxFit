@@ -182,7 +182,7 @@ function parseExercise(ex: unknown, index: number): WorkoutExerciseExtract {
     const set_lines = setLinesRaw.map((sl, i) => parseSetLine(sl, index, i));
     const summary_line =
       String(e['summary_line'] ?? '').trim() || buildSummaryFromSetLines(exercise_type, set_lines);
-    return { name, exercise_type, is_pr, summary_line, set_lines };
+    return { name, exercise_type, is_pr, pr_source: null, summary_line, set_lines };
   }
 
   /* Legacy flat shape → single set_line */
@@ -203,7 +203,7 @@ function parseExercise(ex: unknown, index: number): WorkoutExerciseExtract {
   const set_lines = [legacyLine];
   const summary_line =
     String(e['summary_line'] ?? '').trim() || buildSummaryFromSetLines(exercise_type, set_lines);
-  return { name, exercise_type, is_pr, summary_line, set_lines };
+  return { name, exercise_type, is_pr, pr_source: null, summary_line, set_lines };
 }
 
 function buildSummaryFromSetLines(type: ExerciseTypeDb, lines: readonly WorkoutSetLineExtract[]): string {

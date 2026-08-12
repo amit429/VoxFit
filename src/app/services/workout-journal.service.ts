@@ -45,7 +45,7 @@ const SESSION_DETAIL_COLUMNS = `
   id, user_id, date, session_label, ai_summary, mood, energy_level, physical_flags, created_at,
   exercises_logged (
     id, session_id, exercise_name, exercise_type, sets, reps, weight_kg,
-    duration_secs, distance_km, is_pr, summary_line, set_lines
+    duration_secs, distance_km, is_pr, pr_source, summary_line, set_lines
   )
 `;
 

@@ -43,6 +43,7 @@ export class WorkoutSessionLogService {
         duration_secs: agg.duration_secs,
         distance_km: agg.distance_km,
         is_pr: ex.is_pr,
+        pr_source: ex.is_pr ? (ex.pr_source ?? 'declared') : null,
         summary_line: ex.summary_line || null,
         set_lines: [...ex.set_lines],
       };
@@ -79,6 +80,7 @@ export class WorkoutSessionLogService {
         duration_secs: agg.duration_secs,
         distance_km: agg.distance_km,
         is_pr: ex.is_pr,
+        pr_source: ex.is_pr ? (ex.pr_source ?? 'declared') : null,
         summary_line: ex.summary_line || null,
         set_lines: [...ex.set_lines],
       };

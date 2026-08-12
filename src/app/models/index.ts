@@ -10,6 +10,7 @@ export * from './monthly-chart-stat-vm.model';
 export * from './mood-db.model';
 export * from './energy-db.model';
 export * from './exercise-type-db.model';
+export * from './pr-source.model';
 export * from './workout-set-line-extract.model';
 export * from './workout-exercise-extract.model';
 export * from './workout-extract-result.model';

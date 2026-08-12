@@ -1,3 +1,5 @@
+import type { PrSource } from '@/app/models/pr-source.model';
+
 /** Row from `exercises_logged`, joined onto a workout session. */
 export interface ExerciseLoggedRow {
   id: string;
@@ -10,6 +12,7 @@ export interface ExerciseLoggedRow {
   duration_secs: number | null;
   distance_km: number | string | null;
   is_pr: boolean | null;
+  pr_source: PrSource;
   summary_line: string | null;
   set_lines: unknown;
 }

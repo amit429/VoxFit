@@ -12,6 +12,7 @@ export function exerciseToFormModel(ex: WorkoutExerciseExtract): ExerciseEditorF
     name: ex.name,
     exercise_type: ex.exercise_type,
     is_pr: ex.is_pr,
+    pr_source: ex.pr_source,
     setLines: ex.set_lines.map(setLineToDraft),
   };
 }
@@ -43,6 +44,7 @@ export function formModelToExercise(model: ExerciseEditorFormModel): WorkoutExer
     name,
     exercise_type: model.exercise_type,
     is_pr: model.is_pr,
+    pr_source: model.pr_source,
     summary_line,
     set_lines: lines,
   };

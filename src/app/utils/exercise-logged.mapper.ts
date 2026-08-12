@@ -50,6 +50,7 @@ export function exerciseLoggedLikeToExtract(row: ExerciseLoggedLike): WorkoutExe
     name: row.exercise_name,
     exercise_type: type,
     is_pr: row.is_pr ?? false,
+    pr_source: row.pr_source ?? null,
     summary_line: row.summary_line?.trim() ?? '',
     set_lines,
   };
