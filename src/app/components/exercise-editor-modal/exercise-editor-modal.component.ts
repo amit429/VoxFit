@@ -25,7 +25,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, closeOutline, trashOutline } from 'ionicons/icons';
-import type { ExerciseEditorFormModel, ExerciseSetLineDraft, ExerciseTypeDb, WorkoutExerciseExtract } from '@/app/models';
+import type { ExerciseEditorFormModel, ExerciseSetLineDraft, ExerciseTypeDb, PrSource, WorkoutExerciseExtract } from '@/app/models';
 import { emptySetLineDraft, exerciseToFormModel, formModelToExercise } from '@/app/utils/workout-exercise-draft.util';
 
 addIcons({ addOutline, closeOutline, trashOutline });
@@ -69,6 +69,8 @@ export class ExerciseEditorModalComponent {
   protected draftName = '';
   protected draftExerciseType: ExerciseTypeDb = 'strength';
   protected draftIsPr = false;
+  /** Not user-editable here — carried through the round trip alongside is_pr so an edit never launders it. */
+  protected draftPrSource: PrSource = null;
   protected draftLines: ExerciseSetLineDraft[] = [emptySetLineDraft('strength')];
   protected saveError: string | null = null;
 
@@ -96,6 +98,7 @@ export class ExerciseEditorModalComponent {
     this.draftName = m.name;
     this.draftExerciseType = m.exercise_type;
     this.draftIsPr = m.is_pr;
+    this.draftPrSource = m.pr_source;
     this.draftLines = m.setLines.map((l) => ({ ...l }));
     if (this.draftLines.length === 0) {
       this.draftLines = [emptySetLineDraft(this.draftExerciseType)];
@@ -163,6 +166,7 @@ export class ExerciseEditorModalComponent {
       name: this.draftName,
       exercise_type: this.draftExerciseType,
       is_pr: this.draftIsPr,
+      pr_source: this.draftPrSource,
       setLines: this.draftLines,
     };
     const ex = formModelToExercise(model);

@@ -15,10 +15,10 @@ describe('buildTrainingStatsSummary', () => {
   it('counts sessions, PRs, and dedupes flags within the window', () => {
     const sessions = [
       session('2026-07-28', [
-        { id: 'e1', session_id: 's1', exercise_name: 'Bench Press', exercise_type: 'strength', sets: 4, reps: 8, weight_kg: 60, is_pr: true, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
+        { id: 'e1', session_id: 's1', exercise_name: 'Bench Press', exercise_type: 'strength', sets: 4, reps: 8, weight_kg: 60, is_pr: true, pr_source: 'declared', duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
       ], ['knee felt off']),
       session('2026-07-30', [
-        { id: 'e2', session_id: 's2', exercise_name: 'Bench Press', exercise_type: 'strength', sets: 4, reps: 8, weight_kg: 62.5, is_pr: false, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
+        { id: 'e2', session_id: 's2', exercise_name: 'Bench Press', exercise_type: 'strength', sets: 4, reps: 8, weight_kg: 62.5, is_pr: false, pr_source: null, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
       ], ['knee felt off', 'left wrist tight']),
     ];
 
@@ -34,10 +34,10 @@ describe('buildTrainingStatsSummary', () => {
   it('reports the most-recent weight/reps for a top exercise', () => {
     const sessions = [
       session('2026-07-28', [
-        { id: 'e1', session_id: 's1', exercise_name: 'Squat', exercise_type: 'strength', sets: 3, reps: 5, weight_kg: 80, is_pr: false, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
+        { id: 'e1', session_id: 's1', exercise_name: 'Squat', exercise_type: 'strength', sets: 3, reps: 5, weight_kg: 80, is_pr: false, pr_source: null, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
       ]),
       session('2026-07-31', [
-        { id: 'e2', session_id: 's2', exercise_name: 'Squat', exercise_type: 'strength', sets: 3, reps: 5, weight_kg: 85, is_pr: false, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
+        { id: 'e2', session_id: 's2', exercise_name: 'Squat', exercise_type: 'strength', sets: 3, reps: 5, weight_kg: 85, is_pr: false, pr_source: null, duration_secs: null, distance_km: null, summary_line: null, set_lines: [] },
       ]),
     ];
 
