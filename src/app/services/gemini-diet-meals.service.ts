@@ -6,6 +6,7 @@ import type {
   DietMealsPromptContext,
   DietMealSuggestion,
   DietMealSuggestResult,
+  DietMealTypeDb,
   EatenMealAnalysis,
   EatenMealAnalyzeResult,
 } from '@/app/models';
@@ -91,21 +92,22 @@ export class GeminiDietMealsService {
     if (!text) {
       throw new Error('Nothing heard — try speaking again.');
     }
+    const localTime = formatLocalTimeForPrompt(new Date());
     const rawJson =
       environment.useGeminiEdgeFunction ?
-        await this.viaEdgeFunctionEatenMeal(text)
-      : await this.directGeminiEatenMeal(text);
+        await this.viaEdgeFunctionEatenMeal(text, localTime)
+      : await this.directGeminiEatenMeal(text, localTime);
     return parseEatenMealJson(rawJson);
   }
 
-  private async directGeminiEatenMeal(transcript: string): Promise<string> {
+  private async directGeminiEatenMeal(transcript: string, localTime: string): Promise<string> {
     const key = environment.geminiApiKey?.trim();
     if (!key) {
       throw new Error(
         'Missing geminiApiKey — add it in environment.dev.ts or enable useGeminiEdgeFunction with log-food.',
       );
     }
-    const { system, user } = buildFoodLogPrompt(transcript);
+    const { system, user } = buildFoodLogPrompt(transcript, localTime);
     const url = `${GEMINI_URL}?key=${encodeURIComponent(key)}`;
     const res = await fetch(url, {
       method: 'POST',
@@ -134,9 +136,9 @@ export class GeminiDietMealsService {
     return stripJsonFence(part);
   }
 
-  private async viaEdgeFunctionEatenMeal(transcript: string): Promise<string> {
+  private async viaEdgeFunctionEatenMeal(transcript: string, localTime: string): Promise<string> {
     const { data, error } = await this.supabase.client.functions.invoke('log-food', {
-      body: { transcript },
+      body: { transcript, local_time: localTime },
     });
     if (error) {
       console.error('[GeminiDietMeals] Edge function error', error);
@@ -150,6 +152,13 @@ export class GeminiDietMealsService {
     }
     return typeof data === 'string' ? stripJsonFence(data) : JSON.stringify(data);
   }
+}
+
+/** 24-hour "HH:MM" in the device's local time, for the meal-type time-band classification. */
+function formatLocalTimeForPrompt(date: Date): string {
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
 }
 
 function stripJsonFence(text: string): string {
@@ -218,7 +227,7 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function parseEatenMealJson(text: string): EatenMealAnalyzeResult {
+export function parseEatenMealJson(text: string): EatenMealAnalyzeResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -246,8 +255,14 @@ function parseEatenMeal(raw: unknown): EatenMealAnalysis | null {
   const carbsG = Math.max(0, num(o['carbs_g']) ?? 0);
   const fatG = Math.max(0, num(o['fat_g']) ?? 0);
   const rationale = String(o['rationale'] ?? '').trim() || 'Estimated from what you described.';
+  const mealType = normalizeMealType(o['meal_type']);
 
-  return { name, emoji: normalizeMealEmoji(o['emoji']), calories, proteinG, carbsG, fatG, rationale };
+  return { name, emoji: normalizeMealEmoji(o['emoji']), calories, proteinG, carbsG, fatG, rationale, mealType };
+}
+
+/** Malformed or missing -> null, so the caller's inferMealType() fallback kicks in. */
+function normalizeMealType(v: unknown): DietMealTypeDb | null {
+  return v === 'breakfast' || v === 'lunch' || v === 'snack' || v === 'dinner' ? v : null;
 }
 
 /**

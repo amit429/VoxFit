@@ -1,6 +1,6 @@
 /** Keep in sync with `supabase/functions/log-food/index.ts` SYSTEM block. */
 
-export function buildFoodLogPrompt(transcript: string): { system: string; user: string } {
+export function buildFoodLogPrompt(transcript: string, localTime: string): { system: string; user: string } {
   const lines: string[] = [
     'You are VoxFit’s nutrition estimator.',
     'The user is describing food they have ALREADY EATEN — not something to cook. Do not suggest',
@@ -23,6 +23,20 @@ export function buildFoodLogPrompt(transcript: string): { system: string; user: 
     'invented). Otherwise construct a short, concrete descriptive name from the foods mentioned',
     '(e.g. "Grilled chicken, rice & broccoli"), not a generic label like "Meal".',
     '',
+    'Meal type classification — "meal_type" in the JSON below:',
+    '1. EXPLICIT MENTION WINS. If the transcript names the meal directly — "for breakfast…",',
+    '   "logging my lunch", "had this as a snack", "that was dinner" — use exactly that, even if',
+    '   it contradicts the local time below. This is the user telling you, not you guessing.',
+    '2. Otherwise, classify from the local time the meal was logged, given below as HH:MM in',
+    '   24-hour time. Use these bands, and pick whichever one the time falls in:',
+    '   - 06:00–10:59  -> "breakfast"',
+    '   - 11:00–14:59  -> "lunch"',
+    '   - 15:00–16:59  -> "snack"',
+    '   - 17:00–21:59  -> "dinner"',
+    '   - anything else (22:00–05:59, late night / very early morning) -> "snack"',
+    'Never leave "meal_type" out or invent a fifth category — it must be exactly one of',
+    '"breakfast", "lunch", "snack", "dinner".',
+    '',
     'Portion sizes: the user often won’t state exact quantities. When a portion is unstated,',
     'assume a standard/average adult serving size for that food (use your best typical-nutrition-',
     'data judgment) rather than asking or guessing wildly — and say so plainly in "rationale" as a',
@@ -44,7 +58,8 @@ export function buildFoodLogPrompt(transcript: string): { system: string; user: 
     '    "protein_g": number,',
     '    "carbs_g": number,',
     '    "fat_g": number,',
-    '    "rationale": string (one short line — portion assumption and/or estimate basis)',
+    '    "rationale": string (one short line — portion assumption and/or estimate basis),',
+    '    "meal_type": "breakfast" | "lunch" | "snack" | "dinner" (see classification rules above)',
     '  }',
     '}',
     '',
@@ -55,7 +70,7 @@ export function buildFoodLogPrompt(transcript: string): { system: string; user: 
   ];
 
   const system = lines.join('\n');
-  const user = `Transcript of what the user ate:\n"""${transcript.trim()}"""`;
+  const user = `Logged at local time: ${localTime} (24-hour HH:MM).\nTranscript of what the user ate:\n"""${transcript.trim()}"""`;
 
   return { system, user };
 }

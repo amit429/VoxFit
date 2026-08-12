@@ -31,6 +31,20 @@ Naming: if the user gave the meal/dish a name, use their own wording (cleaned up
 invented). Otherwise construct a short, concrete descriptive name from the foods mentioned
 (e.g. "Grilled chicken, rice & broccoli"), not a generic label like "Meal".
 
+Meal type classification — "meal_type" in the JSON below:
+1. EXPLICIT MENTION WINS. If the transcript names the meal directly — "for breakfast…",
+   "logging my lunch", "had this as a snack", "that was dinner" — use exactly that, even if
+   it contradicts the local time below. This is the user telling you, not you guessing.
+2. Otherwise, classify from the local time the meal was logged, given below as HH:MM in
+   24-hour time. Use these bands, and pick whichever one the time falls in:
+   - 06:00–10:59  -> "breakfast"
+   - 11:00–14:59  -> "lunch"
+   - 15:00–16:59  -> "snack"
+   - 17:00–21:59  -> "dinner"
+   - anything else (22:00–05:59, late night / very early morning) -> "snack"
+Never leave "meal_type" out or invent a fifth category — it must be exactly one of
+"breakfast", "lunch", "snack", "dinner".
+
 Portion sizes: the user often won’t state exact quantities. When a portion is unstated,
 assume a standard/average adult serving size for that food (use your best typical-nutrition-
 data judgment) rather than asking or guessing wildly — and say so plainly in "rationale" as a
@@ -52,7 +66,8 @@ JSON shape:
     "protein_g": number,
     "carbs_g": number,
     "fat_g": number,
-    "rationale": string (one short line — portion assumption and/or estimate basis)
+    "rationale": string (one short line — portion assumption and/or estimate basis),
+    "meal_type": "breakfast" | "lunch" | "snack" | "dinner" (see classification rules above)
   }
 }
 
@@ -71,9 +86,11 @@ Deno.serve(async (req: Request) => {
   }
 
   let transcript = '';
+  let localTime = '';
   try {
-    const body = (await req.json()) as { transcript?: string };
+    const body = (await req.json()) as { transcript?: string; local_time?: string };
     transcript = String(body.transcript ?? '').trim();
+    localTime = String(body.local_time ?? '').trim();
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
@@ -96,7 +113,11 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const user = `Transcript of what the user ate:\n"""${transcript}"""`;
+  const timeLine =
+    /^\d{2}:\d{2}$/.test(localTime) ?
+      `Logged at local time: ${localTime} (24-hour HH:MM).\n`
+    : '';
+  const user = `${timeLine}Transcript of what the user ate:\n"""${transcript}"""`;
 
   const r = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,

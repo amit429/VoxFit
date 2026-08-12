@@ -3,12 +3,18 @@ import type { DietLogListRow, DietMealSuggestion, DietMealTypeDb, EatenMealAnaly
 import { SupabaseService } from '@/app/services/supabase.service';
 import { parseLocalDateKey } from '@/app/utils/workout-display.util';
 
-function inferMealType(date = new Date()): DietMealTypeDb {
+/**
+ * Fallback only — the model classifies meal_type itself (see food-log.prompt.ts), honoring an
+ * explicit mention in the transcript over time-of-day. This runs when the model omitted/
+ * malformed meal_type, and for logSuggestedMeal, which has no transcript to check for one.
+ */
+export function inferMealType(date = new Date()): DietMealTypeDb {
   const h = date.getHours();
-  if (h < 11) return 'breakfast';
-  if (h < 14) return 'lunch';
-  if (h < 18) return 'dinner';
-  return 'snack';
+  if (h >= 6 && h < 11) return 'breakfast';
+  if (h >= 11 && h < 15) return 'lunch';
+  if (h >= 15 && h < 17) return 'snack';
+  if (h >= 17 && h < 22) return 'dinner';
+  return 'snack'; // 22:00-05:59: late night / very early morning
 }
 
 function recipeStepsToText(steps: readonly string[]): string {
@@ -52,7 +58,7 @@ export class DietLogService {
       user_id: userId,
       date: dateStr,
       meal_name: meal.name,
-      meal_type: inferMealType(),
+      meal_type: meal.mealType ?? inferMealType(),
       emoji: meal.emoji || null,
       calories: Math.round(meal.calories),
       protein_g: meal.proteinG,
