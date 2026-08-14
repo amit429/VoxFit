@@ -1,0 +1,146 @@
+@import "driver.js/dist/driver.css";
+
+:root {
+  --driver-popover-font-family: 'Poppins', -apple-system, sans-serif;
+}
+
+/*
+ * No .driver-overlay background rule here — driver.js paints the dimming
+ * layer as an inline-styled SVG <path> (fill + opacity set via JS), so a
+ * CSS `background` on this class would never render. Color/opacity are
+ * set on the `overlayColor`/`overlayOpacity` driver() config instead, see
+ * tour.service.ts.
+ */
+
+.driver-active-element {
+  border-radius: 20px;
+}
+
+.driver-popover.voxfit-tour {
+  background: #171325;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 20px;
+  max-width: 342px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
+.driver-popover.voxfit-tour::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%);
+}
+
+.driver-popover.voxfit-tour .driver-popover-title {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.driver-popover.voxfit-tour .driver-popover-description {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.driver-popover.voxfit-tour .driver-popover-progress-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #A79EF5;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.driver-popover.voxfit-tour .driver-popover-footer {
+  margin-top: 16px;
+}
+
+.driver-popover.voxfit-tour .driver-popover-footer-btn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-shadow: none;
+  border: none;
+}
+
+.driver-popover.voxfit-tour .driver-popover-next-btn {
+  background: linear-gradient(90deg, #7C6FE8, #6355D4);
+  color: #fff;
+}
+
+.driver-popover.voxfit-tour .driver-popover-prev-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.driver-popover.voxfit-tour .driver-popover-close-btn {
+  color: rgba(255, 255, 255, 0.4);
+  text-shadow: none;
+}
+
+.driver-popover.voxfit-tour .driver-popover-close-btn:hover {
+  color: #fff;
+}
+
+.driver-popover.voxfit-tour .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #171325;
+}
+.driver-popover.voxfit-tour .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #171325;
+}
+.driver-popover.voxfit-tour .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #171325;
+}
+.driver-popover.voxfit-tour .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #171325;
+}
+
+/* rich "what to say" content injected via onPopoverRender */
+.tour-say-cats { display: flex; flex-direction: column; gap: 7px; margin: 12px 0; }
+.tour-say-cat { display: flex; align-items: flex-start; gap: 9px; }
+.tour-say-cat .ic {
+  width: 24px; height: 24px; border-radius: 8px;
+  background: rgba(139, 128, 240, 0.16);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0; margin-top: 1px;
+}
+.tour-say-cat .tx { font-size: 12px; line-height: 1.4; }
+.tour-say-cat .tx b { color: #fff; font-weight: 600; }
+.tour-say-cat .tx span { color: rgba(255, 255, 255, 0.4); }
+
+.tour-say-example {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid #8B80F0;
+  border-radius: 0 12px 12px 0;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  font-style: italic;
+}
+.tour-say-example .tour-word { transition: color .15s, background .15s; border-radius: 3px; }
+.tour-say-example .tour-word.said { color: #fff; background: rgba(139, 128, 240, 0.28); }
+
+.tour-hear-btn {
+  display: flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 14px; border-radius: 10px;
+  background: rgba(139, 128, 240, 0.14);
+  border: 1px solid rgba(139, 128, 240, 0.35);
+  color: #A79EF5; font-size: 12px; font-weight: 600;
+  width: 100%; margin-top: 2px; cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+}
+.tour-hear-btn .play-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #8B80F0; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}

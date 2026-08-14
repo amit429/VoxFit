@@ -1,5 +1,6 @@
 export * from './sport-type.model';
 export * from './goal-type.model';
+export * from './tour-key.model';
 export * from './user-profile.model';
 
 export * from './profile-goal-row-mock.model';
