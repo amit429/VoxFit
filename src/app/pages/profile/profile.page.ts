@@ -17,6 +17,7 @@ import {
   sparklesOutline,
   trendingUpOutline,
   chatbubbleEllipsesOutline,
+  scaleOutline,
 } from 'ionicons/icons';
 import { DUMMY_PROFILE_DISPLAY } from '@/app/data/profile.mock';
 import type { GoalType, UserProgressStats, VoxEarnedBadge } from '@/app/models';
@@ -47,6 +48,7 @@ addIcons({
   sparklesOutline,
   trendingUpOutline,
   chatbubbleEllipsesOutline,
+  scaleOutline,
 });
 
 /**
@@ -137,6 +139,7 @@ export class ProfilePage implements ViewWillEnter {
     const carbs =
       p?.target_carbs_g != null && p.target_carbs_g > 0 ? `${Math.round(p.target_carbs_g)} g` : '—';
     const fat = p?.target_fat_g != null && p.target_fat_g > 0 ? `${Math.round(p.target_fat_g)} g` : '—';
+    const bmi = p?.bmi != null ? `${p.bmi}` : 'Set in Settings';
 
     return [
       { icon: 'flame-outline', label: 'Daily Calories', value: cals },
@@ -145,6 +148,7 @@ export class ProfilePage implements ViewWillEnter {
       { icon: 'water-outline', label: 'Fat Target', value: fat },
       { icon: 'barbell-outline', label: 'Workouts (this week)', value: `${sessionsThisWeek} logged` },
       { icon: 'flag-outline', label: 'Primary Goal', value: ProfilePage.formatGoalLabel(p?.goal ?? null) },
+      { icon: 'scale-outline', label: 'BMI', value: bmi },
     ];
   });
 

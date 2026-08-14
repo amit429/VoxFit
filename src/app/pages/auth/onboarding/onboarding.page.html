@@ -18,18 +18,6 @@
           fill="outline"
           autocomplete="name"
         />
-        <ion-select
-          formControlName="sportType"
-          label="Focus"
-          labelPlacement="stacked"
-          fill="outline"
-          interface="action-sheet"
-        >
-          <ion-select-option value="gym">Gym / strength</ion-select-option>
-          <ion-select-option value="runner">Running</ion-select-option>
-          <ion-select-option value="cyclist">Cycling</ion-select-option>
-          <ion-select-option value="sport">Other sport</ion-select-option>
-        </ion-select>
         <ion-select formControlName="goal" label="Goal" labelPlacement="stacked" fill="outline" interface="action-sheet">
           <ion-select-option value="bulk">Bulk</ion-select-option>
           <ion-select-option value="cut">Cut</ion-select-option>
@@ -53,6 +41,22 @@
           </div>
           <p class="onb-field-hint">Drives your weekly progress ring. Change it any time.</p>
         </div>
+        <ion-input
+          formControlName="heightCm"
+          type="number"
+          label="Height (cm)"
+          labelPlacement="stacked"
+          fill="outline"
+          inputmode="numeric"
+        />
+        <ion-input
+          formControlName="weightKg"
+          type="number"
+          label="Weight (kg)"
+          labelPlacement="stacked"
+          fill="outline"
+          inputmode="numeric"
+        />
         <ion-input
           formControlName="targetProtein"
           type="number"

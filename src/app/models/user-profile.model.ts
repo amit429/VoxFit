@@ -15,6 +15,10 @@ export interface UserProfile {
   target_fat_g: number;
   /** Sessions per week the user is aiming for. 1–14, enforced by a DB check. */
   weekly_session_target: number;
+  height_cm: number | null;
+  weight_kg: number | null;
+  /** weight_kg / (height_cm/100)^2, rounded to 1dp. DB-generated column — never sent in a write patch. */
+  bmi: number | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;

@@ -4,7 +4,7 @@ import { IonContent, IonInput, NavController, ToastController } from '@ionic/ang
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, logOutOutline, trashOutline } from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
-import type { GoalType, SportType } from '@/app/models';
+import type { GoalType } from '@/app/models';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
@@ -16,11 +16,6 @@ interface ChipOption<T extends string> {
   readonly value: T;
   readonly label: string;
 }
-
-const SPORT_OPTIONS: readonly ChipOption<SportType>[] = [
-  { value: 'gym', label: 'Gym' },
-  { value: 'runner', label: 'Running' },
-];
 
 /**
  * The four macro targets, driven by steppers instead of number inputs. Bounds
@@ -81,7 +76,6 @@ export class SettingsPage implements OnInit {
   private readonly navCtrl = inject(NavController);
   private readonly toastCtrl = inject(ToastController);
 
-  protected readonly sportOptions = SPORT_OPTIONS;
   protected readonly goalOptions = GOAL_OPTIONS;
   protected readonly appVersion = APP_VERSION;
 
@@ -124,8 +118,9 @@ export class SettingsPage implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     displayName: [''],
-    sportType: this.fb.nonNullable.control<SportType>('gym', Validators.required),
     goal: this.fb.nonNullable.control<GoalType>('maintain', Validators.required),
+    heightCm: this.fb.control<number | null>(null, [Validators.min(50), Validators.max(300)]),
+    weightKg: this.fb.control<number | null>(null, [Validators.min(20), Validators.max(500)]),
     targetCalories: [2500, [Validators.required, Validators.min(800), Validators.max(8000)]],
     targetProtein: [160, [Validators.required, Validators.min(40), Validators.max(400)]],
     targetCarbs: [250, [Validators.required, Validators.min(0), Validators.max(1000)]],
@@ -133,13 +128,27 @@ export class SettingsPage implements OnInit {
     weeklyTarget: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
   });
 
+  /**
+   * Read-only, mirrors the DB-generated column. A plain method rather than a
+   * `computed()` — the form controls are not signals, so a computed would
+   * never see them change; this page uses default change detection, so a
+   * template-called method re-evaluates on every keystroke instead.
+   */
+  protected bmi(): number | null {
+    const h = this.form.controls.heightCm.value;
+    const w = this.form.controls.weightKg.value;
+    if (!h || !w || h <= 0) return null;
+    return Math.round((w / (h / 100) ** 2) * 10) / 10;
+  }
+
   ngOnInit(): void {
     const p = this.auth.profile();
     if (p) {
       this.form.patchValue({
         displayName: p.display_name ?? '',
-        sportType: p.sport_type ?? 'gym',
         goal: p.goal ?? 'maintain',
+        heightCm: p.height_cm,
+        weightKg: p.weight_kg,
         targetCalories: p.target_calories,
         targetProtein: p.target_protein_g,
         targetCarbs: p.target_carbs_g,
@@ -172,11 +181,6 @@ export class SettingsPage implements OnInit {
     this.form.controls[control].markAsDirty();
   }
 
-  protected selectSport(value: SportType): void {
-    this.form.controls.sportType.setValue(value);
-    this.form.controls.sportType.markAsDirty();
-  }
-
   protected selectGoal(value: GoalType): void {
     this.form.controls.goal.setValue(value);
     this.form.controls.goal.markAsDirty();
@@ -192,8 +196,9 @@ export class SettingsPage implements OnInit {
       const v = this.form.getRawValue();
       await this.auth.updatePreferences({
         display_name: v.displayName || undefined,
-        sport_type: v.sportType,
         goal: v.goal,
+        height_cm: v.heightCm,
+        weight_kg: v.weightKg,
         target_calories: v.targetCalories,
         target_protein_g: v.targetProtein,
         target_carbs_g: v.targetCarbs,

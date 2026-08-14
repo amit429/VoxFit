@@ -157,20 +157,23 @@ export class AuthService {
 
   async completeOnboarding(patch: {
     display_name?: string;
-    sport_type: UserProfile['sport_type'];
     goal: UserProfile['goal'];
+    height_cm: number;
+    weight_kg: number;
     target_protein_g: number;
     target_calories: number;
     weekly_session_target: number;
   }): Promise<void> {
-    await this.writeProfilePatch({ ...patch, onboarding_completed: true });
+    /* Sport is gym-only right now, so onboarding no longer asks — it's fixed here instead. */
+    await this.writeProfilePatch({ ...patch, sport_type: 'gym', onboarding_completed: true });
     await this.refreshProfile();
   }
 
   async updatePreferences(patch: {
     display_name?: string;
-    sport_type: UserProfile['sport_type'];
     goal: UserProfile['goal'];
+    height_cm: number | null;
+    weight_kg: number | null;
     target_calories: number;
     target_protein_g: number;
     target_carbs_g: number;
@@ -185,6 +188,8 @@ export class AuthService {
     display_name?: string;
     sport_type?: UserProfile['sport_type'];
     goal?: UserProfile['goal'];
+    height_cm?: number | null;
+    weight_kg?: number | null;
     target_calories?: number;
     target_protein_g?: number;
     weekly_session_target?: number;
@@ -200,6 +205,8 @@ export class AuthService {
     if (patch.display_name !== undefined) row['display_name'] = patch.display_name?.trim() || null;
     if (patch.sport_type !== undefined) row['sport_type'] = patch.sport_type;
     if (patch.goal !== undefined) row['goal'] = patch.goal;
+    if (patch.height_cm !== undefined) row['height_cm'] = patch.height_cm;
+    if (patch.weight_kg !== undefined) row['weight_kg'] = patch.weight_kg;
     if (patch.target_calories !== undefined) row['target_calories'] = patch.target_calories;
     if (patch.target_protein_g !== undefined) row['target_protein_g'] = patch.target_protein_g;
     if (patch.target_carbs_g !== undefined) row['target_carbs_g'] = patch.target_carbs_g;

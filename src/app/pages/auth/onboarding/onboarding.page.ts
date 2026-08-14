@@ -9,7 +9,7 @@ import {
   IonSelectOption,
 } from '@ionic/angular/standalone';
 import { AuthService } from '@/app/services/auth.service';
-import type { GoalType, SportType } from '@/app/models';
+import type { GoalType } from '@/app/models';
 
 @Component({
   selector: 'app-onboarding',
@@ -32,12 +32,13 @@ export class OnboardingPage implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     displayName: [''],
-    sportType: this.fb.nonNullable.control<SportType>('gym', Validators.required),
     goal: this.fb.nonNullable.control<GoalType>('maintain', Validators.required),
+    /* Bounds mirror the DB check constraints so the form cannot submit a
+       value the database will reject. */
+    heightCm: [175, [Validators.required, Validators.min(50), Validators.max(300)]],
+    weightKg: [75, [Validators.required, Validators.min(20), Validators.max(500)]],
     targetProtein: [160, [Validators.required, Validators.min(40), Validators.max(400)]],
     targetCalories: [2500, [Validators.required, Validators.min(800), Validators.max(8000)]],
-    /* Bounds mirror the DB check constraint (1–14) so the form cannot submit
-       a value the database will reject. */
     weeklyTarget: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
   });
 
@@ -57,8 +58,9 @@ export class OnboardingPage implements OnInit {
     if (p) {
       this.form.patchValue({
         displayName: p.display_name ?? '',
-        sportType: p.sport_type ?? 'gym',
         goal: p.goal ?? 'maintain',
+        heightCm: p.height_cm ?? 175,
+        weightKg: p.weight_kg ?? 75,
         targetProtein: p.target_protein_g,
         targetCalories: p.target_calories,
         weeklyTarget: p.weekly_session_target,
@@ -77,8 +79,9 @@ export class OnboardingPage implements OnInit {
       const v = this.form.getRawValue();
       await this.auth.completeOnboarding({
         display_name: v.displayName || undefined,
-        sport_type: v.sportType,
         goal: v.goal,
+        height_cm: v.heightCm,
+        weight_kg: v.weightKg,
         target_protein_g: v.targetProtein,
         target_calories: v.targetCalories,
         weekly_session_target: v.weeklyTarget,
