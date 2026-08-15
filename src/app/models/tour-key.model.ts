@@ -1,1 +1,1 @@
-export type TourKey = 'orientation' | 'workout' | 'meal';
+export type TourKey = 'orientation' | 'workout' | 'journal' | 'meal' | 'profile';

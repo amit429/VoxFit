@@ -1,7 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonRouterLinkWithHref, NavController } from '@ionic/angular/standalone';
-import type { ViewWillEnter } from '@ionic/angular/standalone';
+import type { ViewDidEnter, ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   flagOutline,
@@ -25,6 +25,7 @@ import { AuthService } from '@/app/services/auth.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { BadgeService } from '@/app/services/badge.service';
+import { TourService } from '@/app/services/tour.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
@@ -76,12 +77,33 @@ addIcons({
     VoxCheckinModalComponent,
   ],
 })
-export class ProfilePage implements ViewWillEnter {
+export class ProfilePage implements ViewWillEnter, ViewDidEnter {
   private readonly auth = inject(AuthService);
   private readonly navCtrl = inject(NavController);
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly coach = inject(ProgressCoachService);
   private readonly badgeService = inject(BadgeService);
+  private readonly tourService = inject(TourService);
+
+  private viewEntered = false;
+  private profileTourFired = false;
+
+  /**
+   * Fires the profile tour once the page transition has settled AND the
+   * identity block / check-in card / badge shelf it targets have all swapped
+   * in from their skeletons — mirrors HomePage's orientationReadyEffect.
+   */
+  private readonly profileTourReadyEffect = effect(() => {
+    const ready = this.profileLoaded() && this.coach.latestLoaded() && !this.showSkeleton();
+    if (ready && this.viewEntered && !this.profileTourFired) {
+      this.profileTourFired = true;
+      untracked(() => {
+        if (!this.tourService.takeReplay('profile')) {
+          this.tourService.maybeStartProfile();
+        }
+      });
+    }
+  });
 
   protected readonly generating = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -187,10 +209,19 @@ export class ProfilePage implements ViewWillEnter {
   });
 
   ionViewWillEnter(): void {
+    // Reset every navigation-in, not just first mount — Ionic can reuse a
+    // cached page instance, and a Settings "Replay walkthrough" needs a
+    // fresh readiness check each time the user arrives here.
+    this.viewEntered = false;
+    this.profileTourFired = false;
     void this.auth.refreshProfile();
     void this.journal.refreshActivitySummary();
     void this.loadStats();
     void this.coach.getLatest();
+  }
+
+  ionViewDidEnter(): void {
+    this.viewEntered = true;
   }
 
   /**

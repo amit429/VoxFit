@@ -9,7 +9,9 @@ import {
   trashOutline,
   compassOutline,
   micOutline,
+  barbellOutline,
   restaurantOutline,
+  personOutline,
 } from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
 import { TourService } from '@/app/services/tour.service';
@@ -26,7 +28,9 @@ addIcons({
   trashOutline,
   compassOutline,
   micOutline,
+  barbellOutline,
   restaurantOutline,
+  personOutline,
 });
 
 interface ChipOption<T extends string> {
@@ -237,7 +241,9 @@ export class SettingsPage implements OnInit {
   private static readonly TOUR_ROUTE: Record<TourKey, string> = {
     orientation: '/tabs/home',
     workout: '/voice',
+    journal: '/tabs/workout',
     meal: '/tabs/diet',
+    profile: '/tabs/profile',
   };
 
   /** Requests the tour, then navigates to the page it targets — that page picks it up on arrival via TourService.takeReplay. */

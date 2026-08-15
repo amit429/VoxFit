@@ -9,7 +9,7 @@ import {
   VoxFilterSheetComponent,
   EMPTY_SESSION_FILTERS,
 } from '@/app/components/vox-filter-sheet/vox-filter-sheet.component';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonHeader,
@@ -21,7 +21,7 @@ import {
   IonButton,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import type { ViewWillEnter } from '@ionic/angular/standalone';
+import type { ViewDidEnter, ViewWillEnter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline, trophyOutline, optionsOutline } from 'ionicons/icons';
 import type {
@@ -35,6 +35,7 @@ import { AuthService } from '@/app/services/auth.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { WorkoutPlanService } from '@/app/services/workout-plan.service';
+import { TourService } from '@/app/services/tour.service';
 import { countMatchingSessions, sessionMatchesFilters } from '@/app/utils/session-filter.util';
 import {
   formatSessionDateLabel,
@@ -70,12 +71,33 @@ addIcons({ chevronBackOutline, chevronForwardOutline, trophyOutline, optionsOutl
     IonSpinner,
   ],
 })
-export class WorkoutPage implements ViewWillEnter {
+export class WorkoutPage implements ViewWillEnter, ViewDidEnter {
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly planService = inject(WorkoutPlanService);
   protected readonly coach = inject(ProgressCoachService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly tourService = inject(TourService);
+
+  private viewEntered = false;
+  private journalTourFired = false;
+
+  /**
+   * Fires the journal tour once the page transition has settled AND the plan
+   * banner / volume chart it targets have swapped in from their skeletons —
+   * mirrors HomePage's orientationReadyEffect.
+   */
+  private readonly journalTourReadyEffect = effect(() => {
+    const ready = this.planService.activePlanLoaded() && this.journal.weekSessionsLoaded();
+    if (ready && this.viewEntered && !this.journalTourFired) {
+      this.journalTourFired = true;
+      untracked(() => {
+        if (!this.tourService.takeReplay('journal')) {
+          this.tourService.maybeStartJournal();
+        }
+      });
+    }
+  });
 
   protected readonly activeFilter = signal<'all' | 'week' | 'prs' | 'month' | 'dates'>('week');
   protected readonly monthPickerOpen = signal(false);
@@ -303,12 +325,21 @@ export class WorkoutPage implements ViewWillEnter {
   }
 
   ionViewWillEnter(): void {
+    // Reset every navigation-in, not just first mount — Ionic can reuse a
+    // cached page instance, and a Settings "Replay walkthrough" needs a
+    // fresh readiness check each time the user arrives here.
+    this.viewEntered = false;
+    this.journalTourFired = false;
     // The weekly volume chart is always current-week data, independent of the list filter below it.
     void this.journal.refreshCurrentWeekSessions();
     void this.loadPrevWeekVolume();
     void this.loadListForActiveFilter();
     this.planService.getActivePlan().catch((err) => console.error('[WorkoutPage] load active plan', err));
     this.coach.getLatest().catch((err) => console.error('[WorkoutPage] load latest nudge', err));
+  }
+
+  ionViewDidEnter(): void {
+    this.viewEntered = true;
   }
 
   /** Ack the plan-nudge card — dismisses it without discarding the underlying row. */

@@ -26,9 +26,15 @@
         [title]="planBannerTitle()"
         [meta]="planBannerMeta()"
         (open)="goToPlan()"
+        data-tour="journal-plan-banner"
       />
     } @else {
-      <vox-plan-banner state="no-plan" meta="Build one from your recent training" (generate)="goToPlan()" />
+      <vox-plan-banner
+        state="no-plan"
+        meta="Build one from your recent training"
+        (generate)="goToPlan()"
+        data-tour="journal-plan-banner"
+      />
     }
 
     @if (coach.latestNudge(); as n) {
@@ -44,7 +50,7 @@
     }
 
     <!-- Filter chips -->
-    <div class="vox-chip-row flex gap-2 overflow-x-auto pb-1">
+    <div class="vox-chip-row flex gap-2 overflow-x-auto pb-1" data-tour="journal-filters">
       @for (f of filters; track f.id) {
         <button type="button" class="wk-chip-btn" (click)="onFilterClick(f.id)" [attr.aria-pressed]="activeFilter() === f.id">
           <vox-badge [tone]="activeFilter() === f.id ? 'jade' : 'neutral'">
@@ -72,7 +78,7 @@
     @if (!journal.weekSessionsLoaded()) {
       <vox-skeleton height="176px" radius="xl" class="block" />
     } @else {
-      <vox-card class="block">
+      <vox-card class="block" data-tour="journal-volume-chart">
         <vox-volume-chart
           [bars]="volumeBars()"
           [eyebrow]="weeklyVolumeStat().caption"
@@ -85,7 +91,7 @@
     }
 
     <!-- Session list -->
-    <section>
+    <section data-tour="journal-session-list">
       <h2 class="wk-section-title">Recent sessions</h2>
 
       @if (listLoading()) {

@@ -89,8 +89,16 @@ export class TourService {
     if (!this.hasSeen('workout')) this.startFor('workout');
   }
 
+  maybeStartJournal(): void {
+    if (!this.hasSeen('journal')) this.startFor('journal');
+  }
+
   maybeStartMeal(): void {
     if (!this.hasSeen('meal')) this.startFor('meal');
+  }
+
+  maybeStartProfile(): void {
+    if (!this.hasSeen('profile')) this.startFor('profile');
   }
 
   private hasSeen(tour: TourKey): boolean {
@@ -103,8 +111,12 @@ export class TourService {
         return profile.tour_orientation_seen;
       case 'workout':
         return profile.tour_workout_seen;
+      case 'journal':
+        return profile.tour_journal_seen;
       case 'meal':
         return profile.tour_meal_seen;
+      case 'profile':
+        return profile.tour_profile_seen;
     }
   }
 
@@ -112,7 +124,9 @@ export class TourService {
     const steps =
       tour === 'orientation' ? this.orientationSteps()
       : tour === 'workout' ? this.workoutSteps()
-      : this.mealSteps();
+      : tour === 'journal' ? this.journalSteps()
+      : tour === 'meal' ? this.mealSteps()
+      : this.profileSteps();
     this.run(tour, steps);
   }
 
@@ -156,6 +170,19 @@ export class TourService {
         cleanup?.();
         cleanup = null;
         if (!(element instanceof HTMLElement)) return; // centered steps: nothing real to bail out to
+        // The voice orb is round, but the default 16px corner radius on its
+        // ~250px square bounding box (rings included) draws a boxy cutout
+        // that leaves visible dimmed corners around the circle. Elements
+        // opting in via data-tour-shape="circle" get a per-step stage radius
+        // large enough to render the cutout as a true circle instead; every
+        // other step falls back to the shared card-shaped default.
+        if (element.dataset['tourShape'] === 'circle') {
+          const rect = element.getBoundingClientRect();
+          const diameter = Math.min(rect.width, rect.height);
+          driverObj.setConfig({ ...driverObj.getConfig(), stagePadding: 4, stageRadius: diameter / 2 + 4 });
+        } else {
+          driverObj.setConfig({ ...driverObj.getConfig(), stagePadding: 8, stageRadius: 16 });
+        }
         const onRealClick = (): void => {
           claimedByRealClick = true;
           driverObj.destroy();
@@ -307,6 +334,74 @@ export class TourService {
           title: "That's genuinely it",
           description: "Next time, just tap the mic and talk. No tour, no reminders — you'll have it in one try.",
           doneBtnText: 'Got it',
+        },
+      },
+    ];
+  }
+
+  private journalSteps(): DriveStep[] {
+    return [
+      {
+        element: '[data-tour="journal-plan-banner"]',
+        popover: {
+          title: 'A plan, built from your training',
+          description:
+            'VoxFit reads your recent sessions and builds a split around them — tap in to see it or generate a fresh one.',
+        },
+      },
+      {
+        element: '[data-tour="journal-volume-chart"]',
+        popover: {
+          title: 'Your training, charted',
+          description:
+            "Tonnage lifted this week, day by day. Tap a bar to see that day's number instead of the weekly total.",
+        },
+      },
+      {
+        element: '[data-tour="journal-filters"]',
+        popover: {
+          title: 'Slice it any way',
+          description: 'This week, everything, PRs only, a specific month or date range — the list below follows.',
+        },
+      },
+      {
+        element: '[data-tour="journal-session-list"]',
+        popover: {
+          title: 'Every session, one tap away',
+          description: "Tap any row to open the full breakdown — sets, reps, weight, and what you said to log it.",
+        },
+      },
+    ];
+  }
+
+  private profileSteps(): DriveStep[] {
+    return [
+      {
+        element: '[data-tour="profile-identity"]',
+        popover: {
+          title: 'This is you',
+          description: 'Your goal and training style. Tap the gear top-right anytime to change your details.',
+        },
+      },
+      {
+        element: '[data-tour="profile-checkin"]',
+        popover: {
+          title: 'Your coach checks in',
+          description: 'A short read on how your training and nutrition are trending, generated from your real data.',
+        },
+      },
+      {
+        element: '[data-tour="profile-badges"]',
+        popover: {
+          title: 'Earned, not decorative',
+          description: 'Badges unlock automatically from streaks, PRs and consistency — nothing to claim or configure.',
+        },
+      },
+      {
+        element: '[data-tour="profile-preferences"]',
+        popover: {
+          title: 'Your targets, at a glance',
+          description: 'Calories, macros, BMI and goal — all editable in Settings whenever your plan changes.',
         },
       },
     ];

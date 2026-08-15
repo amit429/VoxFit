@@ -198,7 +198,9 @@ export class AuthService {
     onboarding_completed?: boolean;
     tour_orientation_seen?: boolean;
     tour_workout_seen?: boolean;
+    tour_journal_seen?: boolean;
     tour_meal_seen?: boolean;
+    tour_profile_seen?: boolean;
   }): Promise<void> {
     const uid = this.user()?.id;
     if (!uid) {
@@ -220,7 +222,9 @@ export class AuthService {
     if (patch.onboarding_completed !== undefined) row['onboarding_completed'] = patch.onboarding_completed;
     if (patch.tour_orientation_seen !== undefined) row['tour_orientation_seen'] = patch.tour_orientation_seen;
     if (patch.tour_workout_seen !== undefined) row['tour_workout_seen'] = patch.tour_workout_seen;
+    if (patch.tour_journal_seen !== undefined) row['tour_journal_seen'] = patch.tour_journal_seen;
     if (patch.tour_meal_seen !== undefined) row['tour_meal_seen'] = patch.tour_meal_seen;
+    if (patch.tour_profile_seen !== undefined) row['tour_profile_seen'] = patch.tour_profile_seen;
 
     const { error } = await this.supabase.client.from('user_profiles').update(row).eq('id', uid);
     if (error) {
@@ -230,11 +234,13 @@ export class AuthService {
 
   private static readonly TOUR_SEEN_COLUMN: Record<
     TourKey,
-    'tour_orientation_seen' | 'tour_workout_seen' | 'tour_meal_seen'
+    'tour_orientation_seen' | 'tour_workout_seen' | 'tour_journal_seen' | 'tour_meal_seen' | 'tour_profile_seen'
   > = {
     orientation: 'tour_orientation_seen',
     workout: 'tour_workout_seen',
+    journal: 'tour_journal_seen',
     meal: 'tour_meal_seen',
+    profile: 'tour_profile_seen',
   };
 
   /** Called once a tour finishes or is explicitly dismissed — never for a bailed-out tour. */
