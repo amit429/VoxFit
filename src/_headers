@@ -1,0 +1,63 @@
+# Cloudflare static-asset response headers.
+#
+# Copied verbatim into www/ by the `src/_headers` asset entry in angular.json,
+# and picked up automatically by Cloudflare Workers Assets at deploy time.
+# Verify after deploying with:  curl -sI https://<your-domain>/ | grep -i -E 'content-security|strict-transport|x-frame'
+#
+# Note this file only governs the WEB app. The Android build loads the same
+# bundle from capacitor://localhost inside the webview, so it never sees these
+# headers — Android's protections are the manifest + network security config.
+
+/*
+  # --- Transport ---
+  # 2 years, subdomains included, preload-eligible. HTTPS-only is already true
+  # on Cloudflare; HSTS is what stops the first-request downgrade.
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+  # --- Framing / clickjacking ---
+  # This app has authenticated one-tap destructive actions (delete account),
+  # which is exactly what clickjacking targets. Nothing here is meant to be
+  # embedded anywhere, so deny outright rather than SAMEORIGIN.
+  X-Frame-Options: DENY
+
+  # --- MIME sniffing ---
+  X-Content-Type-Options: nosniff
+
+  # --- Referrer ---
+  # Auth flows put recovery tokens in the URL; never leak a full URL cross-origin.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # --- Feature access ---
+  # Microphone is the one capability this app genuinely needs (voice logging).
+  # Everything else that commonly gets abused is switched off explicitly.
+  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()
+
+  # --- CSP ---
+  # script-src has NO 'unsafe-inline'/'unsafe-eval': the Angular production
+  # build emits no inline or eval'd script, and index.html carries no <script>
+  # tag of its own, so the strict form actually holds. If you ever add an inline
+  # script, give it a nonce rather than relaxing this.
+  #
+  # style-src DOES need 'unsafe-inline' — Angular's emulated view encapsulation
+  # injects component styles as inline <style> elements at runtime. That is a
+  # framework constraint, not an oversight.
+  #
+  # connect-src is pinned to this project's Supabase host (REST, Auth, Edge
+  # Functions, Realtime websocket). Gemini is deliberately absent: production
+  # never calls generativelanguage.googleapis.com from the browser — that path
+  # exists only for local dev and would mean a client-side API key.
+  #
+  # If you move to a custom domain, no CSP change is needed unless you also
+  # change the Supabase project.
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://nmjtvqpuepbkddruvlix.supabase.co wss://nmjtvqpuepbkddruvlix.supabase.co; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+
+# Hashed build assets are immutable; index.html must never be cached or users
+# get pinned to a stale bundle (including one built before this hardening).
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable

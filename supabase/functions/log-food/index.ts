@@ -1,14 +1,9 @@
 /// <reference path="../deno-global.d.ts" />
 /** Keep SYSTEM in sync with `src/app/prompts/food-log.prompt.ts` rules + JSON shape. */
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { clampText, corsHeaders, guardRequest, jsonResponse, preflight } from '../_shared/guard.ts';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
 
 const SYSTEM = `You are VoxFit’s nutrition estimator.
 The user is describing food they have ALREADY EATEN — not something to cook. Do not suggest
@@ -77,40 +72,25 @@ Rules:
 - No recipe_steps, no prep_minutes fields — this food is already eaten, not being cooked.`;
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
-  }
+  if (req.method === 'OPTIONS') return preflight(req);
 
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
-  }
+  // Origin allowlist + body cap + real user JWT + per-user quota. See _shared/guard.ts
+  // for why the platform's verify_jwt flag is not sufficient on its own.
+  const guard = await guardRequest(req, { endpoint: 'log-food', perHour: 20, perDay: 100 });
+  if (!guard.ok) return guard.response;
+  const { origin } = guard;
 
-  let transcript = '';
-  let localTime = '';
-  try {
-    const body = (await req.json()) as { transcript?: string; local_time?: string };
-    transcript = String(body.transcript ?? '').trim();
-    localTime = String(body.local_time ?? '').trim();
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-      status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
-  }
+  const transcript = clampText(guard.body['transcript']);
+  // Short, format-validated below — a small cap is plenty and keeps it out of the token budget.
+  const localTime = clampText(guard.body['local_time'], 16);
 
   if (!transcript) {
-    return new Response(JSON.stringify({ error: 'transcript required' }), {
-      status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'transcript required' }, 400, origin);
   }
 
   const key = Deno.env.get('GEMINI_API_KEY');
   if (!key) {
-    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'GEMINI_API_KEY not configured' }, 500, origin);
   }
 
   const timeLine =
@@ -136,11 +116,9 @@ Deno.serve(async (req: Request) => {
   );
 
   if (!r.ok) {
-    const detail = await r.text();
-    return new Response(JSON.stringify({ error: 'Gemini request failed', detail }), {
-      status: 502,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    // Logged, not returned — the upstream body can echo request content.
+    console.error('[log-food] Gemini request failed', r.status, await r.text());
+    return jsonResponse({ error: 'Gemini request failed' }, 502, origin);
   }
 
   const data = (await r.json()) as {
@@ -148,13 +126,10 @@ Deno.serve(async (req: Request) => {
   };
   const part = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!part?.trim()) {
-    return new Response(JSON.stringify({ error: 'Empty model response' }), {
-      status: 502,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Empty model response' }, 502, origin);
   }
 
   return new Response(part.trim(), {
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', Connection: 'keep-alive' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', Connection: 'keep-alive' },
   });
 });

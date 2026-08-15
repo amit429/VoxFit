@@ -1,21 +1,59 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# ProGuard/R8 rules for the VoxFit release build.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# `minifyEnabled true` was turned on in build.gradle to shrink and obfuscate the
+# native layer. Capacitor resolves plugins REFLECTIVELY — by annotation and by
+# JS-facing method name — so R8 cannot see those call sites and will happily
+# strip or rename the very classes the bridge needs at runtime. Everything below
+# exists to prevent that. Removing these rules produces an APK that builds fine
+# and then fails at runtime with "Plugin not implemented", which is exactly the
+# kind of breakage that only shows up on a device.
+#
+# VERIFY ON A REAL DEVICE after changing anything here:
+#   npm run android:prepare:prod && cd android && ./gradlew assembleRelease
+# then install the release APK and exercise voice capture (SpeechRecognition),
+# haptics, keyboard, status bar and the voxfit:// deep link.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ---- Capacitor core + bridge ----
+-keep class com.getcapacitor.** { *; }
+-keep interface com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keep @com.getcapacitor.NativePlugin class * { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Plugin methods are invoked by name from JS via the bridge.
+-keepclassmembers class * extends com.getcapacitor.Plugin {
+    @com.getcapacitor.PluginMethod <methods>;
+    public *;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ---- Anything exposed to the WebView's JS context ----
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# ---- Cordova plugins bridged through Capacitor ----
+-keep class org.apache.cordova.** { *; }
+
+# ---- Third-party plugins used by this app ----
+# Speech recognition is the core feature; its plugin class is resolved by name.
+-keep class com.getcapacitor.community.speechrecognition.** { *; }
+
+# ---- Annotations / reflection metadata R8 would otherwise drop ----
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+# ---- Crash-report readability ----
+# Keep line numbers so release stack traces stay diagnosable, but rename the
+# source file so the original paths aren't disclosed in them.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# ---- Strip logging from release binaries ----
+# Removes Log.d/v/i calls (and their string arguments) from the shipped APK, so
+# anything a developer logged during debugging can't leak from a user's device.
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}

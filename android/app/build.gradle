@@ -40,8 +40,16 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Shrink + obfuscate the Java/Kotlin layer. This does NOT touch the web
+            // bundle in assets/ (Angular's own production build handles that), so it
+            // cannot break the app's UI — it only removes unused platform/plugin code
+            // and strips symbol names that make a decompiled APK easy to read.
+            minifyEnabled true
+            shrinkResources true
+            // Explicit, not inherited: a debuggable release APK would expose the
+            // WebView to remote debugging via chrome://inspect on any device.
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

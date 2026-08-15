@@ -162,7 +162,7 @@ npm install
 
 # Set up environment
 cp src/environments/environment.demo.ts src/environments/environment.dev.ts
-# Edit environment.dev.ts with your Supabase URL, key, and Gemini API key
+# Edit environment.dev.ts with your Supabase URL and anon key
 ```
 
 ### Environment Setup
@@ -173,7 +173,11 @@ Edit `src/environments/environment.dev.ts`:
 export const environment = {
   supabaseUrl: 'https://YOUR_PROJECT.supabase.co',
   supabaseAnonKey: 'YOUR_ANON_KEY',
-  geminiApiKey: 'YOUR_GEMINI_API_KEY',
+  // Local dev only, and only needed if you set useGeminiEdgeFunction: false to
+  // iterate without deployed Edge Functions. Leave it '' otherwise. This file is
+  // git-ignored, but anything in it is compiled into the bundle — never copy this
+  // key into environment.prod.ts or a build env var. See Deployment below.
+  geminiApiKey: '',
   useGeminiEdgeFunction: true, // use Supabase Edge Function instead of client-side Gemini
 };
 ```
@@ -396,10 +400,60 @@ present. Set these in the host's project settings:
 
 - `supabaseUrl`
 - `supabaseAnonKey`
-- `geminiApiKey` (optional — unused when `useGeminiEdgeFunction` is true)
-- `useGeminiEdgeFunction` (optional — anything other than the string `"false"` is treated as true)
 
 Build command: `npm run build:prod`. Output directory: `www`.
+
+> **Do not set a `geminiApiKey` build variable.** Everything `generate-prod-env.js`
+> writes ends up in the public JavaScript bundle, so a Gemini key set here would be
+> readable by anyone via view-source and chargeable to your Google account —
+> `useGeminiEdgeFunction: true` routes *runtime* calls through the Edge Function,
+> but it does not stop the key being **compiled into** the bundle. The build now
+> refuses to run if it finds one, rather than shipping it. Production reaches Gemini
+> through Edge Functions, which hold the key server-side:
+>
+> ```bash
+> supabase secrets set GEMINI_API_KEY="..."
+> ```
+>
+> `supabaseAnonKey` *is* meant to be public — it's useless without an RLS-passing
+> session. A Gemini key is a bearer credential and is not.
+
+### Why the dev Gemini key can't reach a deployed bundle
+
+Three independent layers, because the failure mode (a public bearer credential)
+is expensive and the paths into a bundle are easy to overlook:
+
+1. **`environment.dev.ts` is git-ignored and untracked.** A CI build from a fresh
+   clone — which is what Cloudflare does — never has the file at all. Only
+   `environment.demo.ts` and the `environment.ts` stub are in the repo. Verify:
+   `git ls-files src/environments/`
+2. **`prebuild:prod` refuses to write a key.** `generate-prod-env.js` fails the
+   build if a `geminiApiKey` build variable or a local `environment.prod.ts`
+   contains one — guarding the *input*.
+3. **`postbuild:prod` scans the compiled output.** `scan-bundle-secrets.js`
+   greps `www/` for credential-shaped strings and fails the build on a hit,
+   regardless of how they got there. This is the layer that catches the case the
+   other two can't see: a stale dev bundle sitting in `www/`.
+
+Run it manually against whatever is currently in `www/`:
+
+```bash
+npm run scan:secrets
+```
+
+### Two deploy paths, and the one sharp edge
+
+- **Cloudflare CI** — build command `npm run build:prod`, deploy command
+  `npx wrangler deploy`. Safe: the build runs first, and all three layers above
+  apply to it.
+- **Local `npm run deploy`** — `predeploy` forces a fresh `build:prod`, so the
+  same guarantees hold.
+- **Local bare `npx wrangler deploy`** — ⚠️ the sharp edge. This skips npm
+  lifecycle hooks entirely, so no rebuild and no secret scan happen; it publishes
+  whatever `www/` already holds, which may be a dev bundle from
+  `npm run android:prepare:dev`. **Use `npm run deploy` locally, not bare
+  `wrangler deploy`.** (As Cloudflare's *deploy command* it's fine — the build
+  step there has already run.)
 
 ### Android (Play Store)
 

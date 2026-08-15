@@ -1,15 +1,11 @@
 import { VoxPageHeaderComponent } from '@/app/components/vox-page-header/vox-page-header.component';
 import { PasswordStrengthChecklistComponent } from '@/app/components/password-strength-checklist/password-strength-checklist.component';
 import { Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonInput, IonInputPasswordToggle, IonBackButton } from '@ionic/angular/standalone';
-import { catchError, debounceTime, distinctUntilChanged, from, of, switchMap } from 'rxjs';
 import { AuthService } from '@/app/services/auth.service';
 import { PASSWORD_MIN_LENGTH, passwordStrengthValidator } from '@/app/utils/password-strength.util';
-
-const EMAIL_CHECK_DEBOUNCE_MS = 400;
 
 @Component({
   selector: 'app-register',
@@ -47,31 +43,21 @@ export class RegisterPage {
     this.passwordValue.set(value);
   }
 
-  /** True once the debounced check confirms the typed email is already registered. */
-  protected readonly emailTaken = signal(false);
-  protected readonly checkingEmail = signal(false);
-
-  constructor() {
-    this.form.controls.email.valueChanges
-      .pipe(
-        debounceTime(EMAIL_CHECK_DEBOUNCE_MS),
-        distinctUntilChanged(),
-        switchMap((value) => {
-          this.emailTaken.set(false);
-          if (this.form.controls.email.invalid) {
-            this.checkingEmail.set(false);
-            return of(false);
-          }
-          this.checkingEmail.set(true);
-          return from(this.auth.checkEmailExists(value)).pipe(catchError(() => of(false)));
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe((exists) => {
-        this.checkingEmail.set(false);
-        this.emailTaken.set(exists);
-      });
-  }
+  /*
+   * The live "this email is already registered" pre-check is deliberately gone.
+   *
+   * It called the `email_exists` RPC before the user was signed in, which made
+   * that RPC a public membership oracle over auth.users — anyone with the anon
+   * key (it ships in the JS bundle) could probe any address. Migration 0014
+   * revokes anon's EXECUTE, so the call can no longer succeed pre-auth and
+   * keeping it would just fire a guaranteed-403 per keystroke.
+   *
+   * Duplicate emails are still caught, at submit: signUpWithEmail surfaces
+   * "An account with this email already exists" via
+   * isAlreadyRegisteredSignUpResponse. That reveals the same fact only to
+   * someone who actually attempted to register that address, which is the
+   * standard trade-off.
+   */
 
   loading = false;
   errorMessage = '';
@@ -80,7 +66,7 @@ export class RegisterPage {
   async submit(): Promise<void> {
     this.errorMessage = '';
     this.infoMessage = '';
-    if (this.form.invalid || this.emailTaken()) {
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }

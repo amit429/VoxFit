@@ -35,10 +35,6 @@
               Enter a valid email address.
             }
           </p>
-        } @else if (emailTaken()) {
-          <p class="auth-hint auth-hint--error">An account with this email already exists. Try signing in instead.</p>
-        } @else if (checkingEmail()) {
-          <p class="auth-hint">Checking email…</p>
         }
 
         <ion-input
@@ -69,7 +65,7 @@
         <div class="auth-banner auth-banner--info mt-4" role="status">{{ infoMessage }}</div>
       }
 
-      <button type="submit" [disabled]="loading || emailTaken()" class="vox-btn-primary mt-4 w-full">
+      <button type="submit" [disabled]="loading" class="vox-btn-primary mt-4 w-full">
         @if (loading) {
           Creating…
         } @else {
