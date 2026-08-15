@@ -60,6 +60,19 @@ function allowedOrigins(): string[] {
 /** Largest request body we will even read, in bytes. Transcripts are speech — this is enormous for one. */
 const MAX_BODY_BYTES = 32 * 1024;
 
+/**
+ * Largest body accepted by `guardBinaryRequest` — audio uploads for
+ * transcription. Deliberately a *separate* constant: the JSON endpoints have no
+ * business receiving megabytes, and raising `MAX_BODY_BYTES` to accommodate
+ * audio would quietly widen all five of them.
+ *
+ * 12 MB sits between the two limits that matter: a 3-minute AAC/Opus voice clip
+ * at the recorder's default bitrate is ~1–2 MB, and Groq rejects anything over
+ * 25 MB on the free tier. So this is roomy for legitimate use and still a hard
+ * stop well before the upstream one.
+ */
+const MAX_AUDIO_BYTES = 12 * 1024 * 1024;
+
 /** Longest single free-text field (e.g. a voice transcript) we forward to the model. */
 export const MAX_TRANSCRIPT_CHARS = 6000;
 
@@ -125,6 +138,15 @@ export interface GuardOk {
   readonly origin: string | null;
 }
 
+/** `guardBinaryRequest`'s success shape — multipart form parts instead of a JSON body. */
+export interface GuardBinaryOk {
+  readonly ok: true;
+  readonly userId: string;
+  readonly supabase: SupabaseClient;
+  readonly formData: FormData;
+  readonly origin: string | null;
+}
+
 export interface GuardFail {
   readonly ok: false;
   readonly response: Response;
@@ -138,45 +160,38 @@ export interface GuardOptions {
 }
 
 /**
- * Runs the full guard chain. On success returns the authenticated user id, a
- * caller-scoped Supabase client (JWT forwarded, so RLS applies to any query the
- * function makes) and the parsed body. On failure returns a ready-to-send
- * Response — the caller just returns it.
+ * Steps 1 and 2 of the chain — method check and the declared-size cap — shared
+ * by both entry points. Returns null when the request may proceed.
+ *
+ * Only the `Content-Length` header is checked here; the authoritative check on
+ * bytes actually received differs by body type (string length vs. byte length)
+ * and stays with each caller.
  */
-export async function guardRequest(
+function checkMethodAndDeclaredSize(
+  req: Request,
+  origin: string | null,
+  maxBytes: number,
+): Response | null {
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405, origin);
+  }
+  const declared = Number(req.headers.get('Content-Length') ?? '0');
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    return jsonResponse({ error: 'Payload too large' }, 413, origin);
+  }
+  return null;
+}
+
+/**
+ * Steps 3 and 4 — real user authentication and per-user quota — shared by both
+ * entry points so they cannot drift apart. A change to how we authenticate or
+ * meter must land in exactly one place.
+ */
+async function authenticateAndMeter(
   req: Request,
   options: GuardOptions,
-): Promise<GuardOk | GuardFail> {
-  const origin = req.headers.get('Origin');
-
-  if (req.method !== 'POST') {
-    return { ok: false, response: jsonResponse({ error: 'Method not allowed' }, 405, origin) };
-  }
-
-  // --- 2. body size cap, before parsing ---
-  const declared = Number(req.headers.get('Content-Length') ?? '0');
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    return { ok: false, response: jsonResponse({ error: 'Payload too large' }, 413, origin) };
-  }
-
-  const raw = await req.text();
-  if (raw.length > MAX_BODY_BYTES) {
-    // Content-Length can lie or be absent (chunked encoding); this is the real check.
-    return { ok: false, response: jsonResponse({ error: 'Payload too large' }, 413, origin) };
-  }
-
-  let body: Record<string, unknown> = {};
-  if (raw.trim()) {
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        body = parsed as Record<string, unknown>;
-      }
-    } catch {
-      return { ok: false, response: jsonResponse({ error: 'Invalid JSON body' }, 400, origin) };
-    }
-  }
-
+  origin: string | null,
+): Promise<{ ok: true; userId: string; supabase: SupabaseClient } | GuardFail> {
   // --- 3. real user authentication ---
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
@@ -231,7 +246,93 @@ export async function guardRequest(
     };
   }
 
-  return { ok: true, userId: userData.user.id, supabase, body, origin };
+  return { ok: true, userId: userData.user.id, supabase };
+}
+
+/**
+ * Runs the full guard chain for a JSON endpoint. On success returns the
+ * authenticated user id, a caller-scoped Supabase client (JWT forwarded, so RLS
+ * applies to any query the function makes) and the parsed body. On failure
+ * returns a ready-to-send Response — the caller just returns it.
+ */
+export async function guardRequest(
+  req: Request,
+  options: GuardOptions,
+): Promise<GuardOk | GuardFail> {
+  const origin = req.headers.get('Origin');
+
+  // --- 1 & 2. method + body size cap, before parsing ---
+  const rejected = checkMethodAndDeclaredSize(req, origin, MAX_BODY_BYTES);
+  if (rejected) return { ok: false, response: rejected };
+
+  const raw = await req.text();
+  if (raw.length > MAX_BODY_BYTES) {
+    // Content-Length can lie or be absent (chunked encoding); this is the real check.
+    return { ok: false, response: jsonResponse({ error: 'Payload too large' }, 413, origin) };
+  }
+
+  let body: Record<string, unknown> = {};
+  if (raw.trim()) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        body = parsed as Record<string, unknown>;
+      }
+    } catch {
+      return { ok: false, response: jsonResponse({ error: 'Invalid JSON body' }, 400, origin) };
+    }
+  }
+
+  // --- 3 & 4. authentication + quota ---
+  const auth = await authenticateAndMeter(req, options, origin);
+  if (!auth.ok) return auth;
+
+  return { ok: true, userId: auth.userId, supabase: auth.supabase, body, origin };
+}
+
+/**
+ * The same guard chain for an endpoint that receives binary `multipart/form-data`
+ * rather than JSON — currently `transcribe-audio`, which uploads a voice clip.
+ *
+ * Split from `guardRequest` rather than folded into it because the size cap is
+ * the whole difference: audio is three orders of magnitude larger than a
+ * transcript, and widening `MAX_BODY_BYTES` to fit it would silently hand every
+ * JSON endpoint a 12 MB budget it has no use for. Steps 1, 3 and 4 are shared
+ * helpers above, so the security properties stay identical.
+ */
+export async function guardBinaryRequest(
+  req: Request,
+  options: GuardOptions & { readonly maxBytes?: number },
+): Promise<GuardBinaryOk | GuardFail> {
+  const origin = req.headers.get('Origin');
+  const maxBytes = options.maxBytes ?? MAX_AUDIO_BYTES;
+
+  const rejected = checkMethodAndDeclaredSize(req, origin, maxBytes);
+  if (rejected) return { ok: false, response: rejected };
+
+  // Authenticate and meter BEFORE buffering the body. Reading a multipart body
+  // means holding it in memory, so an unauthenticated caller must not be able to
+  // make us allocate megabytes — the reverse of the JSON path, where the body is
+  // small and parsing it first is harmless.
+  const auth = await authenticateAndMeter(req, options, origin);
+  if (!auth.ok) return auth;
+
+  // Real byte count, since Content-Length may be absent or untrue.
+  const buffer = await req.arrayBuffer();
+  if (buffer.byteLength > maxBytes) {
+    return { ok: false, response: jsonResponse({ error: 'Payload too large' }, 413, origin) };
+  }
+
+  let formData: FormData;
+  try {
+    formData = await new Response(buffer, {
+      headers: { 'Content-Type': req.headers.get('Content-Type') ?? '' },
+    }).formData();
+  } catch {
+    return { ok: false, response: jsonResponse({ error: 'Invalid multipart body' }, 400, origin) };
+  }
+
+  return { ok: true, userId: auth.userId, supabase: auth.supabase, formData, origin };
 }
 
 /** Preflight response, shared so no function hand-rolls its own wildcard. */
