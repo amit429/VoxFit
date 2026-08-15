@@ -85,7 +85,14 @@ export class ProfilePage implements ViewWillEnter, ViewDidEnter {
   private readonly badgeService = inject(BadgeService);
   private readonly tourService = inject(TourService);
 
-  private viewEntered = false;
+  /**
+   * A signal, not a plain field — see HomePage's viewEntered for why: effects
+   * only re-run on a tracked *signal* changing, and a cached Ionic tab page
+   * can have its readiness signals already sitting at `true` from a previous
+   * visit, so a plain-boolean viewEntered flipped in ionViewDidEnter would
+   * never wake this effect on a tab-switch revisit (only on a hard reload).
+   */
+  private readonly viewEntered = signal(false);
   private profileTourFired = false;
 
   /**
@@ -95,7 +102,7 @@ export class ProfilePage implements ViewWillEnter, ViewDidEnter {
    */
   private readonly profileTourReadyEffect = effect(() => {
     const ready = this.profileLoaded() && this.coach.latestLoaded() && !this.showSkeleton();
-    if (ready && this.viewEntered && !this.profileTourFired) {
+    if (ready && this.viewEntered() && !this.profileTourFired) {
       this.profileTourFired = true;
       untracked(() => {
         if (!this.tourService.takeReplay('profile')) {
@@ -212,7 +219,7 @@ export class ProfilePage implements ViewWillEnter, ViewDidEnter {
     // Reset every navigation-in, not just first mount — Ionic can reuse a
     // cached page instance, and a Settings "Replay walkthrough" needs a
     // fresh readiness check each time the user arrives here.
-    this.viewEntered = false;
+    this.viewEntered.set(false);
     this.profileTourFired = false;
     void this.auth.refreshProfile();
     void this.journal.refreshActivitySummary();
@@ -221,7 +228,7 @@ export class ProfilePage implements ViewWillEnter, ViewDidEnter {
   }
 
   ionViewDidEnter(): void {
-    this.viewEntered = true;
+    this.viewEntered.set(true);
   }
 
   /**

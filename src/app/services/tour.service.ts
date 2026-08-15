@@ -170,16 +170,14 @@ export class TourService {
         cleanup?.();
         cleanup = null;
         if (!(element instanceof HTMLElement)) return; // centered steps: nothing real to bail out to
-        // The voice orb is round, but the default 16px corner radius on its
-        // ~250px square bounding box (rings included) draws a boxy cutout
-        // that leaves visible dimmed corners around the circle. Elements
-        // opting in via data-tour-shape="circle" get a per-step stage radius
-        // large enough to render the cutout as a true circle instead; every
-        // other step falls back to the shared card-shaped default.
+        // Elements opting in via data-tour-shape="circle" (the orb sphere —
+        // see vox-voice-orb's tourTarget input, which places this attribute
+        // on the true square .orb span rather than its ring wrapper) get a
+        // stage radius large enough to round any square into a perfect
+        // circle — a fixed oversized value works for any side length, no
+        // measurement needed. Every other step uses the shared card radius.
         if (element.dataset['tourShape'] === 'circle') {
-          const rect = element.getBoundingClientRect();
-          const diameter = Math.min(rect.width, rect.height);
-          driverObj.setConfig({ ...driverObj.getConfig(), stagePadding: 4, stageRadius: diameter / 2 + 4 });
+          driverObj.setConfig({ ...driverObj.getConfig(), stagePadding: 4, stageRadius: 999 });
         } else {
           driverObj.setConfig({ ...driverObj.getConfig(), stagePadding: 8, stageRadius: 16 });
         }
@@ -322,17 +320,10 @@ export class TourService {
         },
       },
       {
-        element: '[data-tour="structure-it-btn"]',
         popover: {
           title: 'You always get the final word',
           description:
-            "Tap Structure it, and VoxFit turns your words into sets and reps. Review every number before it saves — edit anything that's off.",
-        },
-      },
-      {
-        popover: {
-          title: "That's genuinely it",
-          description: "Next time, just tap the mic and talk. No tour, no reminders — you'll have it in one try.",
+            "When you're done, tap Structure it — VoxFit turns your words into sets and reps. Review every number before it saves, and edit anything that's off. Next time, just tap the mic and talk.",
           doneBtnText: 'Got it',
         },
       },

@@ -32,10 +32,8 @@
               (click)="startRecording()"
               class="vl-orb-btn"
               aria-label="Tap to start recording"
-              data-tour="voice-orb"
-              data-tour-shape="circle"
             >
-              <vox-voice-orb state="idle" size="lg" />
+              <vox-voice-orb state="idle" size="lg" tourTarget="voice-orb" />
             </button>
             <p class="vl-title">Tap and say your workout</p>
             <p class="vl-hint">"3 sets of 10, 12, 15 on squats"</p>
@@ -64,7 +62,6 @@
                 type="button"
                 class="vl-btn vl-btn--primary"
                 (click)="stopRecording()"
-                data-tour="structure-it-btn"
               >
                 Structure it
               </button>

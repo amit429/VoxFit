@@ -84,7 +84,16 @@ export class HomePage implements ViewWillEnter, ViewDidEnter {
     () => !this.journal.activityLoaded() || !this.journal.weekSessionsLoaded() || !this.nutrition.hasLoadedOnce(),
   );
 
-  private viewEntered = false;
+  /**
+   * A signal, not a plain field — `effect()` only re-runs when a *signal* it
+   * read last time changes value. On a cached Ionic tab page, `showSkeleton()`
+   * is often already `false` from a previous visit, so if `viewEntered` were
+   * a plain boolean, flipping it in `ionViewDidEnter` wouldn't wake this
+   * effect at all (nothing it tracked actually changed) — the tour would then
+   * only ever fire on a hard reload, where `showSkeleton()` has a real
+   * false→true→false transition to react to.
+   */
+  private readonly viewEntered = signal(false);
   private orientationTourFired = false;
 
   /**
@@ -95,7 +104,7 @@ export class HomePage implements ViewWillEnter, ViewDidEnter {
    */
   private readonly orientationReadyEffect = effect(() => {
     const ready = !this.showSkeleton();
-    if (ready && this.viewEntered && !this.orientationTourFired) {
+    if (ready && this.viewEntered() && !this.orientationTourFired) {
       this.orientationTourFired = true;
       untracked(() => {
         if (!this.tourService.takeReplay('orientation')) {
@@ -182,7 +191,7 @@ export class HomePage implements ViewWillEnter, ViewDidEnter {
     // Reset every navigation-in, not just first mount — Ionic can reuse a
     // cached page instance, and a Settings "Replay walkthrough" needs a
     // fresh readiness check each time the user arrives here.
-    this.viewEntered = false;
+    this.viewEntered.set(false);
     this.orientationTourFired = false;
     void this.journal.refreshActivitySummary();
     void this.journal.refreshCurrentWeekSessions();
@@ -192,7 +201,7 @@ export class HomePage implements ViewWillEnter, ViewDidEnter {
   }
 
   ionViewDidEnter(): void {
-    this.viewEntered = true;
+    this.viewEntered.set(true);
   }
 
   private pickGreeting(): string {

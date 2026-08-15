@@ -72,13 +72,20 @@ export class DietPage implements ViewWillEnter, ViewDidEnter {
   protected readonly auth = inject(AuthService);
   private readonly tourService = inject(TourService);
 
-  private viewEntered = false;
+  /**
+   * A signal, not a plain field — see HomePage's viewEntered for why: effects
+   * only re-run on a tracked *signal* changing, and a cached Ionic tab page
+   * can have `hasLoadedOnce()` already sitting at `true` from a previous
+   * visit, so a plain-boolean viewEntered flipped in ionViewDidEnter would
+   * never wake this effect on a tab-switch revisit (only on a hard reload).
+   */
+  private readonly viewEntered = signal(false);
   private mealTourFired = false;
 
   /** Same readiness shape as Home's orientation tour — see that page for why both checks matter. */
   private readonly mealTourReadyEffect = effect(() => {
     const ready = this.nutrition.hasLoadedOnce();
-    if (ready && this.viewEntered && !this.mealTourFired) {
+    if (ready && this.viewEntered() && !this.mealTourFired) {
       this.mealTourFired = true;
       untracked(() => {
         if (!this.tourService.takeReplay('meal')) {
@@ -200,7 +207,7 @@ export class DietPage implements ViewWillEnter, ViewDidEnter {
   ];
 
   ionViewWillEnter(): void {
-    this.viewEntered = false;
+    this.viewEntered.set(false);
     this.mealTourFired = false;
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
@@ -208,7 +215,7 @@ export class DietPage implements ViewWillEnter, ViewDidEnter {
   }
 
   ionViewDidEnter(): void {
-    this.viewEntered = true;
+    this.viewEntered.set(true);
   }
 
   protected setRangeMode(mode: 'day' | 'week'): void {

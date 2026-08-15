@@ -79,7 +79,14 @@ export class WorkoutPage implements ViewWillEnter, ViewDidEnter {
   private readonly router = inject(Router);
   private readonly tourService = inject(TourService);
 
-  private viewEntered = false;
+  /**
+   * A signal, not a plain field — see HomePage's viewEntered for why: effects
+   * only re-run on a tracked *signal* changing, and a cached Ionic tab page
+   * can have its readiness signals already sitting at `true` from a previous
+   * visit, so a plain-boolean viewEntered flipped in ionViewDidEnter would
+   * never wake this effect on a tab-switch revisit (only on a hard reload).
+   */
+  private readonly viewEntered = signal(false);
   private journalTourFired = false;
 
   /**
@@ -89,7 +96,7 @@ export class WorkoutPage implements ViewWillEnter, ViewDidEnter {
    */
   private readonly journalTourReadyEffect = effect(() => {
     const ready = this.planService.activePlanLoaded() && this.journal.weekSessionsLoaded();
-    if (ready && this.viewEntered && !this.journalTourFired) {
+    if (ready && this.viewEntered() && !this.journalTourFired) {
       this.journalTourFired = true;
       untracked(() => {
         if (!this.tourService.takeReplay('journal')) {
@@ -328,7 +335,7 @@ export class WorkoutPage implements ViewWillEnter, ViewDidEnter {
     // Reset every navigation-in, not just first mount — Ionic can reuse a
     // cached page instance, and a Settings "Replay walkthrough" needs a
     // fresh readiness check each time the user arrives here.
-    this.viewEntered = false;
+    this.viewEntered.set(false);
     this.journalTourFired = false;
     // The weekly volume chart is always current-week data, independent of the list filter below it.
     void this.journal.refreshCurrentWeekSessions();
@@ -339,7 +346,7 @@ export class WorkoutPage implements ViewWillEnter, ViewDidEnter {
   }
 
   ionViewDidEnter(): void {
-    this.viewEntered = true;
+    this.viewEntered.set(true);
   }
 
   /** Ack the plan-nudge card — dismisses it without discarding the underlying row. */

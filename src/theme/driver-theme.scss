@@ -14,6 +14,15 @@
 
 .driver-active-element {
   border-radius: 20px;
+  /*
+   * The dimming/undimming contrast alone is too subtle to read as "this is
+   * highlighted" on already-dark screens (voice capture's near-black radial
+   * atmosphere, for one) — a crisp periwinkle ring makes the spotlighted
+   * element unambiguous regardless of what's behind it. Outline (not
+   * box-shadow) so it isn't mistaken for the orb's own reserved glow.
+   */
+  outline: 2px solid rgba(139, 128, 240, 0.85);
+  outline-offset: 3px;
 }
 
 .driver-popover.voxfit-tour {
@@ -87,6 +96,13 @@
 
 .driver-popover.voxfit-tour .driver-popover-close-btn:hover {
   color: #fff;
+}
+
+/* driver.js's base arrow is a 5px CSS-triangle border trick — bumped up so
+   the pointer connecting the popover to the highlighted element actually reads
+   at a glance instead of disappearing into the dark theme. */
+.driver-popover.voxfit-tour .driver-popover-arrow {
+  border-width: 9px;
 }
 
 .driver-popover.voxfit-tour .driver-popover-arrow-side-top.driver-popover-arrow {
