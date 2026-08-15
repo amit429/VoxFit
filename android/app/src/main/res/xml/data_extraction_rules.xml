@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31) backup/transfer rules.
+
+  `allowBackup="false"` covers the legacy path, but on API 31+ cloud backup and
+  device-to-device transfer are governed separately by this file. Both are
+  excluded here for the same reason backup is off: the app's WebView storage
+  holds the Supabase session (a refresh token) plus the user's logged training
+  and nutrition history. None of that should be copied off-device into a Google
+  backup or streamed to a new handset outside our own authenticated sign-in.
+
+  Users re-authenticate on a new device and their data comes back from Supabase,
+  so nothing of value is lost by excluding it.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

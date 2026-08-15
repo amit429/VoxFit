@@ -119,13 +119,13 @@ export class AuthService {
     return { needsEmailConfirmation: true };
   }
 
-  async checkEmailExists(email: string): Promise<boolean> {
-    const { data, error } = await this.supabase.client.rpc('email_exists', { check_email: email.trim().toLowerCase() });
-    if (error) {
-      throw error;
-    }
-    return Boolean(data);
-  }
+  /*
+   * `checkEmailExists` was removed here, not just unwired from the register page.
+   * It wrapped the `email_exists` RPC, which migration 0014 revoked from `anon`
+   * because a pre-auth "does this address have an account" endpoint is a user
+   * enumeration oracle. Leaving the wrapper on the service would invite the next
+   * caller to reintroduce the same hole from a different page.
+   */
 
   async signOut(): Promise<void> {
     const { error } = await this.supabase.client.auth.signOut();

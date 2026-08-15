@@ -33,6 +33,24 @@ Deno.serve(async (req: Request) => {
   if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
   const userId = userData.user.id;
 
+  // Quota. This is the most expensive endpoint in the product — a multi-turn
+  // agent loop with tool calls, so one request can be many model invocations.
+  // The hourly allowance is deliberately much tighter than the extract/log
+  // endpoints: nobody legitimately regenerates their training plan 20x an hour.
+  const { data: quota, error: quotaErr } = await supabase.rpc('consume_ai_quota', {
+    p_endpoint: 'generate-workout-plan',
+    p_per_hour: 5,
+    p_per_day: 20,
+  });
+  if (quotaErr) {
+    // Fail closed — an outage in quota accounting is when abuse is cheapest.
+    console.error('[generate-workout-plan] quota check failed', quotaErr);
+    return json({ error: 'Service temporarily unavailable' }, 503);
+  }
+  if (!(quota as { allowed?: boolean } | null)?.allowed) {
+    return json({ error: 'Rate limit exceeded. Try again later.' }, 429);
+  }
+
   // How many training days/week the user asked for (clamped 3–6, default 5).
   let targetDaysPerWeek = 5;
   try {

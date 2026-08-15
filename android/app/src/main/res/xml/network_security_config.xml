@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy for the VoxFit Android app.
+
+  targetSdk 36 already defaults cleartextTrafficPermitted to false, so this file
+  is belt-and-braces rather than a behaviour change for release builds — but it
+  makes the policy explicit and, more importantly, scopes the *debug* exception
+  so it can never follow a build into production.
+
+  `debug-overrides` applies only when the APK is debuggable. That is what keeps
+  `npm run android:live:dev` (live-reload from a plaintext http://<lan-ip>:8100
+  dev server) working without punching a cleartext hole in the release build.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- System CAs only. User-installed CAs are deliberately NOT trusted:
+                 that is the standard mitigation against a proxy/MITM tool being
+                 used to read or tamper with a real user's session traffic. -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Debug builds only: lets developers proxy their own traffic. -->
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

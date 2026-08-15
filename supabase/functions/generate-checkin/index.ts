@@ -55,6 +55,24 @@ Deno.serve(async (req: Request) => {
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
     userId = userData.user.id;
+
+    // Quota on the client path only — the cron path is our own trusted dispatcher
+    // and metering it would let a user's manual usage suppress their weekly review.
+    // Limits are loose because the week-scoped idempotency check below already
+    // short-circuits repeat calls without touching the model; this only bounds the
+    // uncached first-generation case.
+    const { data: quota, error: quotaErr } = await supabase.rpc('consume_ai_quota', {
+      p_endpoint: 'generate-checkin',
+      p_per_hour: 10,
+      p_per_day: 30,
+    });
+    if (quotaErr) {
+      console.error('[generate-checkin] quota check failed', quotaErr);
+      return json({ error: 'Service temporarily unavailable' }, 503);
+    }
+    if (!(quota as { allowed?: boolean } | null)?.allowed) {
+      return json({ error: 'Rate limit exceeded. Try again later.' }, 429);
+    }
   }
 
   const forWeek = weekStartISO();

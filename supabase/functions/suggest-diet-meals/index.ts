@@ -1,14 +1,9 @@
 /// <reference path="../deno-global.d.ts" />
 /** Keep SYSTEM in sync with `src/app/prompts/diet-meals.prompt.ts` rules + JSON shape. */
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { clampText, corsHeaders, guardRequest, jsonResponse, preflight } from '../_shared/guard.ts';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
 
 const SYSTEM = `You are VoxFit’s fitness-forward cook.
 Users speak casually about pantry ingredients and cravings.
@@ -56,51 +51,37 @@ Rules:
 
 Optional user hints may appear after the transcript — treat them as soft guidance only; pantry transcript wins for ingredients.`;
 
+/** Coerce a client-supplied macro hint to a sane integer, or drop it entirely. */
+function numericHint(value: unknown, max: number): number | undefined {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  return Math.min(Math.round(n), max);
+}
+
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
-  }
+  if (req.method === 'OPTIONS') return preflight(req);
 
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
-  }
+  // Origin allowlist + body cap + real user JWT + per-user quota. See _shared/guard.ts
+  // for why the platform's verify_jwt flag is not sufficient on its own.
+  const guard = await guardRequest(req, { endpoint: 'suggest-diet-meals', perHour: 20, perDay: 100 });
+  if (!guard.ok) return guard.response;
+  const { origin } = guard;
 
-  let transcript = '';
-  let goal: string | undefined;
-  let target_calories: number | undefined;
-  let target_protein_g: number | undefined;
-
-  try {
-    const body = (await req.json()) as {
-      transcript?: string;
-      goal?: string;
-      target_calories?: number;
-      target_protein_g?: number;
-    };
-    transcript = String(body.transcript ?? '').trim();
-    goal = body.goal?.trim();
-    target_calories = typeof body.target_calories === 'number' ? body.target_calories : undefined;
-    target_protein_g = typeof body.target_protein_g === 'number' ? body.target_protein_g : undefined;
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-      status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
-  }
+  const transcript = clampText(guard.body['transcript']);
+  // These three are interpolated into the prompt, so they are clamped/coerced rather
+  // than trusted: an unbounded `goal` string is a free prompt-injection surface and
+  // an unbounded number is a token-cost lever.
+  const goal = clampText(guard.body['goal'], 120);
+  const target_calories = numericHint(guard.body['target_calories'], 20000);
+  const target_protein_g = numericHint(guard.body['target_protein_g'], 1000);
 
   if (!transcript) {
-    return new Response(JSON.stringify({ error: 'transcript required' }), {
-      status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'transcript required' }, 400, origin);
   }
 
   const key = Deno.env.get('GEMINI_API_KEY');
   if (!key) {
-    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'GEMINI_API_KEY not configured' }, 500, origin);
   }
 
   let hintBlock = '';
@@ -130,11 +111,9 @@ Deno.serve(async (req: Request) => {
   );
 
   if (!r.ok) {
-    const detail = await r.text();
-    return new Response(JSON.stringify({ error: 'Gemini request failed', detail }), {
-      status: 502,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    // Logged, not returned — the upstream body can echo request content.
+    console.error('[suggest-diet-meals] Gemini request failed', r.status, await r.text());
+    return jsonResponse({ error: 'Gemini request failed' }, 502, origin);
   }
 
   const data = (await r.json()) as {
@@ -142,13 +121,10 @@ Deno.serve(async (req: Request) => {
   };
   const part = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!part?.trim()) {
-    return new Response(JSON.stringify({ error: 'Empty model response' }), {
-      status: 502,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Empty model response' }, 502, origin);
   }
 
   return new Response(part.trim(), {
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', Connection: 'keep-alive' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', Connection: 'keep-alive' },
   });
 });

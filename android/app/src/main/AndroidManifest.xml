@@ -3,6 +3,9 @@
 
     <application
         android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -22,11 +25,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <intent-filter>
+            <!--
+              Verified Android App Link for auth callbacks (email confirmation and
+              password recovery).
+
+              This REPLACES the previous `voxfit://` custom-scheme filter, which was a
+              real account-takeover path: custom schemes are first-come-claimed, so any
+              other installed app could register `voxfit://`, receive the recovery
+              intent, and read the access_token + refresh_token out of it. `autoVerify`
+              makes Android check https://voxfit.amitpile.com/.well-known/assetlinks.json
+              at install time and hand these URLs only to an app signed with a listed
+              certificate — an ownership proof a custom scheme has no equivalent of.
+
+              If verification ever fails (assetlinks.json missing, wrong Content-Type, or
+              a fingerprint mismatch after a signing-key change), the link degrades
+              gracefully: it opens in the browser and the user completes the reset in the
+              web app instead. Broken-looking, but not insecure.
+            -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="voxfit" />
+                <data android:scheme="https" android:host="voxfit.amitpile.com" android:pathPrefix="/auth" />
             </intent-filter>
 
         </activity>
