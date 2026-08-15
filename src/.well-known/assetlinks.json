@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.voxfit.app",
+      "sha256_cert_fingerprints": [
+        "58:04:AF:01:2A:05:81:87:5F:C9:FB:B3:2F:C4:26:17:4D:C9:BB:07:F6:AB:C2:37:51:5B:B6:96:CA:E3:71:06",
+        "1B:D6:3A:E0:85:60:12:7D:E4:29:C0:06:DA:55:D7:33:2F:56:F1:74:86:97:14:9A:A0:34:3A:63:11:B0:4C:0B"
+      ]
+    }
+  }
+]

@@ -11,10 +11,18 @@
 // component, an accidentally-committed environment.dev.ts, a future config file
 // nobody thought about. It is the check that would have caught the original
 // leak, which arrived via `android:prepare:dev` rather than through any env var.
+// Takes an optional target directory so the same check covers both shipping
+// surfaces: the web bundle in www/, and the copy `cap sync` places in
+// android/app/src/main/assets/public/. An APK/AAB is just a zip — a key in
+// those assets is as readable as one on a web server, and `android:prepare:dev`
+// syncs a dev bundle there routinely.
+//   node scripts/scan-bundle-secrets.js [dir]
 const fs = require('fs');
 const path = require('path');
 
-const WWW = path.join(__dirname, '../www');
+const WWW = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(__dirname, '../www');
 
 /**
  * Patterns for credentials that must never reach a client bundle.
@@ -43,7 +51,7 @@ function walk(dir, out = []) {
 }
 
 if (!fs.existsSync(WWW)) {
-  console.error('scan-bundle-secrets: www/ not found — run a build first.');
+  console.error(`scan-bundle-secrets: ${WWW} not found — run a build/sync first.`);
   process.exit(1);
 }
 
@@ -66,7 +74,9 @@ for (const file of walk(WWW)) {
 }
 
 if (findings.length > 0) {
-  console.error('\nBUILD BLOCKED — credential-shaped strings found in the www/ bundle:\n');
+  console.error(
+    `\nBUILD BLOCKED — credential-shaped strings found in ${path.relative(process.cwd(), WWW) || '.'}:\n`
+  );
   for (const f of findings) {
     console.error(`  ${f.file}`);
     console.error(`    ${f.name} ×${f.count}  ${f.sample}`);
@@ -74,8 +84,8 @@ if (findings.length > 0) {
   console.error(
     '\nThis output is publicly readable once deployed. Do not deploy it.\n\n' +
       'Most likely causes:\n' +
-      "  - www/ holds a leftover dev build (`npm run android:prepare:dev` writes there too).\n" +
-      '    Fix: rm -rf www && npm run build:prod\n' +
+      "  - the bundle is a dev build (`npm run android:prepare:dev` writes to www/ AND syncs\n" +
+      '    it into the Android assets). Fix: rm -rf www && npm run android:prepare:prod\n' +
       '  - a key is hardcoded in source, or set as a build environment variable.\n' +
       '    Fix: remove it; production reads GEMINI_API_KEY server-side via Edge Functions.\n\n' +
       'Treat any real key found here as compromised and rotate it.\n'
@@ -83,4 +93,6 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`scan-bundle-secrets: clean (${walk(WWW).length} files scanned).`);
+console.log(
+  `scan-bundle-secrets: clean (${walk(WWW).length} files scanned in ${path.relative(process.cwd(), WWW) || '.'}).`
+);

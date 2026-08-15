@@ -51,6 +51,14 @@
   # change the Supabase project.
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://nmjtvqpuepbkddruvlix.supabase.co wss://nmjtvqpuepbkddruvlix.supabase.co; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
 
+# Android App Links verification file. Android's verifier requires it served as
+# application/json over HTTPS with no redirect; a wrong Content-Type is the most
+# common reason autoVerify silently fails and links open in the browser instead
+# of the app. Must stay publicly readable — the verifier is unauthenticated.
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
 # Hashed build assets are immutable; index.html must never be cached or users
 # get pinned to a stale bundle (including one built before this hardening).
 /index.html

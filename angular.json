@@ -38,6 +38,11 @@
                 "glob": "_headers",
                 "input": "src",
                 "output": "."
+              },
+              {
+                "glob": "**/*",
+                "input": "src/.well-known",
+                "output": ".well-known"
               }
             ],
             "styles": [

@@ -38,6 +38,7 @@ import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2';
  * logged-in visitor's quota via their ambient session.
  */
 const STATIC_ALLOWED_ORIGINS = [
+  'https://voxfit.amitpile.com',
   'capacitor://localhost',
   'http://localhost',
   'https://localhost',
