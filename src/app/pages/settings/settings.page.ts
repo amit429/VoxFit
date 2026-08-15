@@ -2,15 +2,36 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonContent, IonInput, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, chevronForwardOutline, logOutOutline, trashOutline } from 'ionicons/icons';
+import {
+  chevronBackOutline,
+  chevronForwardOutline,
+  logOutOutline,
+  trashOutline,
+  compassOutline,
+  micOutline,
+  barbellOutline,
+  restaurantOutline,
+  personOutline,
+} from 'ionicons/icons';
 import { AuthService } from '@/app/services/auth.service';
-import type { GoalType } from '@/app/models';
+import { TourService } from '@/app/services/tour.service';
+import type { GoalType, TourKey } from '@/app/models';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
 import { VoxStepperRowComponent } from '@/app/components/vox-stepper-row/vox-stepper-row.component';
 
-addIcons({ chevronBackOutline, chevronForwardOutline, logOutOutline, trashOutline });
+addIcons({
+  chevronBackOutline,
+  chevronForwardOutline,
+  logOutOutline,
+  trashOutline,
+  compassOutline,
+  micOutline,
+  barbellOutline,
+  restaurantOutline,
+  personOutline,
+});
 
 interface ChipOption<T extends string> {
   readonly value: T;
@@ -75,6 +96,7 @@ export class SettingsPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly navCtrl = inject(NavController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly tourService = inject(TourService);
 
   protected readonly goalOptions = GOAL_OPTIONS;
   protected readonly appVersion = APP_VERSION;
@@ -214,6 +236,20 @@ export class SettingsPage implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private static readonly TOUR_ROUTE: Record<TourKey, string> = {
+    orientation: '/tabs/home',
+    workout: '/voice',
+    journal: '/tabs/workout',
+    meal: '/tabs/diet',
+    profile: '/tabs/profile',
+  };
+
+  /** Requests the tour, then navigates to the page it targets — that page picks it up on arrival via TourService.takeReplay. */
+  protected replayTour(tour: TourKey): void {
+    this.tourService.requestReplay(tour);
+    void this.navCtrl.navigateForward(SettingsPage.TOUR_ROUTE[tour], { animated: true });
   }
 
   protected async signOut(): Promise<void> {

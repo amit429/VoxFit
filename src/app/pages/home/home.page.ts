@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ViewWillEnter } from '@ionic/angular/standalone';
+import type { ViewDidEnter, ViewWillEnter } from '@ionic/angular/standalone';
 import { IonContent, IonRouterLinkWithHref } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -21,6 +21,7 @@ import { AuthService } from '@/app/services/auth.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { ProgressCoachService } from '@/app/services/progress-coach.service';
+import { TourService } from '@/app/services/tour.service';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.component';
@@ -72,15 +73,46 @@ const MACRO_TRACK_TONES: Record<string, string> = {
     VoxProgressNudgeComponent,
   ],
 })
-export class HomePage implements ViewWillEnter {
+export class HomePage implements ViewWillEnter, ViewDidEnter {
   protected readonly auth = inject(AuthService);
   protected readonly journal = inject(WorkoutJournalService);
   protected readonly nutrition = inject(NutritionDashboardService);
   protected readonly coach = inject(ProgressCoachService);
+  private readonly tourService = inject(TourService);
 
   protected readonly showSkeleton = computed(
     () => !this.journal.activityLoaded() || !this.journal.weekSessionsLoaded() || !this.nutrition.hasLoadedOnce(),
   );
+
+  /**
+   * A signal, not a plain field — `effect()` only re-runs when a *signal* it
+   * read last time changes value. On a cached Ionic tab page, `showSkeleton()`
+   * is often already `false` from a previous visit, so if `viewEntered` were
+   * a plain boolean, flipping it in `ionViewDidEnter` wouldn't wake this
+   * effect at all (nothing it tracked actually changed) — the tour would then
+   * only ever fire on a hard reload, where `showSkeleton()` has a real
+   * false→true→false transition to react to.
+   */
+  private readonly viewEntered = signal(false);
+  private orientationTourFired = false;
+
+  /**
+   * Fires the orientation tour once the page transition has settled AND the
+   * fuel-card/streak-pill data it targets is actually in the DOM — starting
+   * against a still-animating or still-skeleton page would spotlight the
+   * wrong thing or nothing at all.
+   */
+  private readonly orientationReadyEffect = effect(() => {
+    const ready = !this.showSkeleton();
+    if (ready && this.viewEntered() && !this.orientationTourFired) {
+      this.orientationTourFired = true;
+      untracked(() => {
+        if (!this.tourService.takeReplay('orientation')) {
+          this.tourService.maybeStartOrientation();
+        }
+      });
+    }
+  });
 
   protected readonly quickActions: readonly VoxQuickAction[] = [
     { icon: 'barbell-outline', label: ['log', 'workout'], link: '/voice', tone: 'jade' },
@@ -156,11 +188,20 @@ export class HomePage implements ViewWillEnter {
   });
 
   ionViewWillEnter(): void {
+    // Reset every navigation-in, not just first mount — Ionic can reuse a
+    // cached page instance, and a Settings "Replay walkthrough" needs a
+    // fresh readiness check each time the user arrives here.
+    this.viewEntered.set(false);
+    this.orientationTourFired = false;
     void this.journal.refreshActivitySummary();
     void this.journal.refreshCurrentWeekSessions();
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
     void this.coach.getLatest();
+  }
+
+  ionViewDidEnter(): void {
+    this.viewEntered.set(true);
   }
 
   private pickGreeting(): string {

@@ -20,6 +20,11 @@ export interface UserProfile {
   /** weight_kg / (height_cm/100)^2, rounded to 1dp. DB-generated column — never sent in a write patch. */
   bmi: number | null;
   onboarding_completed: boolean;
+  tour_orientation_seen: boolean;
+  tour_workout_seen: boolean;
+  tour_journal_seen: boolean;
+  tour_meal_seen: boolean;
+  tour_profile_seen: boolean;
   created_at: string;
   updated_at: string;
 }

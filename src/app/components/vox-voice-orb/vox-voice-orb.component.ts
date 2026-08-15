@@ -30,6 +30,14 @@ const WAVE_HEIGHTS = [14, 26, 40, 22, 34, 16, 28, 11] as const;
 export class VoxVoiceOrbComponent {
   readonly state = input<VoxVoiceOrbState>('idle');
   readonly size = input<VoxVoiceOrbSize>('md');
+  /**
+   * Optional `data-tour` id for the walkthrough, placed on the sphere itself
+   * rather than `orb-wrap` — the rings are `position: absolute` and don't
+   * contribute to `orb-wrap`'s layout width, so it measures narrower than
+   * tall and a driver.js circular spotlight on it renders as a pill, not a
+   * circle. The sphere is a true square in both sizes, so it spotlights clean.
+   */
+  readonly tourTarget = input<string | null>(null);
 
   protected readonly waveBars = WAVE_HEIGHTS.map((height, i) => ({
     height,

@@ -5,9 +5,9 @@ import { VoxBadgeComponent } from '@/app/components/vox-badge/vox-badge.componen
 import { VoxSegmentedComponent } from '@/app/components/vox-segmented/vox-segmented.component';
 import { VoxMealRowComponent } from '@/app/components/vox-meal-row/vox-meal-row.component';
 import { VoxRecipeModalComponent } from '@/app/components/vox-recipe-modal/vox-recipe-modal.component';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ViewWillEnter } from '@ionic/angular/standalone';
+import type { ViewDidEnter, ViewWillEnter } from '@ionic/angular/standalone';
 import {
   IonContent,
   IonRouterLinkWithHref,
@@ -26,6 +26,7 @@ import type { DayGroupVm, DietLogListRow, DietMealTypeDb, MealSectionVm } from '
 import { DietLogService } from '@/app/services/diet-log.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
 import { AuthService } from '@/app/services/auth.service';
+import { TourService } from '@/app/services/tour.service';
 import { getWeekBoundsForDate, parseIsoDateLocal, parseLocalDateKey } from '@/app/utils/workout-display.util';
 
 addIcons({
@@ -65,10 +66,34 @@ const MEAL_ORDER: readonly DietMealTypeDb[] = ['breakfast', 'lunch', 'dinner', '
     IonRouterLinkWithHref,
   ],
 })
-export class DietPage implements ViewWillEnter {
+export class DietPage implements ViewWillEnter, ViewDidEnter {
   protected readonly nutrition = inject(NutritionDashboardService);
   protected readonly dietLog = inject(DietLogService);
   protected readonly auth = inject(AuthService);
+  private readonly tourService = inject(TourService);
+
+  /**
+   * A signal, not a plain field — see HomePage's viewEntered for why: effects
+   * only re-run on a tracked *signal* changing, and a cached Ionic tab page
+   * can have `hasLoadedOnce()` already sitting at `true` from a previous
+   * visit, so a plain-boolean viewEntered flipped in ionViewDidEnter would
+   * never wake this effect on a tab-switch revisit (only on a hard reload).
+   */
+  private readonly viewEntered = signal(false);
+  private mealTourFired = false;
+
+  /** Same readiness shape as Home's orientation tour — see that page for why both checks matter. */
+  private readonly mealTourReadyEffect = effect(() => {
+    const ready = this.nutrition.hasLoadedOnce();
+    if (ready && this.viewEntered() && !this.mealTourFired) {
+      this.mealTourFired = true;
+      untracked(() => {
+        if (!this.tourService.takeReplay('meal')) {
+          this.tourService.maybeStartMeal();
+        }
+      });
+    }
+  });
 
   /** Which day is focused for navigation (day view = that day; week view = week containing this day). */
   protected readonly focusDateKey = signal<string>(parseLocalDateKey(new Date()));
@@ -182,9 +207,15 @@ export class DietPage implements ViewWillEnter {
   ];
 
   ionViewWillEnter(): void {
+    this.viewEntered.set(false);
+    this.mealTourFired = false;
     void this.nutrition.refresh();
     void this.auth.refreshProfile();
     void this.loadLogs();
+  }
+
+  ionViewDidEnter(): void {
+    this.viewEntered.set(true);
   }
 
   protected setRangeMode(mode: 'day' | 'week'): void {

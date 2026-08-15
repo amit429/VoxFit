@@ -106,6 +106,64 @@
       </button>
     </form>
 
+    <p class="vox-eyebrow mb-2.5 mt-6">Walkthrough</p>
+    <vox-card padding="sm">
+      <button type="button" class="st-row" (click)="replayTour('orientation')">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="compass-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">App orientation</span>
+          <span class="st-row-desc">Home and the four tabs</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+
+      <button type="button" class="st-row" (click)="replayTour('workout')">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="mic-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">Voice workout</span>
+          <span class="st-row-desc">What to say when logging a workout</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+
+      <button type="button" class="st-row" (click)="replayTour('journal')">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="barbell-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">Journal</span>
+          <span class="st-row-desc">Your training log, plan and filters</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+
+      <button type="button" class="st-row" (click)="replayTour('meal')">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="restaurant-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">Meal logging</span>
+          <span class="st-row-desc">What to say for both ways to log food</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+
+      <button type="button" class="st-row" (click)="replayTour('profile')">
+        <span class="st-row-icon st-row-icon--neutral">
+          <vox-icon name="person-outline" size="sm" tone="ink-subtle" />
+        </span>
+        <span class="min-w-0 flex-1 text-left">
+          <span class="st-row-name">Profile</span>
+          <span class="st-row-desc">Your badges, check-in and targets</span>
+        </span>
+        <vox-icon name="chevron-forward-outline" size="xs" tone="ink-tertiary" />
+      </button>
+    </vox-card>
+
     <p class="vox-eyebrow mb-2.5 mt-6">Account</p>
     <vox-card padding="sm">
       <button type="button" class="st-row" (click)="signOut()" [disabled]="signingOut()">

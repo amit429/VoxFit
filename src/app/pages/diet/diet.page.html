@@ -31,7 +31,7 @@
     @if (!nutrition.hasLoadedOnce()) {
       <vox-skeleton height="150px" radius="xl" class="block" />
     } @else {
-      <vox-card padding="lg">
+      <vox-card padding="lg" data-tour="macro-card">
         <div class="flex items-center gap-5">
           <svg width="106" height="106" viewBox="0 0 106 106" class="shrink-0" aria-hidden="true">
             <circle cx="53" cy="53" r="43" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="11" />
@@ -83,13 +83,25 @@
     }
 
     <!-- The two voice modes, equal weight -->
-    <div class="flex gap-3">
-      <a class="fu-mode fu-mode--jade" routerLink="/log-diet" [queryParams]="{ mode: 'suggest' }" routerDirection="forward">
+    <div class="flex gap-3" data-tour="meal-mode-cards">
+      <a
+        class="fu-mode fu-mode--jade"
+        routerLink="/log-diet"
+        [queryParams]="{ mode: 'suggest' }"
+        routerDirection="forward"
+        data-tour="meal-mode-make"
+      >
         <span class="fu-mode-emoji">✨</span>
         <span class="fu-mode-title">What can<br />I make?</span>
         <span class="fu-mode-hint">say your pantry</span>
       </a>
-      <a class="fu-mode fu-mode--apricot" routerLink="/log-diet" [queryParams]="{ mode: 'log_eaten' }" routerDirection="forward">
+      <a
+        class="fu-mode fu-mode--apricot"
+        routerLink="/log-diet"
+        [queryParams]="{ mode: 'log_eaten' }"
+        routerDirection="forward"
+        data-tour="meal-mode-ate"
+      >
         <span class="fu-mode-emoji">🍽️</span>
         <span class="fu-mode-title">I already<br />ate this</span>
         <span class="fu-mode-hint">say what you had</span>

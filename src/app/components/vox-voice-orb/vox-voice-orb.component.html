@@ -8,7 +8,12 @@
   <span class="orb-ring orb-ring--2" aria-hidden="true"></span>
   <span class="orb-ring orb-ring--1" aria-hidden="true"></span>
 
-  <span class="orb" aria-hidden="true">
+  <span
+    class="orb"
+    aria-hidden="true"
+    [attr.data-tour]="tourTarget()"
+    [attr.data-tour-shape]="tourTarget() ? 'circle' : null"
+  >
     @if (state() === 'listening') {
       <span class="orb-wave">
         @for (bar of waveBars; track $index) {

@@ -17,7 +17,7 @@
     <!-- Identity. Gated on the profile itself: the fallbacks are dummy display
          data, so an unloaded render shows a placeholder name. -->
     @if (profileLoaded()) {
-      <div class="flex items-center gap-3.5">
+      <div class="flex items-center gap-3.5" data-tour="profile-identity">
         <span class="pr-avatar-ring">
           <span class="pr-avatar">{{ avatarInitial() }}</span>
         </span>
@@ -53,6 +53,7 @@
         [detail]="checkinDetail()"
         [ctaLabel]="generating() ? 'Reading your data…' : 'See my check-in'"
         (action)="openCheckin()"
+        data-tour="profile-checkin"
       />
     } @else {
       <!-- The card's copy and CTA both change once we know whether a check-in
@@ -85,7 +86,7 @@
     @if (showSkeleton()) {
       <vox-skeleton height="120px" radius="xl" class="block" />
     } @else {
-      <vox-card>
+      <vox-card data-tour="profile-badges">
         <vox-badge-shelf [badges]="badges()" />
       </vox-card>
     }
@@ -93,7 +94,7 @@
     <section>
       <h2 class="pr-section-title">Preferences</h2>
       @if (profileLoaded()) {
-        <vox-card padding="sm">
+        <vox-card padding="sm" data-tour="profile-preferences">
           @for (g of goalRows(); track g.label) {
             <div class="pr-pref-row">
               <span class="pr-pref-icon">

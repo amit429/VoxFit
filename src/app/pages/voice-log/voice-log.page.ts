@@ -1,5 +1,6 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import type { ViewDidEnter } from '@ionic/angular/standalone';
 import { IonContent, IonSpinner, NavController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -18,6 +19,7 @@ import { GeminiWorkoutExtractService } from '@/app/services/gemini-workout-extra
 import { WorkoutSessionLogService } from '@/app/services/workout-session-log.service';
 import { WorkoutJournalService } from '@/app/services/workout-journal.service';
 import { AuthService } from '@/app/services/auth.service';
+import { TourService } from '@/app/services/tour.service';
 import { workoutExtractToVoiceDoneMock } from '@/app/utils/workout-extract-ui.mapper';
 import { SessionExerciseReviewCardComponent } from '@/app/components/session-exercise-review-card/session-exercise-review-card.component';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
@@ -59,7 +61,7 @@ type VoiceUiState = 'idle' | 'recording' | 'processing' | 'done';
     VoxStatTileComponent,
   ],
 })
-export class VoiceLogPage {
+export class VoiceLogPage implements ViewDidEnter {
   private readonly navCtrl = inject(NavController);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly voiceSession = inject(VoiceSessionService);
@@ -68,6 +70,7 @@ export class VoiceLogPage {
   private readonly workoutJournal = inject(WorkoutJournalService);
   private readonly auth = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly tourService = inject(TourService);
 
   protected readonly state = signal<VoiceUiState>('idle');
   protected readonly dots = signal('');
@@ -117,6 +120,12 @@ export class VoiceLogPage {
       this.cleanupTimers();
       void this.voiceSession.cancel();
     });
+  }
+
+  ionViewDidEnter(): void {
+    if (!this.tourService.takeReplay('workout')) {
+      this.tourService.maybeStartWorkout();
+    }
   }
 
   protected onCardExercisesChange(next: WorkoutExerciseExtract[]): void {

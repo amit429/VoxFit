@@ -15,7 +15,7 @@
         {{ initial() }}
       </a>
       @if (journal.activityLoaded()) {
-        <a routerLink="/streak" routerDirection="forward" class="min-w-0 flex-1 no-underline">
+        <a routerLink="/streak" routerDirection="forward" class="min-w-0 flex-1 no-underline" data-tour="streak-pill">
           <vox-streak-pill [days]="journal.streak().days" />
         </a>
       } @else {
@@ -30,7 +30,7 @@
     </section>
 
     <!-- Signature: the voice orb is the hero, not a button in a row -->
-    <a routerLink="/voice" routerDirection="forward" class="home-orb-link">
+    <a routerLink="/voice" routerDirection="forward" class="home-orb-link" data-tour="voice-orb">
       <vox-voice-orb state="idle" size="md" />
       <span class="home-orb-title">Tap and say your workout</span>
       <span class="home-orb-hint">"3 sets of 10, 12, 15 on squats"</span>
@@ -73,7 +73,7 @@
       </vox-card>
     } @else {
       <!-- Today's fuel -->
-      <vox-card class="block">
+      <vox-card class="block" data-tour="fuel-card">
         <div class="flex items-center justify-between">
           <span class="text-sm font-bold text-ink">Today's fuel</span>
           @if (caloriesRow(); as cal) {
@@ -94,7 +94,7 @@
       </vox-card>
     }
 
-    <vox-quick-action-grid class="block" [actions]="quickActions" />
+    <vox-quick-action-grid class="block" [actions]="quickActions" data-tour="quick-actions" />
 
     <!-- Last session -->
     @if (lastSession(); as session) {
