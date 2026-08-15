@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal, type OnDestroy } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, type OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { interval } from 'rxjs';
 import type { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -86,13 +86,37 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
   protected readonly loggingMealKey = signal<string | null>(null);
   protected readonly loggingEaten = signal(false);
 
-  /** Raw browser transcript — only ever needed as Gemini's suggestion input, never persisted. */
+  /** Raw transcript — only ever needed as Gemini's suggestion input, never persisted. */
   private pendingTranscript = '';
 
   protected readonly waveHeights = [8, 14, 22, 18, 30, 24, 16, 28, 20, 12, 26, 18, 10, 22, 16];
   private dotsInterval?: ReturnType<typeof setInterval>;
 
+  /**
+   * Headline while the recording is being turned into text, or null once that
+   * is done and Gemini has taken over — at which point the mode-specific copy
+   * in the template applies instead.
+   */
+  protected readonly transcribeLabel = computed(() => {
+    switch (this.voiceSession.phase()) {
+      case 'uploading':
+        return 'Sending your recording';
+      case 'transcribing':
+        return 'Transcribing';
+      default:
+        return null;
+    }
+  });
+
   constructor() {
+    // The service halts the recorder at its own duration cap; submit what was
+    // captured rather than leaving the user talking into a stopped recorder.
+    effect(() => {
+      if (this.voiceSession.limitReached() && this.dietFlow() === 'recording') {
+        void this.stopListeningAndPlan();
+      }
+    });
+
     this.destroyRef.onDestroy(() => {
       this.clearDotsInterval();
       void this.voiceSession.cancel();
@@ -163,8 +187,15 @@ export class DietVoiceLogPage implements ViewWillEnter, ViewWillLeave, OnDestroy
     try {
       transcript = await this.voiceSession.stop();
     } catch (err) {
-      console.error('[DietVoiceLog] stop listening', err);
-      transcript = this.voiceSession.transcriptPreview().trim();
+      // The clip is transcribed in one call, so there is no partial transcript
+      // to fall back on — surface the failure instead of reporting it as silence.
+      console.error('[DietVoiceLog] transcription failed', err);
+      await this.presentToast(
+        err instanceof Error ? err.message : 'Could not transcribe that recording.',
+        'danger',
+      );
+      this.dietFlow.set('idle');
+      return;
     }
     this.pendingTranscript = transcript.trim();
 

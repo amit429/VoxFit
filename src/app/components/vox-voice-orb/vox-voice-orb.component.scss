@@ -120,6 +120,10 @@
   align-items: center;
   gap: 4px;
   height: 46px;
+  transform-origin: center;
+  /* Just longer than the service's 100ms poll, so consecutive readings blend
+     into a continuous level instead of stepping. */
+  transition: transform 120ms linear;
 }
 
 .orb-wave i {
@@ -147,5 +151,11 @@
   .orb-wrap--processing .orb,
   .orb-wave i {
     animation: none;
+  }
+
+  /* The level itself is information, not decoration, so it is kept — but it
+     snaps to each reading rather than gliding between them. */
+  .orb-wave {
+    transition: none;
   }
 }

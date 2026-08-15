@@ -1,83 +1,57 @@
-import { Injectable, signal } from '@angular/core';
-import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
-import { SpeechRecognition } from '@capacitor-community/speech-recognition';
-
-/** Minimal typings for Web Speech API (prefix variants differ by browser). */
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionResult {
-  readonly isFinal: boolean;
-  readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionResultList {
-  readonly length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  readonly resultIndex: number;
-  readonly results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  readonly error: string;
-}
-
-interface SpeechRecognitionInstance extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionEvent) => void) | null;
-  onerror: ((this: SpeechRecognitionInstance, ev: SpeechRecognitionErrorEvent) => void) | null;
-  onend: ((this: SpeechRecognitionInstance, ev: Event) => void) | null;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
-
-function getWebSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  };
-  return w.webkitSpeechRecognition ?? w.SpeechRecognition ?? null;
-}
-
-function normalizeForCompare(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^\w\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+import { Injectable, inject, signal } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
+import { CapacitorAudioRecorder } from '@capgo/capacitor-audio-recorder';
+import { SupabaseService } from '@/app/services/supabase.service';
 
 /**
- * Exact match only, modulo case/punctuation/whitespace — deliberately NOT
- * fuzzy (no substring-containment, no word-overlap ratio). An earlier version
- * of this used fuzzy matching (one phrase containing the other, or >70% word
- * overlap) and it was a real regression: workout logging is full of short,
- * legitimately-repeated phrases ("3 sets", "10 reps" for one exercise then
- * again for the next), and that fuzzy check silently dropped real content —
- * users reported voice logging "not working at all" on mobile because most
- * of the transcript was being eaten as a false-positive "duplicate".
+ * What the session is doing right now, so the UI can label the wait honestly
+ * instead of showing one opaque spinner across two very different operations.
  */
-function isExactDuplicate(a: string, b: string): boolean {
-  const na = normalizeForCompare(a);
-  const nb = normalizeForCompare(b);
-  return na.length > 0 && na === nb;
+export type VoiceSessionPhase = 'idle' | 'recording' | 'uploading' | 'transcribing';
+
+/**
+ * Hard cap on a single recording. Nobody narrates a workout for three minutes,
+ * and the cap bounds the upload (~1–2 MB of AAC/Opus) far below both our own
+ * 12 MB guard and Groq's 25 MB limit — so a phone left recording in a pocket
+ * costs one wasted request, not a failed one.
+ */
+const MAX_RECORDING_MS = 3 * 60 * 1000;
+
+/**
+ * How often we ask the recorder for the current input level. The plugin's own
+ * guidance is 60–100 ms for a waveform; each call crosses the JS/native bridge,
+ * so this sits at the cheap end of that range.
+ */
+const AMPLITUDE_POLL_MS = 100;
+
+/**
+ * Floor for the adaptive loudness ceiling (see `sampleAmplitude`). The plugin
+ * reports a different quantity per platform — Android the peak sample since the
+ * last call, iOS average power in dB converted to linear, Web the RMS of the
+ * latest frame — so there is no fixed scale to divide by. This is the quietest
+ * signal we will still treat as "full", which keeps silence reading as silence
+ * instead of the normaliser amplifying room noise to full height.
+ */
+const MIN_AMPLITUDE_CEILING = 0.02;
+
+/** Recorder output → filename extension. Whisper detects format from the name. */
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  'audio/webm': 'webm',
+  'audio/ogg': 'ogg',
+  'audio/mp4': 'm4a',
+  'audio/m4a': 'm4a',
+  'audio/x-m4a': 'm4a',
+  'audio/mpeg': 'mp3',
+  'audio/wav': 'wav',
+};
+
+/** Strips codec parameters (`audio/webm;codecs=opus`) before the table lookup. */
+function extensionFor(mimeType: string, fallback: string): string {
+  const base = mimeType.split(';')[0].trim().toLowerCase();
+  return EXTENSION_BY_TYPE[base] ?? fallback;
 }
 
-/** Bounds how long native bridge calls may hang (see Android SpeechRecognition.stop() plugin bug fix in node_modules or patch-package). */
+/** Bounds how long a native bridge call or upload may hang before we give up. */
 function promiseWithTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
@@ -88,365 +62,248 @@ function promiseWithTimeout<T>(promise: Promise<T>, ms: number, timeoutMessage: 
   }) as Promise<T>;
 }
 
+/**
+ * Records a bounded voice clip and transcribes it in one request.
+ *
+ * This deliberately replaced live speech recognition (Web Speech API on the web,
+ * `@capacitor-community/speech-recognition` on Android). Both are *session*
+ * based: the recogniser ends itself after a second or two of silence and has to
+ * be restarted, every restart can fail — Android's `SpeechRecognizer` routinely
+ * answers `ERROR_RECOGNIZER_BUSY` when restarted from inside its own stop
+ * callback — and a failed restart left the app capturing nothing while the orb
+ * still said "listening". Roughly 300 lines of restart bookkeeping, boundary
+ * de-duplication and cross-session transcript stitching existed to paper over
+ * that, and it still dropped the audio spoken during each restart gap.
+ *
+ * A recording has no session to time out, so none of that is needed. The trade
+ * is that there is no live transcript — which costs nothing here, because the
+ * old one was never rendered in any template.
+ */
 @Injectable({ providedIn: 'root' })
 export class VoiceSessionService {
-  /** Live text while listening (partials on native, interim + finals on web). */
-  readonly transcriptPreview = signal('');
+  private readonly supabase = inject(SupabaseService);
 
-  private partialListener?: PluginListenerHandle;
-  private listeningStateListener?: PluginListenerHandle;
-  private nativeListening = false;
-  /**
-   * Speech committed by recogniser sessions that have already ended, in order.
-   * Android's `partialResults` are scoped to the *current* session and restart
-   * from an empty string after each one, so the running text cannot live in
-   * `transcriptPreview` alone — a restart would overwrite it. Same reason the
-   * web path keeps `webFinalSegments`.
-   */
-  private nativeSegments: string[] = [];
-  /** Latest partial of the session that is listening right now. */
-  private nativeLivePartial = '';
-  /**
-   * True while we deliberately want recognition running — the native twin of
-   * `webActive`. Distinguishes "Android's silence timeout ended the session"
-   * (restart it) from "the user pressed stop" (let it end).
-   */
-  private nativeActive = false;
-  private webRecognition?: SpeechRecognitionInstance;
-  /**
-   * Final segments keyed by a *global* index spanning every recognition instance
-   * in this recording (see `webIndexOffset`). Written with plain assignment
-   * (`segments[i] = text`), never appended — so re-processing the same index
-   * any number of times (mobile Chrome's `resultIndex` is unreliable) is a
-   * no-op instead of a duplicate. The displayed transcript is rebuilt by
-   * joining this array fresh on every event, rather than mutating a running
-   * string, which is what made the old approach fragile.
-   */
-  private webFinalSegments: string[] = [];
-  /** This instance's local result index 0 maps to `webFinalSegments[webIndexOffset]`. */
-  private webIndexOffset = 0;
-  /**
-   * Set to the last committed segment whenever a fresh instance starts (i.e.
-   * only at a restart boundary), and cleared after the new instance's first
-   * final result is checked against it. Mobile Chrome sometimes re-transcribes
-   * the same trailing audio right after restarting continuous recognition —
-   * this catches *that* specific, narrow case without touching dedup logic
-   * for the rest of the recording (see `isExactDuplicate`'s comment for why
-   * broader fuzzy dedup was actively harmful here).
-   */
-  private webBoundaryCheckSegment: string | null = null;
-  /**
-   * True while we deliberately want recognition running.
-   * Used to auto-restart after mobile browsers silently stop continuous mode.
-   */
-  private webActive = false;
+  /** Drives the listening/processing copy on the voice pages. */
+  readonly phase = signal<VoiceSessionPhase>('idle');
 
   /**
-   * Ends any in-flight session without returning text (e.g. navigate away).
+   * Flips true when `MAX_RECORDING_MS` elapses and we halt the recorder
+   * ourselves. The pages watch this to submit what was captured, rather than
+   * leaving the user talking into a recorder that has already stopped.
    */
-  async cancel(): Promise<void> {
-    if (Capacitor.isNativePlatform()) {
-      await this.cleanupNativeSession();
-      return;
-    }
-    this.abortWebSession();
-  }
+  readonly limitReached = signal(false);
+
+  /**
+   * Live microphone level, 0–1, while recording. This is the app's only honest
+   * "we can hear you" signal: the recogniser this replaced exposed a live
+   * transcript that was never rendered, so the orb animated identically whether
+   * the mic was working or dead. A meter driven by the real input cannot lie
+   * that way.
+   */
+  readonly amplitude = signal(0);
+
+  /**
+   * Set when the cap halted the recorder, so the pending `stop()` uploads that
+   * audio instead of asking a stopped recorder for a second result.
+   */
+  private cappedClip: Blob | null = null;
+  private limitTimer: ReturnType<typeof setTimeout> | undefined;
+  private amplitudeTimer: ReturnType<typeof setInterval> | undefined;
+  /** Loudest level seen recently, used to normalise the platform-specific scale. */
+  private amplitudeCeiling = MIN_AMPLITUDE_CEILING;
 
   async start(): Promise<void> {
     await this.cancel();
-    this.transcriptPreview.set('');
-    this.webFinalSegments = [];
-    this.webIndexOffset = 0;
-    this.webBoundaryCheckSegment = null;
-    this.nativeSegments = [];
-    this.nativeLivePartial = '';
 
-    if (Capacitor.isNativePlatform()) {
-      await this.startNative();
-      return;
+    let status = await CapacitorAudioRecorder.checkPermissions();
+    if (status.recordAudio !== 'granted') {
+      status = await CapacitorAudioRecorder.requestPermissions();
     }
-    this.startWeb();
+    if (status.recordAudio !== 'granted') {
+      throw new Error('Microphone permission is needed to log by voice.');
+    }
+
+    await CapacitorAudioRecorder.startRecording();
+    this.phase.set('recording');
+    this.limitTimer = setTimeout(() => {
+      void this.haltAtLimit();
+    }, MAX_RECORDING_MS);
+    this.startAmplitudePolling();
   }
 
   /**
-   * Stops listening and returns the best-effort final transcript.
+   * Stops recording and returns the transcript. The network round-trip lives
+   * inside this call on purpose: both pages already show a processing state
+   * between stop and the Gemini result, so the transcript arrives inside a wait
+   * the user is in anyway.
    */
   async stop(): Promise<string> {
-    if (Capacitor.isNativePlatform()) {
-      return this.stopNative();
-    }
-    return this.stopWeb();
-  }
-
-  private async startNative(): Promise<void> {
-    const status = await SpeechRecognition.requestPermissions();
-    if (status.speechRecognition !== 'granted') {
-      throw new Error('Speech recognition permission was not granted.');
-    }
-    const { available } = await SpeechRecognition.available();
-    if (!available) {
-      throw new Error('Speech recognition is not available on this device.');
-    }
-
-    await SpeechRecognition.removeAllListeners();
-    this.partialListener = await SpeechRecognition.addListener('partialResults', (data) => {
-      const text = data.matches?.[0]?.trim() ?? '';
-      if (text.length > 0) {
-        this.nativeLivePartial = text;
-        this.publishNativeTranscript();
+    this.clearLimitTimer();
+    this.stopAmplitudePolling();
+    try {
+      const clip = this.cappedClip ?? (await this.finishRecording());
+      this.cappedClip = null;
+      if (!clip || clip.size === 0) {
+        throw new Error('No audio was recorded — check the microphone and try again.');
       }
-    });
-
-    // Android's SpeechRecognizer ends the session on its own end-of-speech
-    // silence timeout — a pause mid-sentence is enough. Without this listener
-    // nothing restarted it, `nativeListening` stayed true, and `stopNative()`
-    // returned only what had been said before that first pause. The web path
-    // has always restarted on `onend`; this is its native counterpart.
-    this.listeningStateListener = await SpeechRecognition.addListener('listeningState', (data) => {
-      if (data.status !== 'stopped') return;
-      this.commitNativeSegment();
-      if (!this.nativeActive) return;
-      void this.restartNativeRecognition();
-    });
-
-    this.nativeActive = true;
-    try {
-      await this.startNativeRecognition();
-    } catch (err) {
-      // Leaving `nativeActive` set here would arm the restart listener for a
-      // session that never began — a later stray 'stopped' would resume
-      // recording with the UI back on idle. Tear down before rethrowing.
-      await this.cleanupNativeSession();
-      throw err;
-    }
-  }
-
-  /** One recogniser session. Called for the first one and for every restart. */
-  private async startNativeRecognition(): Promise<void> {
-    await SpeechRecognition.start({
-      language: 'en-US',
-      maxResults: 5,
-      partialResults: true,
-      popup: false,
-    });
-    this.nativeListening = true;
-  }
-
-  private async restartNativeRecognition(): Promise<void> {
-    try {
-      await this.startNativeRecognition();
-    } catch (err) {
-      // The recogniser can refuse to restart (busy tearing down, or the OS
-      // service died). Keep whatever is already committed rather than throwing
-      // out of a listener — the user can still press stop and submit it.
-      this.nativeListening = false;
-      console.warn('[VoiceSession] Native restart failed:', err);
-    }
-  }
-
-  /**
-   * Moves the ending session's partial into the committed run. Empty is normal
-   * — a session can time out without the user having said anything — and must
-   * not push a blank segment, which would show up as a doubled space.
-   */
-  private commitNativeSegment(): void {
-    const segment = this.nativeLivePartial.trim();
-    this.nativeLivePartial = '';
-    if (segment.length === 0) return;
-    this.nativeSegments.push(segment);
-  }
-
-  private publishNativeTranscript(): void {
-    const display = [...this.nativeSegments, this.nativeLivePartial]
-      .filter((s) => s.length > 0)
-      .join(' ')
-      .trim();
-    if (display.length > 0) {
-      this.transcriptPreview.set(display);
-    }
-  }
-
-  private async stopNative(): Promise<string> {
-    // Must precede stop(): the plug-in reports the stop we asked for through
-    // the same 'listeningState' event as a silence timeout, and this flag is
-    // the only thing telling the two apart.
-    this.nativeActive = false;
-    let stopError: unknown;
-    try {
-      if (this.nativeListening) {
-        await promiseWithTimeout(
-          SpeechRecognition.stop(),
-          12_000,
-          'Stopping speech recognition timed out (native plug-in did not complete).',
-        );
-      }
-    } catch (err) {
-      stopError = err;
-      console.warn('[VoiceSession] Native stop failed:', err);
+      this.phase.set('uploading');
+      return await this.transcribe(clip);
     } finally {
-      await this.cleanupNativeSession();
+      this.phase.set('idle');
+      this.limitReached.set(false);
     }
-    const text = this.transcriptPreview().trim();
-    if (stopError !== undefined && text.length === 0) {
-      if (stopError instanceof Error) {
-        throw stopError;
-      }
-      throw new Error(String(stopError));
-    }
-    return text;
-  }
-
-  private async cleanupNativeSession(): Promise<void> {
-    this.nativeActive = false;
-    try {
-      await this.partialListener?.remove();
-    } catch {
-      /* noop */
-    }
-    this.partialListener = undefined;
-    try {
-      await this.listeningStateListener?.remove();
-    } catch {
-      /* noop */
-    }
-    this.listeningStateListener = undefined;
-    try {
-      await SpeechRecognition.removeAllListeners();
-    } catch {
-      /* noop */
-    }
-    this.nativeListening = false;
-  }
-
-  private startWeb(): void {
-    const Ctor = getWebSpeechRecognitionCtor();
-    if (!Ctor) {
-      throw new Error('This browser does not support the Web Speech API. Try Chrome or the native app.');
-    }
-    this.webActive = true;
-    this.startWebRecognitionInstance(Ctor);
   }
 
   /**
-   * Creates and starts one recognition instance. Mobile Chrome silently ends
-   * "continuous" recognition after a couple seconds of silence, so `onend`
-   * below restarts by calling this again — spinning up a genuinely *fresh*
-   * instance rather than restarting the ended one. `webIndexOffset` is set to
-   * however many segments are already committed, so this instance's own
-   * local index 0 maps to the next free slot in `webFinalSegments` instead of
-   * colliding with (and overwriting) earlier content.
+   * Ends any in-flight recording and discards the audio (navigating away,
+   * cancelling). Safe to call when nothing is recording — both pages call it
+   * from several lifecycle hooks.
    */
-  private startWebRecognitionInstance(Ctor: SpeechRecognitionConstructor): void {
-    const recognition = new Ctor();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-    this.webIndexOffset = this.webFinalSegments.length;
-    // Only set on a restart (webIndexOffset > 0 means segments already exist);
-    // the very first instance of a recording has nothing to check against.
-    this.webBoundaryCheckSegment =
-      this.webIndexOffset > 0 ? (this.webFinalSegments[this.webFinalSegments.length - 1] ?? null) : null;
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = '';
-      // Deliberately ignore event.resultIndex and rescan the whole array every
-      // time — mobile Chrome reports it unreliably (sometimes 0 on every
-      // event), but since writes below are plain index assignment (not
-      // append), reprocessing an already-final index is a harmless no-op.
-      for (let i = 0; i < event.results.length; i++) {
-        const globalIndex = this.webIndexOffset + i;
-        const chunk = (event.results[i]?.[0]?.transcript ?? '').trim();
-        if (event.results[i].isFinal) {
-          if (chunk.length === 0) continue;
-          // Only ever checked against the *single* segment right at a
-          // restart boundary, and only once (cleared immediately after) —
-          // never against general recording history. See the class field's
-          // comment and `isExactDuplicate`'s comment for why.
-          if (this.webBoundaryCheckSegment !== null) {
-            const isBoundaryDup = isExactDuplicate(this.webBoundaryCheckSegment, chunk);
-            this.webBoundaryCheckSegment = null;
-            if (isBoundaryDup) continue;
-          }
-          this.webFinalSegments[globalIndex] = chunk;
-        } else {
-          interim += chunk;
-        }
-      }
-      const finalText = this.webFinalSegments.filter(Boolean).join(' ');
-      const display = `${finalText}${interim.length > 0 ? ' ' + interim : ''}`.trim();
-      if (display.length > 0) {
-        this.transcriptPreview.set(display);
-      }
-    };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      // 'no-speech' and 'aborted' are non-fatal on mobile — suppress them.
-      if (event.error === 'no-speech' || event.error === 'aborted') return;
-      console.warn('[VoiceSession] Web speech error:', event.error);
-    };
-
-    recognition.onend = () => {
-      // Mobile Chrome silently stops continuous recognition after silence.
-      // Auto-restart with a fresh instance if we haven't explicitly stopped yet.
-      if (this.webActive && this.webRecognition === recognition) {
-        try {
-          this.startWebRecognitionInstance(Ctor);
-        } catch {
-          /* recognition may be unavailable right now — give up restarting silently */
-        }
-      }
-    };
-
-    this.webRecognition = recognition;
-    recognition.start();
-  }
-
-  private stopWeb(): Promise<string> {
-    this.webActive = false;
-    const rec = this.webRecognition;
-    if (!rec) {
-      return Promise.resolve(this.transcriptPreview().trim());
-    }
-
-    const stopPromise = new Promise<string>((resolve) => {
-      const finish = (): void => {
-        const text = this.transcriptPreview().trim();
-        this.webRecognition = undefined;
-        resolve(text);
-      };
-
-      rec.onend = finish;
-
-      try {
-        rec.stop();
-      } catch {
-        try {
-          rec.abort();
-        } catch {
-          finish();
-        }
-      }
-    });
-
-    // Mobile browsers can leave a recognition instance in a state where `stop()`
-    // is a silent no-op and `onend` never fires again — without this, the UI
-    // would hang on the "processing" screen forever. Fall back to whatever
-    // transcript was captured so far.
-    return promiseWithTimeout(stopPromise, 5_000, 'Stopping speech recognition timed out.').catch(() => {
-      this.webRecognition = undefined;
-      return this.transcriptPreview().trim();
-    });
-  }
-
-  private abortWebSession(): void {
-    this.webActive = false;
-    const rec = this.webRecognition;
-    this.webRecognition = undefined;
-    if (!rec) return;
+  async cancel(): Promise<void> {
+    this.clearLimitTimer();
+    this.stopAmplitudePolling();
+    this.cappedClip = null;
+    this.limitReached.set(false);
+    this.phase.set('idle');
     try {
-      rec.abort();
-    } catch {
-      /* noop */
+      const { status } = await CapacitorAudioRecorder.getRecordingStatus();
+      if (status === 'INACTIVE') return;
+      await CapacitorAudioRecorder.cancelRecording();
+    } catch (err) {
+      // Nothing to salvage on a discard path; a recorder we cannot reach is
+      // already in the state we wanted it in.
+      console.warn('[VoiceSession] Cancel failed:', err);
     }
   }
+
+  /** Stops the recorder and resolves its output to a Blob on either platform. */
+  private async finishRecording(): Promise<Blob | null> {
+    const result = await promiseWithTimeout(
+      CapacitorAudioRecorder.stopRecording(),
+      15_000,
+      'The recorder did not finish. Try again.',
+    );
+
+    // Web hands back a Blob directly; Android returns a `file://` URI into the
+    // app's cache directory. `convertFileSrc` maps that onto the Capacitor local
+    // server, which is the only way the WebView can read it.
+    if (result.blob) return result.blob;
+    if (!result.uri) return null;
+    const response = await fetch(Capacitor.convertFileSrc(result.uri));
+    if (!response.ok) {
+      throw new Error('Could not read the recording from the device.');
+    }
+    return await response.blob();
+  }
+
+  private async transcribe(clip: Blob): Promise<string> {
+    // Android records AAC in MPEG-4 (`.m4a`), the web MediaRecorder Opus in
+    // WebM. Whisper infers the container from this filename, so a wrong
+    // extension fails upstream rather than degrading.
+    const filename = `voice-log.${extensionFor(clip.type, Capacitor.isNativePlatform() ? 'm4a' : 'webm')}`;
+    const form = new FormData();
+    form.append('file', clip, filename);
+
+    this.phase.set('transcribing');
+    const { data, error } = await this.supabase.client.functions.invoke('transcribe-audio', {
+      body: form,
+    });
+
+    if (error) {
+      // Non-2xx responses arrive as an error with the body on `context`. The
+      // function's own message ("No speech detected") is the useful one — the
+      // generic FunctionsHttpError text is not.
+      throw new Error(await readEdgeFunctionError(error, 'Could not transcribe that recording.'));
+    }
+
+    const transcript = String((data as { transcript?: unknown } | null)?.transcript ?? '').trim();
+    if (!transcript) {
+      throw new Error('No speech detected — try again.');
+    }
+    return transcript;
+  }
+
+  /**
+   * The cap fired. Stop the recorder but keep the audio: the user has been
+   * talking, and throwing away three minutes of it to enforce a limit they
+   * never saw would be worse than the limit itself.
+   */
+  private async haltAtLimit(): Promise<void> {
+    this.limitTimer = undefined;
+    this.stopAmplitudePolling();
+    try {
+      this.cappedClip = await this.finishRecording();
+    } catch (err) {
+      console.warn('[VoiceSession] Halting at the recording limit failed:', err);
+    } finally {
+      this.limitReached.set(true);
+    }
+  }
+
+  private clearLimitTimer(): void {
+    if (this.limitTimer !== undefined) {
+      clearTimeout(this.limitTimer);
+      this.limitTimer = undefined;
+    }
+  }
+
+  private startAmplitudePolling(): void {
+    this.amplitudeCeiling = MIN_AMPLITUDE_CEILING;
+    this.amplitude.set(0);
+    this.amplitudeTimer = setInterval(() => {
+      void this.sampleAmplitude();
+    }, AMPLITUDE_POLL_MS);
+  }
+
+  private stopAmplitudePolling(): void {
+    if (this.amplitudeTimer !== undefined) {
+      clearInterval(this.amplitudeTimer);
+      this.amplitudeTimer = undefined;
+    }
+    this.amplitude.set(0);
+  }
+
+  /**
+   * Normalises one reading onto 0–1. The raw value has no fixed scale (it means
+   * something different on each platform, and quiet speech on a phone mic can
+   * sit an order of magnitude below a laptop's), so instead of a per-platform
+   * calibration curve we can't measure, the meter divides by the loudest level
+   * seen recently. That ceiling decays, so one door slam doesn't flatten the
+   * meter for the rest of the recording, and it never drops below a floor, so
+   * silence stays silent rather than being amplified into a full bar.
+   */
+  private async sampleAmplitude(): Promise<void> {
+    let value: number;
+    try {
+      ({ value } = await CapacitorAudioRecorder.getCurrentAmplitude());
+    } catch {
+      // Metering is decoration on top of recording — if it is unavailable, drop
+      // the meter rather than the session.
+      this.stopAmplitudePolling();
+      return;
+    }
+    if (!Number.isFinite(value) || value < 0) return;
+
+    this.amplitudeCeiling = Math.max(value, this.amplitudeCeiling * 0.97, MIN_AMPLITUDE_CEILING);
+    const normalized = Math.min(value / this.amplitudeCeiling, 1);
+    // Ease toward the new reading so a 10 Hz poll reads as a moving level
+    // rather than a strobe.
+    this.amplitude.update((prev) => prev + (normalized - prev) * 0.45);
+  }
+}
+
+/** Pulls the `{ error }` message out of a Supabase Functions error response. */
+async function readEdgeFunctionError(error: unknown, fallback: string): Promise<string> {
+  const context = (error as { context?: unknown }).context;
+  if (context instanceof Response) {
+    try {
+      const body = (await context.json()) as { error?: unknown };
+      const message = String(body.error ?? '').trim();
+      if (message) return message;
+    } catch {
+      /* body was not JSON — fall through */
+    }
+  }
+  console.error('[VoiceSession] Transcription failed', error);
+  return fallback;
 }

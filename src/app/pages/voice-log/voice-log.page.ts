@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ViewDidEnter } from '@ionic/angular/standalone';
 import { IonContent, IonSpinner, NavController, ToastController } from '@ionic/angular/standalone';
@@ -115,7 +115,31 @@ export class VoiceLogPage implements ViewDidEnter {
     return `${m}:${r}`;
   }
 
+  /**
+   * Label for the processing screen. The wait spans two distinct operations
+   * (upload + transcribe, then Gemini structuring) and naming them is what stops
+   * a three-second pause reading as a hang.
+   */
+  protected readonly processingLabel = computed(() => {
+    switch (this.voiceSession.phase()) {
+      case 'uploading':
+        return 'Sending your recording';
+      case 'transcribing':
+        return 'Transcribing';
+      default:
+        return 'Parsing your session';
+    }
+  });
+
   constructor() {
+    // The service halts the recorder at its own duration cap. Submit what was
+    // captured rather than leaving the user talking into a stopped recorder.
+    effect(() => {
+      if (this.voiceSession.limitReached() && this.state() === 'recording') {
+        void this.stopRecording();
+      }
+    });
+
     this.destroyRef.onDestroy(() => {
       this.cleanupTimers();
       void this.voiceSession.cancel();
@@ -147,9 +171,17 @@ export class VoiceLogPage implements ViewDidEnter {
    */
   protected async startRecording(): Promise<void> {
     if (this.state() !== 'idle') return;
-    this.cleanupTimers();
     this.result.set(null);
     this.cardExercises.set([]);
+    await this.beginRecording();
+  }
+
+  /**
+   * Shared by the first tap and "Record again" — the two were identical
+   * copies, so a fix to one silently missed the other.
+   */
+  private async beginRecording(): Promise<void> {
+    this.cleanupTimers();
     this.state.set('recording');
     let n = 0;
     this.dotsInterval = setInterval(() => {
@@ -161,9 +193,14 @@ export class VoiceLogPage implements ViewDidEnter {
     try {
       await this.voiceSession.start();
     } catch (err) {
-      console.error('[VoiceLog] Failed to start listening:', err);
-      this.clearDotsInterval();
+      console.error('[VoiceLog] Failed to start recording:', err);
+      // Previously this only cleared the dots and stayed silent: the elapsed
+      // timer kept ticking against a recorder that never started, and the user
+      // was told nothing. Permission denial is the common case here.
+      this.cleanupTimers();
       this.state.set('idle');
+      const msg = err instanceof Error ? err.message : 'Could not start recording.';
+      await this.presentToast(msg, 'danger');
     }
   }
 
@@ -181,13 +218,20 @@ export class VoiceLogPage implements ViewDidEnter {
 
   protected async stopRecording(): Promise<void> {
     if (this.state() !== 'recording') return;
-    this.clearDotsInterval();
+    this.cleanupTimers();
     this.state.set('processing');
     let finalTranscript = '';
     try {
       finalTranscript = await this.voiceSession.stop();
     } catch (err) {
-      finalTranscript = this.voiceSession.transcriptPreview().trim();
+      // There is no partial transcript to fall back on any more — the clip is
+      // transcribed in one call, so a failure here means we have nothing.
+      // Saying so beats silently showing "No speech detected".
+      console.error('[VoiceLog] Transcription failed:', err);
+      const msg = err instanceof Error ? err.message : 'Could not transcribe that recording.';
+      await this.presentToast(msg, 'danger');
+      this.state.set('idle');
+      return;
     }
     if (!finalTranscript.trim()) {
       await this.presentToast('No speech detected — try again.', 'warning');
@@ -213,22 +257,7 @@ export class VoiceLogPage implements ViewDidEnter {
     this.pendingExtract = null;
     this.result.set(null);
     this.cardExercises.set([]);
-    this.cleanupTimers();
-    this.state.set('recording');
-    let n = 0;
-    this.dotsInterval = setInterval(() => {
-      n += 1;
-      this.dots.set('.'.repeat(n % 4));
-    }, 400);
-    this.elapsedSeconds.set(0);
-    this.timerInterval = setInterval(() => this.elapsedSeconds.update((s) => s + 1), 1000);
-    try {
-      await this.voiceSession.start();
-    } catch (err) {
-      console.error('[VoiceLog] Failed to restart listening:', err);
-      this.clearDotsInterval();
-      this.state.set('idle');
-    }
+    await this.beginRecording();
   }
 
   protected async save(): Promise<void> {

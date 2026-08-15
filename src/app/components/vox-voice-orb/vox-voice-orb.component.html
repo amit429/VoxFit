@@ -15,7 +15,7 @@
     [attr.data-tour-shape]="tourTarget() ? 'circle' : null"
   >
     @if (state() === 'listening') {
-      <span class="orb-wave">
+      <span class="orb-wave" [style.transform]="waveTransform()">
         @for (bar of waveBars; track $index) {
           <i [style.height.px]="bar.height" [style.animationDelay]="bar.delay"></i>
         }

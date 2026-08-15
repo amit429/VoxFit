@@ -39,11 +39,33 @@ export class VoxVoiceOrbComponent {
    */
   readonly tourTarget = input<string | null>(null);
 
+  /**
+   * Live input level, 0–1, or null to keep the waveform on its idle loop.
+   *
+   * When supplied, the whole bar group is scaled by it, so the waveform tracks
+   * the user's actual voice instead of animating identically whether the
+   * microphone is working or dead. The per-bar keyframes still run underneath —
+   * they supply the organic stagger; this only sets the envelope.
+   */
+  readonly level = input<number | null>(null);
+
   protected readonly waveBars = WAVE_HEIGHTS.map((height, i) => ({
     height,
     /* Staggered negative delays so the bars never move as one block. */
     delay: `${-(i * 90)}ms`,
   }));
+
+  /**
+   * Never scales to zero: at true silence the bars settle to a low idle height
+   * rather than vanishing, because an empty sphere reads as "broken" where a
+   * quiet waveform reads as "listening, nobody talking".
+   */
+  protected readonly waveTransform = computed(() => {
+    const level = this.level();
+    if (level === null) return null;
+    const clamped = Math.min(Math.max(level, 0), 1);
+    return `scaleY(${(0.32 + clamped * 0.78).toFixed(3)})`;
+  });
 
   protected readonly label = computed(() => {
     switch (this.state()) {

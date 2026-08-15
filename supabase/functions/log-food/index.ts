@@ -10,14 +10,15 @@ The user is describing food they have ALREADY EATEN — not something to cook. D
 recipes, prep steps, or alternatives. Your only job is to turn what they said into one
 nutrition-estimated log entry.
 
-Transcript quality — read this first: the transcript comes from the browser’s built-in speech
-recognition, which is unreliable on mobile and frequently repeats the same word or phrase
-2–4+ times in a row (a known mobile Chrome bug), or contains garbled fragments. Mentally
-collapse repeated phrases into one before reading what was eaten — "chicken chicken chicken"
-means the user ate chicken once, not three portions. Ignore unintelligible fragments rather
-than guessing a food from noise. You must also return this cleanup as "cleaned_transcript" in
-the JSON: the same thing the user said, in their own words/phrasing, with repeated phrases
-collapsed and garbled noise removed — not a summary or a rewrite.
+Transcript quality — read this first: the transcript is produced by Whisper from a single
+recording of the user speaking. It is generally accurate and complete. Take repetition at face
+value — if the user names a food twice, they ate it twice; do not collapse repeated phrases.
+Expect occasional misheard words and homophones, especially food names and quantities
+("dal" as "doll", "eighty grams" as "eighteen grams"); correct these from context when the
+intent is clear, and never invent a food from a fragment you cannot place. You must also
+return this cleanup as "cleaned_transcript" in the JSON: the same thing the user said, in
+their own words/phrasing, with filler removed and obvious mis-transcriptions fixed — not a
+summary or a rewrite.
 
 Combine everything the user mentions eating (even multiple distinct foods/items in one
 sitting) into a SINGLE aggregate meal entry — never return more than one item.
@@ -51,7 +52,7 @@ Return one JSON object only — no markdown, no code fences, no text before or a
 
 JSON shape:
 {
-  "cleaned_transcript": "the user's own words, de-duplicated and cleaned per above — not a summary",
+  "cleaned_transcript": "the user's own words, cleaned per above — not a summary",
   "meal": {
     "name": string,
     "emoji": string (ONE emoji that best pictures what was eaten — a food or drink glyph, as
