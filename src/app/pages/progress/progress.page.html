@@ -85,16 +85,25 @@
         />
       </vox-card>
 
-      <!-- Strength trend -->
+      <!-- Strength trend. The chart's subject is chosen from inside its own
+           header, so the picker is projected into the title slot. -->
       @if (trendExercise(); as exercise) {
         <vox-card>
           <vox-trend-chart
             gradientId="progress-trend-fill"
             [points]="trendPoints()"
-            [title]="exercise"
-            [subtitle]="'Top set · last ' + trendWeeks + ' weeks'"
+            [loading]="trendLoading()"
+            [subtitle]="'Top set · last ' + trendSessions + ' sessions'"
             [headline]="trendHeadline()"
-          />
+          >
+            <vox-exercise-picker
+              trendTitle
+              heading="Chart which exercise?"
+              [exercises]="trendExerciseOptions()"
+              [selected]="exercise"
+              (selectionChange)="selectTrendExercise($event)"
+            />
+          </vox-trend-chart>
         </vox-card>
       }
 

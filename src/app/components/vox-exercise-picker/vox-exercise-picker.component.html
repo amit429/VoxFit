@@ -1,0 +1,45 @@
+@if (canPick()) {
+  <button type="button" class="ep-trigger" (click)="open()" [attr.aria-label]="'Change exercise, currently ' + label()">
+    <span class="ep-trigger-label">{{ label() }}</span>
+    <vox-icon name="chevron-down-outline" size="xs" tone="ink-subtle" />
+  </button>
+} @else {
+  <p class="ep-static">{{ label() }}</p>
+}
+
+<!--
+  `handle` is off because the sheet draws its own grabber, styled to the
+  system; Ionic's default would stack a second one above it.
+-->
+<ion-modal
+  class="vox-bottom-sheet vox-sheet-auto"
+  [isOpen]="isOpen()"
+  [handle]="false"
+  (ionModalDidDismiss)="close()"
+>
+  <ng-template>
+    <div class="ep">
+      <span class="ep-grabber" aria-hidden="true"></span>
+      <h2 class="ep-title">{{ heading() }}</h2>
+
+      <ul class="ep-list">
+        @for (name of exercises(); track name) {
+          <li>
+            <button
+              type="button"
+              class="ep-option"
+              [class.ep-option--on]="name === selected()"
+              [attr.aria-current]="name === selected() ? 'true' : null"
+              (click)="choose(name)"
+            >
+              <span class="ep-option-label">{{ name }}</span>
+              @if (name === selected()) {
+                <vox-icon name="checkmark-outline" size="sm" tone="jade" />
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </ng-template>
+</ion-modal>

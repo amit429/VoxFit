@@ -16,7 +16,7 @@ import type {
 } from '@/app/models';
 import { AuthService } from '@/app/services/auth.service';
 import { NutritionDashboardService } from '@/app/services/nutrition-dashboard.service';
-import { WorkoutJournalService, TREND_WINDOW_WEEKS } from '@/app/services/workout-journal.service';
+import { WorkoutJournalService, TREND_MAX_SESSIONS } from '@/app/services/workout-journal.service';
 import { VoxIconComponent } from '@/app/components/vox-icon/vox-icon.component';
 import { VoxCardComponent } from '@/app/components/vox-card/vox-card.component';
 import { VoxSkeletonComponent } from '@/app/components/vox-skeleton/vox-skeleton.component';
@@ -25,6 +25,7 @@ import { VoxHeatmapComponent } from '@/app/components/vox-heatmap/vox-heatmap.co
 import { VoxActivityRingComponent } from '@/app/components/vox-activity-ring/vox-activity-ring.component';
 import { VoxVolumeChartComponent } from '@/app/components/vox-volume-chart/vox-volume-chart.component';
 import { VoxTrendChartComponent } from '@/app/components/vox-trend-chart/vox-trend-chart.component';
+import { VoxExercisePickerComponent } from '@/app/components/vox-exercise-picker/vox-exercise-picker.component';
 import { VoxMacroRingComponent } from '@/app/components/vox-macro-ring/vox-macro-ring.component';
 import { VoxMuscleMapComponent } from '@/app/components/vox-muscle-map/vox-muscle-map.component';
 import { VoxMuscleSplitComponent } from '@/app/components/vox-muscle-split/vox-muscle-split.component';
@@ -43,6 +44,13 @@ addIcons({ chevronBackOutline });
 
 const HEATMAP_WEEKS = 26;
 const MONTHLY_CHART_MONTHS = 6;
+
+/**
+ * How many of the most-logged exercises to try before giving up on picking a
+ * default subject for the trend chart. Each attempt is its own query, so this
+ * bounds page load for someone with a long exercise history.
+ */
+const DEFAULT_TREND_CANDIDATES = 5;
 
 /** Only used if the profile has not loaded yet; the DB column defaults to 4. */
 const DEFAULT_WEEKLY_TARGET = 4;
@@ -69,6 +77,7 @@ const DEFAULT_WEEKLY_TARGET = 4;
     VoxActivityRingComponent,
     VoxVolumeChartComponent,
     VoxTrendChartComponent,
+    VoxExercisePickerComponent,
     VoxMacroRingComponent,
     VoxMuscleMapComponent,
     VoxMuscleSplitComponent,
@@ -106,7 +115,7 @@ export class ProgressPage implements ViewWillEnter {
   protected readonly volumeTrendLoaded = signal(false);
 
   protected readonly heatmapWeeks = HEATMAP_WEEKS;
-  protected readonly trendWeeks = TREND_WINDOW_WEEKS;
+  protected readonly trendSessions = TREND_MAX_SESSIONS;
 
   /** Tones for the three hero tiles: neutral / streak / PRs. */
   protected readonly statTones = ['ink', 'apricot', 'jade'] as const;
@@ -311,7 +320,17 @@ export class ProgressPage implements ViewWillEnter {
   protected readonly trendExercise = signal<string | null>(null);
   protected readonly trendPoints = signal<VoxTrendPoint[]>([]);
 
+  /** Every strength exercise ever logged, most-logged first — the picker's list. */
+  protected readonly trendExerciseOptions = signal<string[]>([]);
+
+  /**
+   * Only true while *switching* exercises. The first load is covered by the
+   * page-wide skeleton, so setting this there would stack two placeholders.
+   */
+  protected readonly trendLoading = signal(false);
+
   protected readonly trendHeadline = computed(() => {
+    if (this.trendLoading()) return '';
     const best = this.trendPoints().reduce((max, p) => Math.max(max, p.value), 0);
     return best > 0 ? `${best} kg` : '';
   });
@@ -383,33 +402,60 @@ export class ProgressPage implements ViewWillEnter {
     const uid = this.auth.user()?.id;
     if (!uid) return;
     try {
+      const all = await this.journal.listLoggedExercises();
+      this.trendExerciseOptions.set(all);
+
       /*
        * Walk the most-logged exercises until one yields a plottable series.
        * The most frequent lift is often bodyweight (push-ups, pull-ups), which
-       * has no top-set weight — charting its title over an empty state reads
-       * as a bug rather than as missing data.
+       * has no top-set weight — opening on its title over an empty state reads
+       * as a bug rather than as missing data. The user can still pick it from
+       * the list, where an explicit choice makes the empty state legible.
+       *
+       * Bounded so a long history doesn't fire a query per exercise on load.
        */
-      const top = await this.journal.listTopExercises(uid);
-      for (const candidate of top) {
-        const series = await this.journal.getExerciseTrend(uid, candidate);
-        if (series.length < 2) continue;
+      for (const candidate of all.slice(0, DEFAULT_TREND_CANDIDATES)) {
+        const points = await this.fetchTrendPoints(candidate);
+        if (points.length < 2) continue;
         this.trendExercise.set(candidate);
-        this.trendPoints.set(
-          series.map((s, i) => ({
-            label: i === series.length - 1 ? 'NOW' : `W${i + 1}`,
-            value: s.topWeightKg,
-            isPr: s.isPr,
-          })),
-        );
+        this.trendPoints.set(points);
         return;
       }
-      this.trendExercise.set(null);
+      /* Nothing plottable: still offer the list rather than hiding the card. */
+      this.trendExercise.set(all[0] ?? null);
       this.trendPoints.set([]);
     } catch (err) {
       console.error('[ProgressPage] load trend', err);
       this.trendExercise.set(null);
       this.trendPoints.set([]);
+      this.trendExerciseOptions.set([]);
     }
+  }
+
+  /** Picker choice — swap the chart's subject, showing a skeleton meanwhile. */
+  protected async selectTrendExercise(name: string): Promise<void> {
+    const uid = this.auth.user()?.id;
+    if (!uid) return;
+    /*
+     * Set the name before fetching so the picker reflects the tap immediately;
+     * the skeleton covers the series being stale for those few hundred ms.
+     */
+    this.trendExercise.set(name);
+    this.trendLoading.set(true);
+    try {
+      this.trendPoints.set(await this.fetchTrendPoints(name));
+    } catch (err) {
+      /* The chart's own empty state carries this — a toast would be noise. */
+      console.error('[ProgressPage] select trend exercise', err);
+      this.trendPoints.set([]);
+    } finally {
+      this.trendLoading.set(false);
+    }
+  }
+
+  private async fetchTrendPoints(exercise: string): Promise<VoxTrendPoint[]> {
+    const series = await this.journal.getExerciseTrend(exercise);
+    return series.map((s) => ({ dateKey: s.dateKey, value: s.topWeightKg, isPr: s.isPr }));
   }
 }
 
