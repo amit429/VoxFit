@@ -32,10 +32,35 @@
   color: var(--vox-jade);
 }
 
+/*
+ * Positioning context for everything overlaid on the plot — dots, y-axis
+ * values. Its height is the SVG's, so the percentages the component emits map
+ * straight onto the same box the path is drawn in.
+ */
+/*
+ * The gutter width is shared by the plot and the x-axis below it, so a date
+ * label stays under the point it belongs to.
+ */
+.tc-plot,
+.tc-axis {
+  padding-left: 30px;
+}
+
+.tc-plot {
+  position: relative;
+  height: 104px;
+}
+
+/* Positioning context for the dots — the box the fractions map onto. */
+.tc-plot-inner {
+  position: relative;
+  height: 100%;
+}
+
 .tc-svg {
   display: block;
   width: 100%;
-  height: 104px;
+  height: 100%;
 }
 
 .tc-grid {
@@ -44,60 +69,170 @@
   vector-effect: non-scaling-stroke;
 }
 
-/*
- * Dots are stroked in the canvas colour rather than given a halo — it punches
- * them out of the line without adding a glow the system doesn't allow.
- */
+/* ---- Y-axis values ---- */
+
+.tc-yaxis {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 30px;
+  pointer-events: none;
+}
+
+.tc-yaxis span {
+  position: absolute;
+  right: 6px;
+  /* Centred on its gridline; the two end values are pulled inside the plot by
+     the rules below so neither is clipped by its edge. */
+  transform: translateY(-50%);
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: var(--vox-ink-tertiary);
+  white-space: nowrap;
+}
+
+.tc-yaxis span:first-child {
+  transform: translateY(0);
+}
+
+.tc-yaxis span:last-child {
+  transform: translateY(-100%);
+}
+
+/* ---- Dots ---- */
+
 .tc-dot {
-  stroke: var(--vox-canvas);
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 2px solid var(--vox-canvas);
+  border-radius: 50%;
+  background: var(--vox-jade);
+  /* Centres the 9px dot on its coordinate. */
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * The tap target, not the dot. 44px square centred on a 9px mark — without this
+ * the values are effectively unreachable on a touch screen.
+ */
+.tc-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .tc-dot--pr {
-  fill: var(--vox-apricot);
-  stroke-width: 2;
+  background: var(--vox-apricot);
 }
 
 .tc-dot--best {
-  fill: var(--vox-jade);
-  stroke-width: 2.5;
+  width: 12px;
+  height: 12px;
 }
 
+/* Selected reads as a ring rather than a colour change, so it never collides
+   with the PR/best colours already carrying meaning. */
+.tc-dot--on {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28);
+}
+
+.tc-dot:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 3px;
+}
+
+/* ---- X-axis ---- */
+
+/*
+ * Absolutely positioned rather than a flex row: labels sit under the point they
+ * belong to, which only works if their position matches the (time-proportional)
+ * x of that point. `buildTrendAxisLabels` has already dropped any that would
+ * collide, so nothing here needs to hide overflow.
+ */
 .tc-axis {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 14px;
   margin-top: 6px;
   font-size: 0.59375rem;
   font-weight: 600;
   color: var(--vox-ink-tertiary);
 }
 
-.tc-legend {
+.tc-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* The end labels would overhang the card; pin them inside it instead. */
+.tc-axis span:first-child {
+  transform: translateX(0);
+}
+
+.tc-axis span:last-child {
+  transform: translateX(-100%);
+}
+
+/* ---- Tap readout ---- */
+
+.tc-readout {
   display: flex;
-  gap: 14px;
-  margin-top: 11px;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
   font-size: 0.625rem;
   font-weight: 600;
   color: var(--vox-ink-tertiary);
 }
 
-.tc-legend span {
+.tc-readout-weight {
+  font-family: var(--vox-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+.tc-readout-date {
+  color: var(--vox-ink-subtle);
+}
+
+.tc-readout-pr {
+  padding: 1px 6px;
+  border-radius: var(--vox-radius-pill);
+  background: rgba(240, 169, 106, 0.16);
+  color: var(--vox-apricot);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+}
+
+.tc-readout-hint {
+  margin-left: auto;
+  color: var(--vox-ink-tertiary);
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/*
+ * Sized to match the plot + axis + readout it replaces (104 + 11 + 12, with the
+ * gaps standing in for their margins), so swapping exercises does not resize
+ * the card and shove the rest of the page.
+ */
+.tc-loading {
   display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.tc-key {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.tc-key--pr {
-  background: var(--vox-apricot);
-}
-
-.tc-key--best {
-  background: var(--vox-jade);
+  flex-direction: column;
+  gap: 11px;
 }
 
 .tc-empty {
@@ -105,4 +240,10 @@
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--vox-ink-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-dot {
+    transition: none;
+  }
 }

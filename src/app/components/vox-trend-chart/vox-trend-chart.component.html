@@ -1,65 +1,114 @@
 <div class="tc">
-  @if (title() || headline()) {
-    <div class="tc-head">
-      <div class="min-w-0">
+  <!--
+    The title slot is projected so a host can put a control there (the exercise
+    picker) instead of static text, without this component knowing about it.
+    Falls back to `title` when nothing is projected.
+  -->
+  <div class="tc-head">
+    <div class="min-w-0">
+      <ng-content select="[trendTitle]">
         <p class="tc-title">{{ title() }}</p>
-        @if (subtitle()) {
-          <p class="tc-sub">{{ subtitle() }}</p>
+      </ng-content>
+      @if (subtitle()) {
+        <p class="tc-sub">{{ subtitle() }}</p>
+      }
+    </div>
+    @if (headline()) {
+      <span class="tc-headline">{{ headline() }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="tc-loading" aria-busy="true">
+      <vox-skeleton height="104px" radius="md" />
+      <vox-skeleton height="11px" width="70%" radius="xs" />
+      <vox-skeleton height="12px" width="45%" radius="xs" />
+    </div>
+  } @else if (hasData()) {
+    <div class="tc-plot">
+      <!-- Weight scale in its own gutter, not overlaid: the oldest session sits
+           at x=0, so an overlaid label collides with its dot every time. -->
+      <div class="tc-yaxis" aria-hidden="true">
+        @for (v of axisValues(); track $index; let i = $index) {
+          <span [style.top]="percent(i * 0.5)">{{ formatWeight(v) }}</span>
         }
       </div>
-      @if (headline()) {
-        <span class="tc-headline">{{ headline() }}</span>
+
+      <div class="tc-plot-inner">
+      <svg
+        class="tc-svg"
+        [attr.viewBox]="'0 0 ' + vbWidth + ' ' + vbHeight"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient [attr.id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--vox-jade)" stop-opacity=".34" />
+            <stop offset="100%" stop-color="var(--vox-jade)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+
+        <!-- One line per y-axis value, so the gridlines mean something rather
+             than sitting at arbitrary heights. -->
+        @for (v of axisValues(); track $index; let i = $index) {
+          <line
+            x1="0"
+            [attr.y1]="i * (vbHeight / 2)"
+            [attr.x2]="vbWidth"
+            [attr.y2]="i * (vbHeight / 2)"
+            class="tc-grid"
+          />
+        }
+
+        <path [attr.d]="areaPath()" [attr.fill]="'url(#' + gradientId() + ')'" />
+        <path
+          [attr.d]="linePath()"
+          fill="none"
+          stroke="var(--vox-jade)"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+        />
+      </svg>
+
+      <!-- Dots are HTML so they stay circular under the stretched viewBox, and
+           so each can carry a tap target much larger than it draws. -->
+      @for (c of coords(); track c.dateKey; let i = $index) {
+        <button
+          type="button"
+          class="tc-dot"
+          [class.tc-dot--pr]="c.isPr"
+          [class.tc-dot--best]="c.isBest"
+          [class.tc-dot--on]="isSelected(i)"
+          [style.left]="percent(c.xFraction)"
+          [style.top]="percent(c.yFraction)"
+          [attr.aria-label]="pointLabel(c)"
+          [attr.aria-pressed]="isSelected(i)"
+          (click)="select(i)"
+        ></button>
       }
+      </div>
     </div>
-  }
-
-  @if (hasData()) {
-    <svg
-      class="tc-svg"
-      [attr.viewBox]="'0 0 ' + vbWidth + ' ' + vbHeight"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient [attr.id]="gradientId()" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--vox-jade)" stop-opacity=".34" />
-          <stop offset="100%" stop-color="var(--vox-jade)" stop-opacity="0" />
-        </linearGradient>
-      </defs>
-
-      @for (y of gridLines; track y) {
-        <line x1="0" [attr.y1]="y" [attr.x2]="vbWidth" [attr.y2]="y" class="tc-grid" />
-      }
-
-      <path [attr.d]="areaPath()" [attr.fill]="'url(#' + gradientId() + ')'" />
-      <path
-        [attr.d]="linePath()"
-        fill="none"
-        stroke="var(--vox-jade)"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        vector-effect="non-scaling-stroke"
-      />
-
-      @for (dot of prDots(); track $index) {
-        <circle [attr.cx]="dot.x" [attr.cy]="dot.y" r="4.5" class="tc-dot tc-dot--pr" />
-      }
-      @if (bestDot(); as best) {
-        <circle [attr.cx]="best.x" [attr.cy]="best.y" r="5.5" class="tc-dot tc-dot--best" />
-      }
-    </svg>
 
     <div class="tc-axis">
-      @for (label of axisLabels(); track $index) {
-        <span>{{ label }}</span>
+      @for (l of axisLabels(); track $index) {
+        <span [style.left]="percent(l.xFraction)">{{ l.text }}</span>
       }
     </div>
 
-    <div class="tc-legend">
-      <span><i class="tc-key tc-key--pr"></i>PR hit</span>
-      <span><i class="tc-key tc-key--best"></i>Current best</span>
-    </div>
+    @if (readout(); as r) {
+      <div class="tc-readout" aria-live="polite">
+        <span class="tc-readout-weight">{{ r.weight }}</span>
+        <span class="tc-readout-date">{{ r.date }}</span>
+        @if (r.isPr) {
+          <span class="tc-readout-pr">PR</span>
+        }
+        @if (!r.isSelected) {
+          <span class="tc-readout-hint">tap a point</span>
+        }
+      </div>
+    }
   } @else {
     <p class="tc-empty">Log this lift a few more times and its trend will show up here.</p>
   }

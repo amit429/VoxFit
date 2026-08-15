@@ -1,0 +1,121 @@
+/*
+ * Sheet layout lives here rather than in vox-ui.scss because global selectors
+ * cannot pierce ion-modal's shadow boundary — only the host-level modal
+ * variables (`ion-modal.vox-bottom-sheet`) can be set globally.
+ */
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* ---- Trigger ---- */
+
+.ep-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ep-trigger-label,
+.ep-static {
+  overflow: hidden;
+  margin: 0;
+  color: var(--vox-ink);
+  font-family: var(--vox-font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ep-trigger:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: 3px;
+  border-radius: var(--vox-radius-sm);
+}
+
+/* ---- Sheet ---- */
+
+.ep {
+  padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(170deg, #191430, #141126);
+}
+
+.ep-grabber {
+  display: block;
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ep-title {
+  margin: 0 0 12px;
+  font-family: var(--vox-font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vox-ink);
+}
+
+/*
+ * Capped rather than fixed: someone tracking four lifts gets a short sheet,
+ * while a long history scrolls internally instead of pushing the list off the
+ * bottom of an auto-height sheet.
+ */
+.ep-list {
+  overflow-y: auto;
+  max-height: 46vh;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.ep-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vox-space-sm);
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--vox-radius-md);
+  background: none;
+  color: var(--vox-ink-subtle);
+  font-family: var(--vox-font-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Jade for the current selection — the affirmative/selected role. */
+.ep-option--on {
+  border-color: var(--vox-border-hairline);
+  background: var(--vox-surface-2);
+  color: var(--vox-ink);
+  font-weight: 600;
+}
+
+.ep-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ep-option:focus-visible {
+  outline: 2px solid var(--vox-brand);
+  outline-offset: -2px;
+}
