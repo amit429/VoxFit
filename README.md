@@ -1,6 +1,6 @@
 # VoxFit — Voice-First Fitness Logging for the Modern Gym
 
-![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold) ![Automation](https://img.shields.io/badge/automation-pg__cron%20%2B%20pg__net-blueviolet) [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://voxfit.amitpile.com/auth/welcome)
+![VoxFit](https://img.shields.io/badge/platform-mobile--web-blue) ![Angular](https://img.shields.io/badge/framework-Angular%2020-red) ![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e) ![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-gold) ![Groq](https://img.shields.io/badge/speech--to--text-Groq%20Whisper%20v3%20turbo-f55036) ![Automation](https://img.shields.io/badge/automation-pg__cron%20%2B%20pg__net-blueviolet) [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://voxfit.amitpile.com/auth/welcome)
 
 **Speak your workout. Track your progress. Let an AI coach watch your trends.**
 
@@ -37,7 +37,7 @@ Also in [`mockups/`](mockups): `00_gallery_grid.png` (all ten as one sheet) and 
 The mockups are the design source of truth for the Dusk system and match the shipped UI closely, but they are renders rather than screenshots of the running app. Three details in them are deliberately **not** in the build, each for a reason recorded in [Future Features](#future-features):
 
 - **The notification bell** on Home — there is no notification centre. That slot is the profile avatar in the app.
-- **The live transcript** on the voice capture screen — removed by design. Watching imperfect speech recognition arrive word by word undermines trust in a parse the user is about to review anyway, so the app shows reassurance copy instead.
+- **The live transcript** on the voice capture screen — not producible any more, and not wanted. Voice capture records a clip and transcribes it in one server-side call (see [Voice capture](#data-flow--voice-logging)), so there is no word-by-word stream to render. The screen shows a **live microphone level** instead, which is the honest version of the same reassurance: it moves only when the mic is actually hearing you.
 - **Reminders and "Export my data as CSV"** in Settings — neither has infrastructure behind it yet, and a dead toggle is worse than an absent one.
 
 Real on-device screenshots are still on the list to capture.
@@ -47,7 +47,10 @@ Real on-device screenshots are still on the list to capture.
 
 🎙️ **Voice-First Workout Logging**
 - Tap-to-talk mic interface for capturing workout sessions
-- AI-powered parsing (Gemini 2.5 Flash) converts natural speech into sets, reps, weights, cardio segments — even messy, repeated, or garbled mobile speech-to-text output
+- **Record → transcribe → parse.** The app records a bounded audio clip on the device and sends it to a Supabase Edge Function, which transcribes it with **Groq `whisper-large-v3-turbo`**; the transcript then goes to Gemini 2.5 Flash for structuring. This replaced live browser/OS speech recognition entirely — see [Why recording replaced live speech recognition](#why-recording-replaced-live-speech-recognition)
+- Whisper is given a **gym-vocabulary biasing prompt** (lifts, units, RPE, common Indian foods) and greedy decoding, so "lat pulldown" stops coming back as "lap pull down" and silence stops being filled with hallucinated repeats
+- AI-powered parsing (Gemini 2.5 Flash) converts natural speech into sets, reps, weights, cardio segments — even messy or repeated phrasing
+- A **live microphone level** drives the orb's waveform while recording, so the animation can't say "listening" when the mic is dead
 - Review & edit AI-extracted data before saving — your data, your control
 
 🍽️ **Voice-Driven Meal Logging**
@@ -83,6 +86,9 @@ Real on-device screenshots are still on the list to capture.
 📊 **Workout Analytics & History** *(`/progress`)*
 - Every chart on its own **My Progress** screen, so Profile isn't identity, badges and preferences competing with six charts for the same scroll
 - All-time stat tiles, sessions-this-week ring against your own target, weekly volume, strength trend per exercise, macro rings, 26-week activity heatmap, and six months of workout + calorie history
+- **Strength trend, per exercise you choose.** A bottom-sheet picker lists every strength lift you've ever logged (most-logged first, cardio excluded because it has no top-set weight to plot); the page still opens on your main lift so nothing has to be chosen before you've seen the chart
+- Points are spaced **proportionally to elapsed time**, not by ordinal — a two-day gap and a month-long plateau must not draw the same slope. Dates are real axis labels, thinned rather than rotated or shrunk, and any point can be tapped for its exact weight and date
+- Both queries are server-side RPCs (`get_exercise_trend`, `get_logged_exercises`, migration `0015`) instead of pulling sessions plus `set_lines` to the client and aggregating there — which also removed a second, client-side copy of "what is the heaviest set"
 - Mood/energy tracking per session, PR detection, and a filterable training journal (mood, has-PRs, has-notes)
 
 💪 **Muscle Split — what you actually trained**
@@ -117,7 +123,7 @@ Real on-device screenshots are still on the list to capture.
 ⚙️ **Mobile-First, Cross-Platform**
 - Responsive mobile-web app (desktop fallback supported)
 - One-codebase deployment to browsers and Play Store (via Capacitor)
-- Integrates with native speech recognition (web & Android)
+- Audio capture via `@capgo/capacitor-audio-recorder` — the same API on web (MediaRecorder, Opus in WebM) and Android (AAC in MPEG-4), so voice logging no longer depends on the browser's or the OS's speech recogniser being available or reliable
 - Skeleton loading on every data-driven screen, sized to the shape that's coming, so nothing pops in or shifts under a thumb
 - Offline-first logging is **not** built yet — see [Future Features](#future-features)
 
@@ -135,6 +141,7 @@ Real on-device screenshots are still on the list to capture.
 | **Frontend** | Angular 20 (standalone components, signals), Ionic Angular 8, Tailwind CSS v4 |
 | **Mobile/Desktop** | Capacitor 8 (native bridge to Android & web), mobile-web |
 | **Backend** | Supabase (PostgreSQL, Auth, Edge Functions, `pg_cron`, `pg_net`, Vault) |
+| **Speech-to-text** | Groq `whisper-large-v3-turbo`, called server-side from the `transcribe-audio` Edge Function. Audio is captured with `@capgo/capacitor-audio-recorder` (web + Android) |
 | **AI** | Google Gemini 2.5 Flash — single-shot extraction (workout parsing, meal suggestions, eaten-meal analysis, muscle-group classification) and a **tool-calling agent loop** (workout plan generation, weekly progress coach) |
 | **Automation** | `pg_cron` (weekly schedule) + `pg_net` (async HTTP dispatch, also used for muscle classification) + Supabase Vault (secret storage) — server-side only, no third-party job queue |
 | **Fonts** | Poppins 500/600/700, JetBrains Mono 400/500/700 (self-hosted via @fontsource — no CDN, so the WebView renders offline) |
@@ -148,6 +155,7 @@ Real on-device screenshots are still on the list to capture.
 - **Node.js** 18+ (npm 9+)
 - **Supabase** account (free tier available)
 - **Google Gemini API** key
+- **Groq API** key — for speech-to-text. Server-side only: it is set as a Supabase secret (`GROQ_API_KEY`), never as a build variable, because there is no client-direct transcription path by design
 - **Android SDK** (optional, for native development)
 
 ### Installation
@@ -217,11 +225,17 @@ Four tabs plus three standalone routes. Routing is gated by four composed guards
 ### Data Flow — Voice Logging
 
 ```
-User Voice Input
+User taps the orb
     ↓
-Speech Recognition (Web/Android native)
+Record a bounded clip on-device (@capgo/capacitor-audio-recorder)
+web → Opus in WebM · Android → AAC in MPEG-4 · 3-minute hard cap
+live input level drives the orb's waveform while recording
     ↓
-Transcript → Gemini AI (Edge Function)
+Tap to stop → upload the clip (multipart) to `transcribe-audio` (Edge Function)
+    ↓
+Groq whisper-large-v3-turbo + gym-vocabulary prompt, temperature 0
+    ↓
+Transcript → Gemini AI (extract-workout / suggest-diet-meals / log-food)
     ↓
 Structured Data (exercises, sets, reps, weight)
     ↓
@@ -231,6 +245,51 @@ Save to Supabase (PostgreSQL)
     ↓
 Analytics & History (charts, heatmap, stats)
 ```
+
+The processing screen names which half of the wait you're in ("Sending your recording" → "Transcribing" → "Parsing your session") rather than showing one opaque spinner across two very different operations.
+
+### Why recording replaced live speech recognition
+
+The app previously used the Web Speech API in the browser and
+`@capacitor-community/speech-recognition` on Android. Both are **session** based:
+the recogniser ends itself after a second or two of silence and has to be
+restarted, and every restart can fail — Android's `SpeechRecognizer` routinely
+answers `ERROR_RECOGNIZER_BUSY` when restarted from inside its own stop callback.
+A failed restart left the app capturing nothing while the orb still said
+"listening", and the audio spoken during each restart gap was dropped outright.
+Roughly 300 lines of restart bookkeeping, boundary de-duplication and
+cross-session transcript stitching existed to paper over that, and it still
+lost words — and the stitching was where the duplicated-sentence transcripts
+seen on web/Chrome came from.
+
+A recording has no session to time out, so that entire class of bug does not
+exist on this path. What the change bought and cost:
+
+| | Live recognition (old) | Record + transcribe (new) |
+|---|---|---|
+| Failure mode | Silent — UI says "listening", nothing is captured | Loud — the upload or the call fails, and the user is told |
+| Accuracy | Whatever the device/browser ships, unversioned | One pinned model, same on every platform, plus a domain vocabulary prompt |
+| Domain terms | No lever at all | Whisper's 224-token biasing prompt (lifts, units, RPE, foods) |
+| Mic feedback | Orb animated identically whether the mic worked or not | Real input level, sampled at 10 Hz |
+| Live transcript | Produced, but never rendered in any template | Not produced — costs nothing, since nothing consumed it |
+| Cost | Free | ~$0.04 per audio-hour, plus one extra round trip |
+
+`whisper-large-v3-turbo` over the full `whisper-large-v3` is a deliberate trade:
+~12% WER at $0.04/audio-hour against 10.3% at $0.111. The gap is noise next to
+what Gemini then does with the text — it already reconciles messy phrasing — so
+the cheaper, faster model is the right one for a voice logger.
+
+Guardrails on this path: a 3-minute recording cap (a phone left recording in a
+pocket costs one wasted request, not a failed one, and the audio captured before
+the cap is still submitted rather than discarded), a 12 MB request ceiling,
+15-second timeouts around the native bridge, and the same per-user AI quota the
+Gemini functions enforce. Note that one voice log now spends **two** daily quota
+events: `transcribe-audio`, then the Gemini function.
+
+Unlike the Gemini services there is deliberately **no client-direct twin and no
+`environment.useGeminiEdgeFunction` gate** for transcription: a Groq key cannot
+ship in the bundle (`scripts/scan-bundle-secrets.js` would flag it, correctly),
+so the Edge Function is the only path.
 
 ### Data Flow — AI Coach (agent + weekly automation)
 
@@ -350,17 +409,20 @@ voxfit/
 │   │   │                   #   vox-progress-nudge, vox-macro-ring, vox-activity-ring, vox-volume-chart,
 │   │   │                   #   vox-trend-chart, vox-heatmap, vox-badge-shelf, vox-muscle-map,
 │   │   │                   #   vox-muscle-split, vox-segmented, vox-date-scrubber, vox-filter-sheet,
-│   │   │                   #   vox-stepper-row, vox-meal-row, vox-checkin-modal, vox-recipe-modal
+│   │   │                   #   vox-stepper-row, vox-meal-row, vox-checkin-modal, vox-recipe-modal,
+│   │   │                   #   vox-exercise-picker
 │   │   │                   #   + coach surfaces: plan-review-card, progress-review-card,
 │   │   │                   #   plan-nudge-card, coach-pointer-card
-│   │   ├── services/       # Auth, voice, Gemini (workout extract + diet + workout-plan + checkin),
+│   │   ├── services/       # Auth, voice session (record + transcribe), Gemini (workout extract +
+│   │   │                   #   diet + workout-plan + checkin),
 │   │   │                   #   Supabase, journal, diet log, nutrition dashboard, workout-plan,
 │   │   │                   #   progress-coach, badge, streak-milestone
 │   │   ├── models/         # TypeScript types, one file per exported interface/type, all re-exported
 │   │   │                   #   from models/index.ts — every consumer imports from `@/app/models`
 │   │   ├── guards/         # Route guards (guest, auth, onboardingPage, onboardingComplete)
 │   │   ├── utils/          # Formatters + pure logic: workout display, session filters, meal display,
-│   │   │                   #   volume-trend (rolling windows), streak-share-image (canvas poster)
+│   │   │                   #   volume-trend (rolling windows), trend-chart-geometry (time-proportional
+│   │   │                   #   plotting + label thinning), streak-share-image (canvas poster)
 │   │   ├── prompts/        # Gemini system prompts (workout parser, meal suggester, eaten-meal
 │   │   │                   #   logger, workout-plan builder, weekly coach builder)
 │   │   └── data/           # Small fallback/mock display constants (not types)
@@ -369,15 +431,23 @@ voxfit/
 │   └── index.html          # Viewport, meta tags, splash matching the canvas gradient
 ├── android/                # Capacitor Android project
 ├── supabase/
-│   ├── functions/          # extract-workout, suggest-diet-meals, log-food,
+│   ├── functions/          # transcribe-audio (Groq Whisper speech-to-text)
+│   │                       # extract-workout, suggest-diet-meals, log-food,
 │   │                       #   classify-exercise-muscles  (single-shot Gemini calls)
 │   │                       # generate-workout-plan, generate-checkin (Gemini tool-calling agent)
 │   │                       # delete-account
-│   └── migrations/         # 0001 workout_plans · 0002 progress_reviews + plan_nudges
+│   │                       # _shared/guard.ts — origin allowlist, body caps, JWT check,
+│   │                       #   per-user quota; guardBinaryRequest is the multipart variant
+│   └── migrations/         # 0000 initial schema (base tables, RLS, grants, constraints —
+│                           #      the ten pre-folder migrations, transcribed)
+│                           # 0001 workout_plans · 0002 progress_reviews + plan_nudges
 │                           # 0003 pg_cron/pg_net weekly dispatcher · 0004 service_role grants
 │                           # 0005 email_exists check · 0006 weekly target + badge ledger
 │                           # 0007 muscle groups + async classification · 0008 weekly volume series
 │                           # 0009 diet_logs.emoji · 0010 automatic PR detection
+│                           # 0011 profile body metrics · 0012–0013 walkthrough seen flags
+│                           # 0014 AI rate limiting + hardening
+│                           # 0015 exercise-trend RPCs (strength chart, server-side)
 ├── REVAMP-PROGRESS.md      # Phase-by-phase log of the Dusk revamp + the deferred-feature list
 ├── capacitor.config.ts     # Capacitor config (appId: com.voxfit.app)
 └── angular.json            # Angular CLI workspace config
@@ -413,6 +483,7 @@ Build command: `npm run build:prod`. Output directory: `www`.
 >
 > ```bash
 > supabase secrets set GEMINI_API_KEY="..."
+> supabase secrets set GROQ_API_KEY="..."   # speech-to-text; server-side only, no client path
 > ```
 >
 > `supabaseAnonKey` *is* meant to be public — it's useless without an RLS-passing
@@ -478,7 +549,7 @@ cd android && ./gradlew bundleRelease
 1. **Local dev**: `npm start` → browser mobile viewport (Chrome DevTools)
 2. **Component changes**: Edit `.ts`/`.html`/`.scss`, save → auto-reload
 3. **Design token changes**: Edit `src/theme/variables.scss` → impacts all screens
-4. **Voice testing**: Use web Speech API in Chrome, or native Android emulator/device
+4. **Voice testing**: record in Chrome (MediaRecorder) or on an Android device/emulator — both hit the deployed `transcribe-audio` function, so a Supabase project with `GROQ_API_KEY` set is required even for local dev
 5. **Verification before landing**: `npm run build`, `npm run lint`, `npx ng test --watch=false`
 6. **Android smoke test** (before landing): `npm run android:run:dev`
 
@@ -496,19 +567,28 @@ cd android && ./gradlew bundleRelease
 - `badge_definitions` — `badge_key`, `metric`, `threshold`, `sort_order`. Seeded with 13 badges. **The awarding authority** — thresholds live here, not in app code
 - `user_badges` — `(user_id, badge_key)` PK + `earned_at`. **Select-only under RLS**, with no insert/update/delete policy at all, so a badge cannot be self-granted from a client
 - `exercise_muscle_map` — **global**, not per-user: normalized exercise name → primary/secondary muscle group. A novel name is classified once for the whole product
+- `ai_usage_events` — one row per accepted AI/transcription call, written only by `consume_ai_quota()`. RLS is on with **no policies at all**, so a user can't read, forge or delete their own usage rows — deleting them would reset their own limit. Rows older than 24h are pruned opportunistically on each call; it's a rolling window, not an audit log
 
 All user tables have Row Level Security enabled, scoped to `auth.uid()` (directly on `user_id`/`id` for most, via a `workout_sessions` ownership join for `exercises_logged`). The two AI-coach tables' unique `(user_id, generated_for_week)` indexes are what make the weekly automation idempotent — re-running or overlapping never produces a duplicate.
+
+**The whole schema is in `supabase/migrations/`, `0000` onward** — a fresh Supabase project can be built from this repo alone by running the files in order. `0000_initial_schema.sql` is the base tables, policies, grants and check constraints: VoxFit's first three months of changes were applied straight to the project with nothing checked in, so that file transcribes those ten migrations, in order and verbatim, from the project's own migration table. Applying it to the live project is a no-op (`if not exists` / `or replace` throughout). Every migration applied from here on gets its file in the same commit.
 
 ### RPCs
 
 - **`get_user_progress_stats(p_today date)`** — `SECURITY DEFINER`. Returns workouts, PRs, streak and the full badge shelf, and awards anything newly earned via `ON CONFLICT DO NOTHING`. **Awarding happens on read, not in a write trigger:** idempotent, threshold logic in exactly one place, and impossible for a write path to skip. `p_today` is a parameter rather than `current_date` because `workout_sessions.date` holds the user's *local* date — proven on live data, where the server's date returned a streak of 0 and the user's returned 1
 - **`get_muscle_breakdown(p_week_start, p_week_end)`** — this week's trained groups + the all-time volume split, as `GROUP BY`s over the indexed `primary_muscle` column. Week bounds come from the client so the week is the user's own Monday, not the server's
 - **`get_weekly_volume_series()`** — weekly tonnage, oldest first. Server-side because volume lives in `set_lines`, the column every list query deliberately omits for cost. Returns the *series*, not the verdict — the rolling-window arithmetic lives in `volume-trend.util.ts` where it's unit-testable
+- **`get_exercise_trend(p_exercise_name, p_limit)`** — the most recent *N* sessions (default 12, hard-capped at 60) containing that exercise, each as its top-set weight plus a PR flag, newest-bounded rather than date-bounded. Bounding by session count instead of a fixed 8-week window is what lets every exercise in the picker plot: a lift last trained three months ago charts its real history instead of rendering empty, which reads as a bug. Weight comes from `top_set_weight_kg()` — the same function the PR triggers use, so there is exactly one definition of "heaviest set" — and the unplottable sessions are filtered *before* the limit, which is why the limit can be exact where the old client query had to over-fetch
+- **`get_logged_exercises()`** — every distinct strength exercise the user has ever logged, most-logged first (cardio excluded — the chart plots top-set weight, so listing cardio would offer choices that cannot work). Feeds the picker, and its first plottable entry is the chart's default subject
+- **`consume_ai_quota(p_endpoint, p_per_hour, p_per_day)`** — `SECURITY DEFINER`, called by every AI edge function's guard. Check-and-consume under a per-user transaction-level advisory lock, so parallel requests can't both read the pre-insert count and both pass. Daily budget is counted across *all* endpoints; only the hourly bucket is per-endpoint. Returns `allowed:false` rather than raising, so a denial can't be confused with an outage
 - **`current_workout_streak(p_user, p_today)`**, **`exercise_volume_kg(...)`**, **`normalize_exercise_key(text)`** — supporting functions, search paths pinned
 
 Every RPC returns `jsonb`, which arrives as `unknown` — so each field is coerced explicitly on the client rather than the payload being cast. Same discipline the Gemini parsers use, and for the same reason: a shape change should degrade to a sane default, not throw somewhere far away.
 
-### Gemini Edge Functions
+### Edge Functions
+
+**Speech-to-text:**
+- **`transcribe-audio`** — Deno runtime, POST a multipart audio clip → `{ transcript }`. Calls Groq `whisper-large-v3-turbo` with a gym-vocabulary biasing prompt and `temperature: 0`, names the upload with the extension matching its MIME type (Whisper infers the container from the filename), and maps a silent clip to a 422 "No speech detected" rather than a server error. Upstream error bodies are logged, never returned — they can echo request content. Guarded by `guardBinaryRequest`: origin allowlist, 12 MB cap, real user JWT, per-user quota (30/hour, 100/day)
 
 **Single-shot extraction:**
 - **`extract-workout`** — Deno runtime, POST transcript → structured `WorkoutExtractResult`

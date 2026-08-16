@@ -82,17 +82,32 @@ This is where the test suite actually lives — see Testing.
 ### Data flow
 
 ```
-Voice input → Speech Recognition (Web Speech API / Capacitor native on Android)
-→ transcript → Gemini (edge function or direct) → structured JSON
+Voice input → record a bounded clip on-device (@capgo/capacitor-audio-recorder)
+→ upload to `transcribe-audio` (Groq whisper-large-v3-turbo) → transcript
+→ Gemini (edge function or direct) → structured JSON
 → normalize/parse → user review (vox-card, editor modals) → Supabase write
 → journal/dashboard services re-derive stats → charts, streaks, heatmap
 ```
 
+Speech recognition (Web Speech API / `@capacitor-community/speech-recognition`)
+was **removed**, not made optional. Both were session-based: the recogniser ends
+itself on silence, every restart can fail (`ERROR_RECOGNIZER_BUSY`), and a failed
+restart left the app capturing nothing while the UI still said "listening". The
+~300 lines of restart/stitching bookkeeping that papered over it are gone with
+it. Don't reintroduce a live-transcript UI — this path produces no partial
+results; `VoiceSessionService.amplitude()` is the "we can hear you" signal, and
+`phase()` (`recording` → `uploading` → `transcribing`) is what the pages label
+the wait with.
+
 ### Supabase
 
-Edge Functions (Deno, `supabase/functions/`): `extract-workout`, `suggest-diet-meals`, `log-food`, `generate-workout-plan`, `generate-checkin`, `classify-exercise-muscles`, `delete-account`.
+Edge Functions (Deno, `supabase/functions/`): `transcribe-audio`, `extract-workout`, `suggest-diet-meals`, `log-food`, `generate-workout-plan`, `generate-checkin`, `classify-exercise-muscles`, `delete-account`.
 
-Tables: `user_profiles`, `workout_sessions`, `exercises_logged`, `diet_logs`, `workout_plans`, all RLS-scoped to `auth.uid()` (`exercises_logged` via a join through `workout_sessions` ownership).
+Every client-facing one goes through `_shared/guard.ts` (origin allowlist, body cap, real user JWT, per-user quota via the `consume_ai_quota` RPC). `guardBinaryRequest` is the multipart variant `transcribe-audio` uses; secrets are Supabase secrets (`GEMINI_API_KEY`, `GROQ_API_KEY`), never build vars.
+
+Tables: `user_profiles`, `workout_sessions`, `exercises_logged`, `diet_logs`, `workout_plans`, all RLS-scoped to `auth.uid()` (`exercises_logged` via a join through `workout_sessions` ownership). `ai_usage_events` backs the quota and has RLS on with **no policies** — only the `SECURITY DEFINER` function touches it.
+
+**Every applied migration gets a numbered file in `supabase/migrations/`.** `mcp__supabase__apply_migration` writes to the live project only — the repo file is a second, manual step, and skipping it means a fresh project can't be rebuilt from the repo. Apply, then commit the identical SQL as the next `NNNN_name.sql`, and verify the folder against `mcp__supabase__list_migrations` before you finish. `0000_initial_schema.sql` covers the pre-folder era (ten migrations applied before this folder existed, transcribed from the project's migration table), so the folder is now the complete schema, `0000` onward.
 
 Column convention: **real columns for whatever the UI filters or queries on, JSONB for AI-shaped structured content that's read back whole** — `exercises_logged.set_lines`, `workout_sessions.raw_transcript`, `workout_plans.plan`.
 
@@ -107,6 +122,8 @@ The established pattern is a **triple**, and all three pieces move together:
 3. a service exposing both transports, gated by `environment.useGeminiEdgeFunction`
 
 The two prompt copies (client `src/app/prompts/*.prompt.ts` and server `supabase/functions/*/prompt.ts`) must be kept in sync — each carries a header comment naming its counterpart. Both transports converge on the same parse/normalize function so callers get an identically-shaped result regardless of path.
+
+`transcribe-audio` is the deliberate exception to (3): no client-direct twin, no `useGeminiEdgeFunction` gate, no prompt-builder pair. A Groq key in the bundle would trip `scripts/scan-bundle-secrets.js`, correctly, so the Edge Function is the only path. Don't "complete the pattern" by adding a direct transport.
 
 Worked examples live in `docs/superpowers/plans/` and `docs/superpowers/specs/`.
 
@@ -214,7 +231,7 @@ that is the only lever that moves the bar's bottom edge.
 
 ionicons via the `vox-icon` wrapper (ties size/tone to the token system) — don't drop raw `ion-icon` or emoji into new UI. The one exception is emoji that *is* AI-generated data (e.g. a meal suggestion's emoji).
 
-### Shared components (`src/app/components/`, 42 of them)
+### Shared components (`src/app/components/`, 43 of them)
 
 Check here before building a one-off equivalent: `vox-card`, `vox-badge`, `vox-icon`, `vox-skeleton`, `vox-segmented`, `vox-stat-tile`, `vox-confirm-dialog`, plus feature-specific editors, modals and charts.
 
@@ -235,10 +252,10 @@ The installed tailwindcss/@tailwindcss-postcss (4.2.4) has a content-scanning bu
 
 ## Testing
 
-14 spec files, and the pattern is deliberate: **pure functions and services have specs; pages and most components do not.**
+19 spec files, and the pattern is deliberate: **pure functions and services have specs; pages and most components do not.**
 
-- `src/app/utils/*.util.spec.ts` — 6 specs over the pure derivation/formatting helpers
-- `src/app/services/*.service.spec.ts` — 6 specs, concentrated on parsing/normalization and business rules
+- `src/app/utils/*.util.spec.ts` — 8 specs over the pure derivation/formatting helpers
+- `src/app/services/*.service.spec.ts` — 9 specs, concentrated on parsing/normalization and business rules
 - one component spec (`coach-pointer-card`) and `app.component.spec.ts`
 
 New pure logic — a normalizer, a mapper, a stats derivation — is expected to come with a spec. UI-only components are not.
